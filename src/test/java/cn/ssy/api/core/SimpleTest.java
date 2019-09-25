@@ -1,6 +1,7 @@
 package cn.ssy.api.core;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -310,5 +311,6 @@ public class SimpleTest{
 	
 	@Test
 	public void test19(){
+		System.out.println(FileInputStream.class);
 	}
 }
