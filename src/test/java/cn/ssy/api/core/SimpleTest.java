@@ -1,7 +1,6 @@
 package cn.ssy.api.core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -55,7 +54,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("gl_func_code");
+		SunlineUtil.sunlineSearchDict("Ref_status");
 	}
 	
 	
@@ -73,7 +72,7 @@ public class SimpleTest{
 		for(File file : fileArr){
 			file.delete();
 		}
-		SunlineUtil.sunlinePackageServiceJar(E_ICOREMODULE.LN, E_PACKAGETYPE.ALL, "3.0.0-SNAPSHOT", dir,true);
+		SunlineUtil.sunlinePackageServiceJar(E_ICOREMODULE.LN, E_PACKAGETYPE.ALL, "3.1.0.0-SNAPSHOT", dir,true);
 	}
 	
 	
@@ -154,7 +153,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7(){
-		BatTaskUtil.startupTask("ln09",125,"");
+		BatTaskUtil.startupTask("ln01",10,"");
 		BatTaskUtil.printBatchTastExecuteRes();
 	}
 	
@@ -187,7 +186,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));*/
 		
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnScheduleListRecentlyQueryOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnScheduleListQueryOut"));
 	}
 	
 	
@@ -200,7 +199,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10(){
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_BATCORE);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
 	}
 
 	
@@ -283,7 +282,7 @@ public class SimpleTest{
 	@Test
 	public void test18() throws Exception{
 		double crit = 0.04;
-		double sunderArmor = 0.7265;
+		double sunderArmor = 0.7199;
 		double critEffect = 1.75;
 		double initHarm = 26200;
 		
@@ -311,6 +310,36 @@ public class SimpleTest{
 	
 	@Test
 	public void test19(){
-		System.out.println(FileInputStream.class);
+		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
+		List<Map<String, Object>> loanList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select loan_no from lna_accrual  where advance_interest_method = 'PRINCIPAL' OR advance_interest_method = 'TOTAL'", dataSource));
+		int total = loanList.size();
+		int success = 0;
+		for(Map<String, Object> map : loanList){
+			System.out.println("处理:" + map.get("loan_no"));
+			if(JDBCUtils.executeUpdate("update lna_repayment set early_rpym_interest_method = 'NO' where loan_no = ?",new String[]{map.get("loan_no").toString()},dataSource)){
+				success++;
+			}
+		}
+		System.out.println("处理完成,总数量:" + total + ",成功数量:" + success);
+	}
+	
+	
+	/**
+	 * @throws Exception 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年9月29日-下午1:52:18</li>
+	 *         <li>功能说明：网关接口api发布</li>
+	 *         </p>
+	 */
+	@Test
+	public void test20() throws Exception{
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326126");
+	}
+	
+	
+	@Test
+	public void test21() throws Exception{
+		System.out.println(CommonUtil.getIpAddress(null));
 	}
 }

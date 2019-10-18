@@ -2,6 +2,7 @@ package cn.ssy.base.core.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -318,5 +320,59 @@ public class ExcelReader {
 			}
 		}
 		return rowMap;
+	}
+	
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年9月29日-下午1:20:00</li>
+	 *         <li>功能说明：写入网关接口Excel文档</li>
+	 *         </p>
+	 * @param filePath
+	 * @return
+	 * @throws Exception 
+	 */
+	public static void writeGatewayApi(String filePath,List<Map<String, String>> dataList) throws Exception{
+		//获取Workbook对象
+		Workbook workbook = getWorkbook(filePath);
+		// excel工作表
+		List<Sheet> sheetList = getAllSheets(workbook);
+		if(CommonUtil.isNotNull(sheetList)){
+			Sheet tamplateSheet = sheetList.get(0);
+			Row row = tamplateSheet.getRow(0);
+			
+			//获取最大行数
+			Integer maxRowNum = tamplateSheet.getPhysicalNumberOfRows();
+			
+			int curIndex = 1;
+			for(Map<String, String> map : dataList){
+				logger.info(map.toString());
+				Sheet tmpSheet = workbook.cloneSheet(0);
+				//遍历每一行的数据
+				for(int i = 0;i <= maxRowNum;i++){
+					//获取第i+1行的数据
+					row = tmpSheet.getRow(i);
+					//遍历前两列列的数据
+					if(CommonUtil.isNotNull(row)){
+						Cell cell = row.getCell(0);
+						if(CommonUtil.isNotNull(cell)){
+							String colName = String.valueOf(getCallObjectData(cell));
+							if(CommonUtil.isNotNull(map.get(colName))){
+								row.getCell(1).setCellValue(map.get(colName));
+							}
+						}
+					}
+				}
+				workbook.setSheetName(curIndex++, map.get("api"));
+			}
+			//删除第0个sheet
+			workbook.removeSheetAt(0);
+		}
+		String outputPath = "C:/Users/36045/Desktop/api.xlsx";
+	    FileOutputStream stream= FileUtils.openOutputStream(new File(outputPath));
+	    workbook.write(stream);
+	    stream.close();
 	}
 }

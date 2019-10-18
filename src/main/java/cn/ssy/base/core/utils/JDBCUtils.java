@@ -206,8 +206,6 @@ public class JDBCUtils {
 				CommonUtil.printLogError(ex, logger);
 			}
 			CommonUtil.printLogError(e, logger);
-		} finally {
-			close(res, ps, ct);
 		}
 		return false;
 	}
@@ -241,8 +239,6 @@ public class JDBCUtils {
 				CommonUtil.printLogError(ex, logger);
 			}
 			CommonUtil.printLogError(e, logger);
-		} finally {
-			close(res, ps, ct);
 		}
 		return false;
 	}
@@ -280,10 +276,20 @@ public class JDBCUtils {
 				CommonUtil.printLogError(ex, logger);
 			}
 			CommonUtil.printLogError(e, logger);
-		} finally {
-			close(res, ps, ct);
 		}
 		return false;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月18日-上午10:05:13</li>
+	 *         <li>功能说明：关闭资源</li>
+	 *         </p>
+	 */
+	public static synchronized void close(){
+		close(res, ps, ct);
 	}
 
 	

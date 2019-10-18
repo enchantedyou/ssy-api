@@ -145,10 +145,10 @@ public class SunlineUtil {
 	private static Map<String, Integer> getDefaultDictPriorityMap(){
 		Map<String, Integer> map = new HashMap<>();
 		map.put("MsDict", 1);
-		map.put("ApBaseDict", 2);
+		map.put("SysDict", 2);
 		map.put("ApDict", 3);
 		
-		map.put("SysDict", 4);
+		map.put("ApBaseDict", 4);
 		map.put("CtBaseDict", 5);
 		map.put("LnSysDict", 6);
 		map.put("LnBaseDict", 7);
@@ -769,6 +769,9 @@ public class SunlineUtil {
 	 * @return
 	 */
 	public static TwoTuple<String, String> sunlineSearchDict(String dictFieldName){
+		if(CommonUtil.isNotNull(dictFieldName)){
+			dictFieldName = dictFieldName.toLowerCase();
+		}
 		TwoTuple<String, String> twopuple = dictMap.get(dictFieldName);
 		if(CommonUtil.isNotNull(twopuple)){
 			logger.info("字段["+dictFieldName+"]存在于:"+twopuple.getFirst()+",引用类型:"+twopuple.getSecond());
@@ -1414,7 +1417,7 @@ public class SunlineUtil {
 				Map<String, Object> fieldValueMap = new LinkedHashMap<>();
 				fieldValueMap.put("prop", id);
 				fieldValueMap.put("label", desc);
-				fieldValueMap.put("width", 120);
+				fieldValueMap.put("width", 150);
 				fieldValueMap.put("disabled", true);
 				
 				//枚举处理
@@ -1431,7 +1434,6 @@ public class SunlineUtil {
 				//日期处理
 				else if("U_DATE".equals(realType)){
 					fieldValueMap.put("type", "dateTimePicker");
-					fieldValueMap.put("format", "yyyyMMdd");
 				}
 				//普通值处理
 				else{
@@ -1566,12 +1568,13 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(serviceCode)){
 			return null;
 		}
-		String host = "http://10.22.12.66:29003/";
+		String host = "http://10.22.12.46:9009/";
 		String path = "/gateway/";
 		
 		//封装请求头
-		Map<String, String> headers = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/core_atp3.0.properties").getPath());
+		Map<String, String> headers = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/ln_dev3.0.properties").getPath());
 		headers.put("dserviceId", serviceCode);
+		headers.put("api_id", serviceCode);
 		//封装查询条件
 		Map<String, String> querys = new HashMap<String, String>();
 
@@ -1623,5 +1626,41 @@ public class SunlineUtil {
 			controlMap.put(field.attributeValue("id"), valueMap);
 		}
 		return JSONObject.fromObject(controlMap).toString();
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年9月29日-下午1:12:21</li>
+	 *         <li>功能说明：网关API发布</li>
+	 *         </p>
+	 * @param dataSource
+	 * @param apiCode
+	 * @throws Exception 
+	 */
+	public static void sunlineGatewayApiRelease(String dataSource,E_ICOREMODULE module,String serviceCode) throws Exception{
+		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(module)){
+			return;
+		}
+		String apiTamplateExcelPath = "C:/sunline/sunlineDeveloper/开发工具模板/api_tamplate.xlsx";
+		List<Map<String, String>> dataList = new ArrayList<>();
+		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in where out_service_code like concat(?,'%')", new String[]{String.valueOf(module.getSrvSign())}, dataSource));
+		for(Map<String, Object> map : result){
+			Map<String, String> dataMap = new HashMap<>();
+			dataMap.put("api", String.valueOf(map.get("out_service_code")));
+			dataMap.put("中文名称", String.valueOf(map.get("description")));
+			dataMap.put("描述", String.valueOf(map.get("description")));
+			dataMap.put("后端服务地址", "rpc3load_alloc_type=NO&rpc3load_application="+map.get("sub_system_code")+"&rpc3load_service_id="+map.get("out_service_code")+"&rpc3load_group=01&rpc3load_service_type=concentrated&rpc3load_version=1.0");
+			
+			if(CommonUtil.isNotNull(serviceCode)){
+				if(serviceCode.equals(String.valueOf(map.get("out_service_code")))){
+					dataList.add(dataMap);
+				}
+			}else{
+				dataList.add(dataMap);
+			}
+		}
+		ExcelReader.writeGatewayApi(apiTamplateExcelPath, dataList);
 	}
 }

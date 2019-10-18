@@ -40,33 +40,32 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 	
 	private String tranId;
 	
-	private String groupId;
-	
-	public BatchProcessThread(String taskNum, String trxnDate,String tranId,String groupId) {
+	public BatchProcessThread(String taskNum, String trxnDate,String tranId) {
 		super();
 		this.taskNum = taskNum;
 		this.trxnDate = trxnDate;
 		this.tranId = tranId;
-		this.groupId = groupId;
 	}
 
 	@Override
 	public Map<String, Object> call() throws Exception {
 		Map<String, Object> resMap = new HashMap<String, Object>();
-		String sql = "select * from tsp_task_execution where system_code = '102' and corporate_code = '025' and task_num = ? and tran_date = ? and tran_id = ? and tran_group_id = ? and sub_system_code = '1022';";
+		String sql = "select * from tsp_task_execution where system_code = '102' and corporate_code = '025' and task_num = ? and tran_date = ? and tran_id = ? and sub_system_code = '1022';";
 		String tranState = null;
 		String errorMsg = null;
 		
 		String errorStack = null;
 		String beforeTask = null;
 		String stepId = null;
+		String groupId = null;
 		
 		do{
-			ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{taskNum,trxnDate,tranId,groupId}, ApiConst.DATASOURCE_ICORE_LN);
+			ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{taskNum,trxnDate,tranId}, ApiConst.DATASOURCE_ICORE_LN);
 			tranState = CommonUtil.fetchResultSetValue(resultSet, "tran_state");
 			errorMsg = CommonUtil.fetchResultSetValue(resultSet, "error_message");
 			errorStack = CommonUtil.fetchResultSetValue(resultSet, "error_stack");
 			stepId = CommonUtil.fetchResultSetValue(resultSet, "current_step");
+			groupId = CommonUtil.fetchResultSetValue(resultSet, "current_tran_group_id");
 			
 			TspTranController tsp = new TspTranController();
 			if(CommonUtil.isNotNull(stepId)){
@@ -75,7 +74,7 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 			}
 			
 			String curTask = tsp.getTranCode();
-			if(CommonUtil.compare(curTask, beforeTask) != 0){
+			if(CommonUtil.isNotNull(curTask) && CommonUtil.compare(curTask, beforeTask) != 0){
 				logger.info("批量任务["+curTask+"]开始执行");
 				beforeTask = curTask;
 			}

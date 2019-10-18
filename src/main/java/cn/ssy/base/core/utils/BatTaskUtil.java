@@ -95,13 +95,13 @@ public class BatTaskUtil {
 		
 		
 		boolean startupSuccessInd = false;
-		String[] checkParameter = new String[]{taskNum,bat.getTranCode(),bat.getTranGroupId(),dateformatDate};
-		String querySql = "select * from tsp_task where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025' and tran_id = ? and tran_group_id = ? and tran_date = ?";
+		String[] checkParameter = new String[]{taskNum};
+		String querySql = "select * from tsp_task where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025'";
 		if(CommonUtil.getResultSetRecordNum(JDBCUtils.executeQuery(querySql,checkParameter , ApiConst.DATASOURCE_ICORE_LN)) > 0){
 			logger.info("任务["+bat.getTranCode() + "-" + bat.getTranGroupId() +"]已存在,更新任务状态");
-			String updateSql = "update tsp_task set tran_state = 'onprocess' where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025' and tran_id = ? and tran_group_id = ? and tran_date = ?";
+			String updateSql = "update tsp_task set tran_state = 'onprocess' where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025'";
 			startupSuccessInd = JDBCUtils.executeUpdate(updateSql,checkParameter, ApiConst.DATASOURCE_ICORE_LN);
-			String updateSql2 = "update tsp_task_execution set tran_state = 'onprocess' where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025' and tran_id = ? and tran_group_id = ? and tran_date = ?";
+			String updateSql2 = "update tsp_task_execution set tran_state = 'onprocess' where sub_system_code = '1022' and task_num = ? and system_code = '102' and corporate_code = '025'";
 			startupSuccessInd = JDBCUtils.executeUpdate(updateSql2,checkParameter, ApiConst.DATASOURCE_ICORE_LN);
 		}else{
 			logger.info("新建任务["+bat.getTranCode() + "-" + bat.getTranGroupId() + "-" + dateformatDate +"]");
@@ -115,7 +115,7 @@ public class BatTaskUtil {
 			logger.info("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动成功");
 			
 			//监听批量任务
-			BatchProcessThread listener = new BatchProcessThread(taskNum, dateformatDate,tranCode,bat.getTranGroupId());
+			BatchProcessThread listener = new BatchProcessThread(taskNum, dateformatDate,tranCode);
 			FutureTask<Map<String, Object>> futureTask = new FutureTask<>(listener);
 			futureTask.run();
 			listenerThreadPool.add(futureTask);

@@ -399,6 +399,9 @@ public class CommonUtil {
 	 * @return	返回真实ip地址
 	 */
 	public static String getIpAddress(HttpServletRequest request) {
+		if(isNull(request)){
+			return null;
+		}
 		String ip = request.getHeader("X-Forwarded-For");
 		if (CommonUtil.isNotNull(ip) && !"unKnown".equalsIgnoreCase(ip)) {
 			int index = ip.indexOf(",");
