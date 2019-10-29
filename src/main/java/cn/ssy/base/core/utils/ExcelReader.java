@@ -14,12 +14,15 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import cn.ssy.base.entity.plugins.TwoTuple;
@@ -354,7 +357,7 @@ public class ExcelReader {
 				for(int i = 0;i <= maxRowNum;i++){
 					//获取第i+1行的数据
 					row = tmpSheet.getRow(i);
-					//遍历前两列列的数据
+					//遍历前两列的数据
 					if(CommonUtil.isNotNull(row)){
 						Cell cell = row.getCell(0);
 						if(CommonUtil.isNotNull(cell)){
@@ -375,4 +378,197 @@ public class ExcelReader {
 	    workbook.write(stream);
 	    stream.close();
 	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月28日-下午2:24:10</li>
+	 *         <li>功能说明：生成接口文档</li>
+	 *         </p>
+	 * @param baseTypeMap	基础类型哈希表
+	 * @param flowtranMap	flowtran信息哈希表
+	 * @param fieldTwoTuple	输入输出字段二元组
+	 * @param tamplatePath	接口文档模板Excel路径
+	 * @param outputPath	文档输出路径
+	 * @throws IOException 
+	 */
+	public static void writeIntfDocument(Map<String, Map<String, String>> baseTypeMap,Map<String, String> flowtranMap,TwoTuple<Map<String, String>, Map<String, String>> fieldTwoTuple,String tamplatePath,String outputPath) throws IOException{
+		//获取Workbook对象
+		Workbook workbook = getWorkbook(tamplatePath);
+		Sheet tamplateSheet = workbook.cloneSheet(3);
+		//第一行第二列设置交易码
+		tamplateSheet.getRow(0).getCell(1).setCellValue(flowtranMap.get("id"));
+		//第一行第四列设置交易类别
+		switch(flowtranMap.get("kind")){
+		case "M":tamplateSheet.getRow(0).getCell(7).setCellValue("普通维护交易");break;
+		case "Q":tamplateSheet.getRow(0).getCell(7).setCellValue("查询交易");break;
+		case "F":tamplateSheet.getRow(0).getCell(7).setCellValue("金融交易");break;
+		case "P":tamplateSheet.getRow(0).getCell(7).setCellValue("参数维护交易");break;
+		}
+		//第二行第二列设置交易描述
+		tamplateSheet.getRow(1).getCell(1).setCellValue(flowtranMap.get("longname"));
+		
+		int curRowNum = 6;
+		int inputIndex = 0;
+		int outputIndex = 0;
+		int digit = 0;
+		for(String key : fieldTwoTuple.getFirst().keySet()){
+			Row curRow = tamplateSheet.createRow(curRowNum);
+			boolean isList = false;
+			if("list".equals(fieldTwoTuple.getFirst().get(key))){
+				inputIndex++;
+				digit = 0;
+				isList = true;
+			}else if(key.contains(".")){
+				curRow.createCell(0).setCellValue(inputIndex + "." + (++digit));
+				key = key.substring(key.lastIndexOf(".") + 1);
+			}else{
+				digit = 0;
+				curRow.createCell(0).setCellValue(++inputIndex);
+			}
+			
+			if(isList){
+				curRow.createCell(1).setCellValue(key);
+			}else{
+				curRow.createCell(1).setCellValue(key);
+				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
+				Map<String, String> baseTypeSubMap = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
+				
+				String baseType = CommonUtil.isNull(baseTypeSubMap) ? "string" : baseTypeSubMap.get("base");
+				String baseMaxLength = CommonUtil.isNull(baseTypeSubMap) ? "20" : baseTypeSubMap.get("maxLength");
+				String baseFractionDigits = CommonUtil.isNull(baseTypeSubMap) ? "" : baseTypeSubMap.get("fractionDigits");
+				curRow.createCell(3).setCellValue(baseType);
+				
+				curRow.createCell(4).setCellValue(baseMaxLength);
+				curRow.createCell(5).setCellValue(baseFractionDigits);
+				curRow.createCell(6).setCellValue("O");
+			}
+			curRowNum++;
+		}
+		
+		copyRows(5, 6, curRowNum, tamplateSheet);
+		tamplateSheet.getRow(curRowNum).getCell(0).setCellValue("输                   出");
+		tamplateSheet.getRow(curRowNum + 1).getCell(6).setCellValue("");
+		curRowNum += 2;
+		
+		for(String key : fieldTwoTuple.getSecond().keySet()){
+			Row curRow = tamplateSheet.createRow(curRowNum);
+			boolean isList = false;
+			if("list".equals(fieldTwoTuple.getSecond().get(key))){
+				outputIndex++;
+				isList = true;
+				digit = 0;
+			}else if(key.contains(".")){
+				curRow.createCell(0).setCellValue(outputIndex + "." + (++digit));
+				key = key.substring(key.lastIndexOf(".") + 1);
+			}else{
+				digit = 0;
+				curRow.createCell(0).setCellValue(++outputIndex);
+			}
+			
+			if(isList){
+				curRow.createCell(1).setCellValue(key);
+			}else{
+				curRow.createCell(1).setCellValue(key);
+				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
+				Map<String, String> baseTypeSubMap = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
+				
+				String baseType = CommonUtil.isNull(baseTypeSubMap) ? "string" : baseTypeSubMap.get("base");
+				String baseMaxLength = CommonUtil.isNull(baseTypeSubMap) ? "20" : baseTypeSubMap.get("maxLength");
+				String baseFractionDigits = CommonUtil.isNull(baseTypeSubMap) ? "" : baseTypeSubMap.get("fractionDigits");
+				curRow.createCell(3).setCellValue(baseType);
+				
+				curRow.createCell(4).setCellValue(baseMaxLength);
+				curRow.createCell(5).setCellValue(baseFractionDigits);
+			}
+			curRowNum++;
+		}
+		
+		//移除后重命名
+		workbook.removeSheetAt(3);
+		workbook.setSheetName(3, workbook.getSheetName(3).substring(0,4));
+		//写入文件
+	    FileOutputStream stream= FileUtils.openOutputStream(new File(outputPath + "/" + flowtranMap.get("longname")+".xlsx"));
+	    workbook.write(stream);
+	    stream.close();
+	}
+	
+	
+	
+	public static void copyRows(int startRow, int endRow, int pPosition,  
+            Sheet sheet) {  
+        int pStartRow = startRow - 1;  
+        int pEndRow = endRow - 1;  
+        int targetRowFrom;  
+        int targetRowTo;  
+        int columnCount;  
+        CellRangeAddress region = null;  
+        int i;  
+        int j;  
+        if (pStartRow == -1 || pEndRow == -1) {  
+            return;  
+        }  
+        // 拷贝合并的单元格  
+        for (i = 0; i < sheet.getNumMergedRegions(); i++) {  
+            region = sheet.getMergedRegion(i);  
+            if ((region.getFirstRow() >= pStartRow)  
+                    && (region.getLastRow() <= pEndRow)) {  
+                targetRowFrom = region.getFirstRow() - pStartRow + pPosition;  
+                targetRowTo = region.getLastRow() - pStartRow + pPosition;  
+                CellRangeAddress newRegion = region.copy();  
+                newRegion.setFirstRow(targetRowFrom);  
+                newRegion.setFirstColumn(region.getFirstColumn());  
+                newRegion.setLastRow(targetRowTo);  
+                newRegion.setLastColumn(region.getLastColumn());  
+                sheet.addMergedRegion(newRegion);  
+            }  
+        }  
+        // 设置列宽  
+        for (i = pStartRow; i <= pEndRow; i++) {  
+            Row sourceRow = sheet.getRow(i);  
+            columnCount = sourceRow.getLastCellNum();  
+            if (sourceRow != null) {  
+            	Row newRow = sheet.createRow(pPosition - pStartRow + i);  
+                newRow.setHeight(sourceRow.getHeight());  
+                for (j = 0; j < columnCount; j++) {  
+                    Cell templateCell = sourceRow.getCell(j);  
+                    if (templateCell != null) {  
+                    	Cell newCell = newRow.createCell(j);  
+                        copyCell(templateCell, newCell);  
+                    }  
+                }  
+            }  
+        }  
+    }  
+  
+  
+	@SuppressWarnings("deprecation")
+	private static void copyCell(Cell srcCell, Cell distCell) {  
+        distCell.setCellStyle(srcCell.getCellStyle());  
+        if (srcCell.getCellComment() != null) {  
+            distCell.setCellComment(srcCell.getCellComment());  
+        }  
+        int srcCellType = srcCell.getCellType();  
+        distCell.setCellType(srcCellType);  
+        if (srcCellType == HSSFCell.CELL_TYPE_NUMERIC) {  
+            if (HSSFDateUtil.isCellDateFormatted(srcCell)) {  
+                distCell.setCellValue(srcCell.getDateCellValue());  
+            } else {  
+                distCell.setCellValue(srcCell.getNumericCellValue());  
+            }  
+        } else if (srcCellType == HSSFCell.CELL_TYPE_STRING) {  
+            distCell.setCellValue(srcCell.getRichStringCellValue());  
+        } else if (srcCellType == HSSFCell.CELL_TYPE_BLANK) {  
+            // nothing21  
+        } else if (srcCellType == HSSFCell.CELL_TYPE_BOOLEAN) {  
+            distCell.setCellValue(srcCell.getBooleanCellValue());  
+        } else if (srcCellType == HSSFCell.CELL_TYPE_ERROR) {  
+            distCell.setCellErrorValue(srcCell.getErrorCellValue());  
+        } else if (srcCellType == HSSFCell.CELL_TYPE_FORMULA) {  
+            distCell.setCellFormula(srcCell.getCellFormula());  
+        } else { // nothing29  
+  
+        }  
+    }  
 }

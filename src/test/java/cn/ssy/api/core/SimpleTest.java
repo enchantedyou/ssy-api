@@ -16,12 +16,15 @@ import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_PACKAGETYPE;
 
 public class SimpleTest{
+	
+	public String outputPath = "C:/Users/36045/Desktop/";
 	
 	@Before
 	public void before(){
@@ -54,7 +57,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("Ref_status");
+		SunlineUtil.sunlineSearchDict("Maturity_date");
 	}
 	
 	
@@ -139,8 +142,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/", null, null);
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6143", "C:/sunline/sunlineDocument/document/001-印尼金光项目/03设计开发/接口清单/LN-贷款/", "C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6149", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
 	}
 	
 	
@@ -153,7 +155,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7(){
-		BatTaskUtil.startupTask("ln01",10,"");
+		BatTaskUtil.startupTask("ap05",40,"");
 		BatTaskUtil.printBatchTastExecuteRes();
 	}
 	
@@ -284,7 +286,7 @@ public class SimpleTest{
 		double crit = 0.04;
 		double sunderArmor = 0.7199;
 		double critEffect = 1.75;
-		double initHarm = 26200;
+		double initHarm = 30000;
 		
 		double totalHarm = 0;
 		Random rand = new Random();
@@ -334,12 +336,58 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326126");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326146");
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月22日-上午10:51:46</li>
+	 *         <li>功能说明：查询有效的借据信息列表</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test21() throws Exception{
-		System.out.println(CommonUtil.getIpAddress(null));
+		List<Map<String, Object>> loanList = SunlineUtil.sunlineGetEffectLoanList(ApiConst.DATASOURCE_ICORE_LN_DIT);
+		for(Map<String, Object> map : loanList){
+			System.out.println(map.toString());
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月23日-下午4:49:50</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 */
+	@Test
+	public void test22(){
+		List<TspTranController> taskList = BatTaskUtil.getBatTaskList();
+		String tranChineseName = "";
+		for(TspTranController task : taskList){
+			if(task.getStepId().equals(131) && task.getTranGroupId().equals("830")){
+				tranChineseName = task.getTranChineseName();
+				break;
+			}
+		}
+		System.out.println(tranChineseName);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月29日-上午9:57:52</li>
+	 *         <li>功能说明：接口文档自动生成</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test23() throws Exception{
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6010", outputPath);
 	}
 }

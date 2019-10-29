@@ -30,6 +30,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ATPCORE = "ATPCORE";
 	//BAT批量环境
 	public static final String DATASOURCE_BATCORE = "BATCORE";
+	//贷款测试环境
+	public static final String DATASOURCE_ICORE_LN_DIT = "ICORE3.0LN_DIT";
 	
 	//c3p0初始线程数
 	public static final int INITIAL_POOL_SIZE = 20;

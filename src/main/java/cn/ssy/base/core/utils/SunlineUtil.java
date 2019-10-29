@@ -28,9 +28,12 @@ import org.dom4j.Element;
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.plugins.TwoTuple;
+import cn.ssy.base.entity.sunline.Dict;
 import cn.ssy.base.enums.E_ICOREMODULE;
+import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_PACKAGETYPE;
+import cn.ssy.base.exception.NullParmException;
 import cn.ssy.base.thread.DownLoadThread;
 
 /**
@@ -52,9 +55,9 @@ import cn.ssy.base.thread.DownLoadThread;
 public class SunlineUtil {
 	
 	//项目文件hash表,存储Java代码文件和Xml配置文件
-	private final static Map<String, String> projectFileMap = new HashMap<String, String>();
+	public final static Map<String, String> projectFileMap = new HashMap<String, String>();
 	//项目字典
-	private final static Map<String, TwoTuple<String, String>> dictMap = new HashMap<String, TwoTuple<String, String>>();
+	public final static Map<String, Dict> dictMap = new LinkedHashMap<>();
 	//被使用到的枚举
 	private final static Map<String, String> enumMap = new HashMap<String, String>();
 	//字典优先级
@@ -302,16 +305,15 @@ public class SunlineUtil {
 					for(Element element : elementList){
 						String type = element.attributeValue("type");
 						String dictType = CommonUtil.getFirstDotLeftStr(fileName);
-						
-						TwoTuple<String, String> twoTuple = new TwoTuple<String, String>(dictType, type);
 						String id = element.attributeValue("id");
-						TwoTuple<String, String> beforeTwoTuple = dictMap.get(id);
+						Dict beforeDictInfo = dictMap.get(id);
+						Dict dictInfo = new Dict(id, dictType, element.attributeValue("longname"), type, element.attributeValue("desc"));
 						
 						//字典重复性校验
-						if(CommonUtil.isNull(beforeTwoTuple) || CommonUtil.compare(priorityMap.get(dictType),priorityMap.get(beforeTwoTuple.getFirst())) < 0){
-							dictMap.put(id, twoTuple);
-							if(CommonUtil.isNotNull(beforeTwoTuple)){
-								logger.warn("字典["+dictType+"."+id+"]优先级低于["+beforeTwoTuple.getFirst()+"."+id+"],应当被移除");
+						if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(priorityMap.get(dictType),priorityMap.get(beforeDictInfo.getDictType())) < 0){
+							dictMap.put(id, dictInfo);
+							if(CommonUtil.isNotNull(beforeDictInfo)){
+								logger.warn("字典["+dictType+"."+id+"]优先级低于["+beforeDictInfo.getDictType()+"."+id+"],应当被移除");
 							}
 						}
 					}
@@ -521,13 +523,13 @@ public class SunlineUtil {
 			return resMap;
 		}else{
 			String id = element.attributeValue("id");
-			TwoTuple<String, String> twoTuple = dictMap.get(id);
+			Dict dictInfo = dictMap.get(id);
 			
-			if(CommonUtil.isNotNull(twoTuple)){
+			if(CommonUtil.isNotNull(dictInfo)){
 				
 				Element beforeElement = element.createCopy();
-				String dictName = twoTuple.getFirst();
-				String enumType = twoTuple.getSecond();
+				String dictName = dictInfo.getDictType();
+				String enumType = dictInfo.getRefType();
 				Attribute refAttribute = element.attribute("ref");
 				Attribute typeAttribute = element.attribute("type");
 				
@@ -768,17 +770,17 @@ public class SunlineUtil {
 	 *         </p>
 	 * @return
 	 */
-	public static TwoTuple<String, String> sunlineSearchDict(String dictFieldName){
+	public static Dict sunlineSearchDict(String dictFieldName){
 		if(CommonUtil.isNotNull(dictFieldName)){
 			dictFieldName = dictFieldName.toLowerCase();
 		}
-		TwoTuple<String, String> twopuple = dictMap.get(dictFieldName);
-		if(CommonUtil.isNotNull(twopuple)){
-			logger.info("字段["+dictFieldName+"]存在于:"+twopuple.getFirst()+",引用类型:"+twopuple.getSecond());
+		Dict dictInfo = dictMap.get(dictFieldName);
+		if(CommonUtil.isNotNull(dictInfo)){
+			logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc());
 		}else{
 			logger.info("未搜索到相关字典");
 		}
-		return twopuple;
+		return dictInfo;
 	}
 	
 	
@@ -1064,7 +1066,7 @@ public class SunlineUtil {
 		String id = field.attributeValue("id");
 		//校验当前字段
 		for(Map<String, Object> rowMap : rowMapList){
-			if(rowMap.get("名称").equals(id)){
+			if(id.equals(rowMap.get("名称"))){
 				rowMapList.remove(rowMap);
 				return true;
 			}
@@ -1643,7 +1645,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(module)){
 			return;
 		}
-		String apiTamplateExcelPath = "C:/sunline/sunlineDeveloper/开发工具模板/api_tamplate.xlsx";
+		String apiTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/api_tamplate.xlsx").getPath();
 		List<Map<String, String>> dataList = new ArrayList<>();
 		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in where out_service_code like concat(?,'%')", new String[]{String.valueOf(module.getSrvSign())}, dataSource));
 		for(Map<String, Object> map : result){
@@ -1662,5 +1664,124 @@ public class SunlineUtil {
 			}
 		}
 		ExcelReader.writeGatewayApi(apiTamplateExcelPath, dataList);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月22日-上午10:49:55</li>
+	 *         <li>功能说明：查询有效的借据信息列表,上限为100</li>
+	 *         </p>
+	 * @param dataSource
+	 * @return
+	 */
+	public static List<Map<String, Object>> sunlineGetEffectLoanList(String dataSource){
+		String sql = "select a.* from lna_loan a,lnf_basic b where a.loan_status = 'NORMAL' and a.settl_ind = 'N' and a.wrof_ind = 'N' and a.loan_classification = 1 and a.prod_id = b.prod_id limit 100";
+		return CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery(sql, dataSource));
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月28日-下午1:31:27</li>
+	 *         <li>功能说明：生成接口文档</li>
+	 *         </p>
+	 * @param flowtranId 流文件id,如ln6001
+	 * @param outputPath 接口文档输出路径
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static void sunlineIntfDocumentGenerate(String flowtranId,String outputPath) throws Exception{
+		if(CommonUtil.isNull(flowtranId) || CommonUtil.isNull(outputPath)){
+			throw new NullParmException("flowtran id","文档输出路径");
+		}
+		//接口文档模板Excel路径
+		String intfDocTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/intf_doc_tamplate.xlsx").getPath();
+		//解析BaseType
+		Map<String, Map<String, String>> baseTypeMap = new LinkedHashMap<>();
+		Element baseTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("BaseType.u_schema.xml"));
+		List<Element> restrictionTypeList = baseTypeRoot.elements();
+		for(Element restrictionType : restrictionTypeList){
+			Map<String, String> baseTypeSubMap = new HashMap<>();
+			baseTypeSubMap.put("longname", restrictionType.attributeValue("longname"));
+			baseTypeSubMap.put("base", restrictionType.attributeValue("base"));
+			baseTypeSubMap.put("maxLength", restrictionType.attributeValue("maxLength"));
+			baseTypeSubMap.put("fractionDigits", restrictionType.attributeValue("fractionDigits"));
+			baseTypeMap.put(restrictionType.attributeValue("id"), baseTypeSubMap);
+		}
+		//解析flotation
+		//定义flowtran信息哈希表
+		Map<String, String> flowtranMap = new LinkedHashMap<>();
+		//设置flowtran信息
+		Element flowtranRoot = CommonUtil.getXmlRootElement(projectFileMap.get(flowtranId+".flowtrans.xml"));
+		flowtranMap.put("id", flowtranId);
+		flowtranMap.put("kind", flowtranRoot.attributeValue("kind"));
+		flowtranMap.put("longname", CommonUtil.googleTranslate(flowtranRoot.attributeValue("longname"), E_LANGUAGE.EN, E_LANGUAGE.ZHCN));
+		//获取输入输出字段
+		TwoTuple<Map<String, String>, Map<String, String>> twoTuple = sunlineGetFlowtranInOutputField(flowtranId);
+		//Excel写入
+		ExcelReader.writeIntfDocument(baseTypeMap, flowtranMap, twoTuple, intfDocTamplateExcelPath, outputPath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月28日-下午1:45:43</li>
+	 *         <li>功能说明：获取flowtran的输入输出字段</li>
+	 *         </p>
+	 * @param flowtranId	flowtran id,如ln6001
+	 * @return
+	 * @throws Exception 
+	 */
+	@SuppressWarnings("unchecked")
+	public static TwoTuple<Map<String, String>, Map<String, String>> sunlineGetFlowtranInOutputField(String flowtranId) throws Exception{
+		if(CommonUtil.isNull(flowtranId)){
+			throw new NullParmException("flowtran id");
+		}
+		//解析flowtran
+		Element flowtranRoot = CommonUtil.getXmlRootElement(projectFileMap.get(flowtranId+".flowtrans.xml"));
+		//定义输入输出哈希表
+		Map<String, String> inputMap = new LinkedHashMap<>();
+		Map<String, String> outputMap = new LinkedHashMap<>();
+		//解析输入字段
+		List<Element> input = flowtranRoot.element("interface").element("input").elements();
+		for(Element field : input){
+			if("field".equals(field.getName())){
+				if("true".equals(field.attributeValue("multi"))){
+					inputMap.put(field.attributeValue("id"), "list");
+				}else{
+					inputMap.put(field.attributeValue("id"), field.attributeValue("type"));
+				}
+			}else if("fields".equals(field.getName())){
+				String fieldsId = field.attributeValue("id");
+				inputMap.put(fieldsId, "list");
+				List<Element> subFieldList = field.elements();
+				for(Element subField : subFieldList){
+					inputMap.put(fieldsId + "." + subField.attributeValue("id"), subField.attributeValue("type"));
+				}
+			}
+		}
+		//解析输出字段
+		List<Element> output = flowtranRoot.element("interface").element("output").elements();
+		for(Element field : output){
+			if("field".equals(field.getName())){
+				if("true".equals(field.attributeValue("multi"))){
+					outputMap.put(field.attributeValue("id"), "list");
+				}else{
+					outputMap.put(field.attributeValue("id"), field.attributeValue("type"));
+				}
+			}else if("fields".equals(field.getName())){
+				String fieldsId = field.attributeValue("id");
+				outputMap.put(fieldsId, "list");
+				List<Element> subFieldList = field.elements();
+				for(Element subField : subFieldList){
+					outputMap.put(fieldsId + "." + subField.attributeValue("id"), subField.attributeValue("type"));
+				}
+			}
+		}
+		return new TwoTuple<Map<String,String>, Map<String,String>>(inputMap, outputMap);
 	}
 }

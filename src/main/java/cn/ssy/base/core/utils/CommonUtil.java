@@ -1606,7 +1606,7 @@ public class CommonUtil {
 		try {
 			resultSet.last();  
 			int rowCount = resultSet.getRow();
-			resultSet.first();
+			resultSet.beforeFirst();
 			return rowCount;
 		}
 		catch (SQLException e) {
@@ -1633,11 +1633,12 @@ public class CommonUtil {
 		
 		try {
 			List<Object> resList = new ArrayList<Object>();
-			Object obj = objClass.newInstance();
+			Object obj = null;
 			Map<String, Class<?>> fieldMap = getClassFieldMap(objClass);
 			List<String> colList = getColumnNameList(resultSet);
 			
 			while(resultSet.next()){
+				obj = objClass.newInstance();
 				for(String col : colList){
 					String fieldName = parseHumpStr(col);
 					Class<?> fieldClazz = fieldMap.get(fieldName);
