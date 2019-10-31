@@ -27,6 +27,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
+import cn.ssy.base.exception.ExcelReaderException;
 
 
 /**
@@ -106,6 +107,9 @@ public class ExcelReader {
 	 * @return
 	 */
 	public static Object getCallObjectData(Cell cell){
+		if(cell == null){
+			return  null;
+		}
 		Object cellData = null;
 		CellType cellType = cell.getCellTypeEnum();
 
@@ -116,7 +120,11 @@ public class ExcelReader {
 		}else if(CellType.ERROR == cellType){
 			cellData = cell.getErrorCellValue();
 		}else if(CellType.FORMULA == cellType){
-			cellData = cell.getCellFormula();
+			try {
+				cellData = String.valueOf(cell.getNumericCellValue());    
+		    } catch (IllegalStateException e) {
+		    	cellData = String.valueOf(cell.getRichStringCellValue());
+		    }
 		}else if(CellType.NUMERIC == cellType){
 			cellData = cell.getNumericCellValue();
 		}else if(CellType.STRING == cellType){
@@ -572,4 +580,55 @@ public class ExcelReader {
   
         }  
     }  
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午1:54:12</li>
+	 *         <li>功能说明：从Excel提取SQL</li>
+	 *         </p>
+	 * @param excelPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static String extractSqlFromExcel(String excelPath) throws IOException{
+		//获取Workbook对象
+		Workbook workbook = getWorkbook(excelPath);
+		Sheet sheet = workbook.getSheetAt(0);
+		//获取最大行数
+		Integer maxRowNum = sheet.getPhysicalNumberOfRows();
+		//获取最大列数
+		Row firstRow = sheet.getRow(0);
+		Integer maxColNum = firstRow.getPhysicalNumberOfCells();
+		
+		//列数据下标
+		int colDataIndex = maxColNum + 2;
+		StringBuffer buffer = new StringBuffer();
+		
+		//遍历列
+		for(int i = 0;i <= maxColNum;i++){
+			Object cellData = getCallObjectData(firstRow.getCell(i));
+			if(CommonUtil.isNull(cellData)){
+				colDataIndex = i + 1;
+				break;
+			}
+		}
+		
+		//遍历行
+		for(int i = 0;i < maxRowNum;i++){
+			Row curRow = sheet.getRow(i);
+			if(curRow != null){
+				Object rowCellData = getCallObjectData(curRow.getCell(colDataIndex));
+				if(CommonUtil.isNotNull(rowCellData)){
+					buffer.append(String.valueOf(rowCellData)).append("\r\n");
+				}
+			}
+		}
+		if(CommonUtil.isNull(buffer.toString())){
+			throw new ExcelReaderException("Excel解析SQL失败,文件路径:" + excelPath);
+		}
+		buffer.append("commit;");
+		return buffer.toString();
+	}
 }

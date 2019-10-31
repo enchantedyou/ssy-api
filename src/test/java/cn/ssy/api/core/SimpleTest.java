@@ -57,7 +57,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("auto_dwdn_ind");
+		SunlineUtil.sunlineSearchDict("rpym_account_ccy");
 	}
 	
 	
@@ -403,5 +403,19 @@ public class SimpleTest{
 	@Test
 	public void test24() throws Exception{
 		SunlineUtil.sunlineErrorXmlSort(outputPath, true);
+	}
+	
+	
+	/**
+	 * @throws IOException 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午1:20:34</li>
+	 *         <li>功能说明：全量脚本生成</li>
+	 *         </p>
+	 */
+	@Test
+	public void test25() throws IOException{
+		SunlineUtil.sunlineFullSQLGenerate(outputPath);
 	}
 }

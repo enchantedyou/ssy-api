@@ -1,6 +1,7 @@
 package cn.ssy.base.core.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -142,6 +143,8 @@ public class SunlineUtil {
 				if((CommonUtil.isRegexMatches("^.*?xml$", file.getName())
 				 || CommonUtil.isRegexMatches("^.*?java$", file.getName()))
 				 && file.getPath().contains("src")){
+					projectFileMap.put(file.getName(), file.getPath());
+				}else if(CommonUtil.isRegexMatches("^.*?xlsx$", file.getName()) && file.getPath().contains(ApiConst.FULLSQL_MAINDIR_NAME)){
 					projectFileMap.put(file.getName(), file.getPath());
 				}
 			}
@@ -1885,5 +1888,39 @@ public class SunlineUtil {
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * @throws IOException 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午1:26:10</li>
+	 *         <li>功能说明：根据全量Excel生成全量dml脚本</li>
+	 *         </p>
+	 */
+	public static void sunlineFullSQLGenerate(String outputPath) throws IOException{
+		if(CommonUtil.isNull(outputPath)){
+			throw new NullParmException("文件输出目录");
+		}
+		for(String fileName : projectFileMap.keySet()){
+			//全量脚本Excel中解析
+			if(CommonUtil.isRegexMatches("^.*?xlsx$", fileName)){
+				String filePath = projectFileMap.get(fileName);
+				String outputFilePath = outputPath + File.separator + filePath.substring(filePath.indexOf(ApiConst.FULLSQL_MAINDIR_NAME)).replace(".xlsx", ".sql");
+				String outputFileDir = outputFilePath.substring(0,outputFilePath.lastIndexOf("\\"));
+				
+				//创建输出路径
+				File outputDir = new File(outputFileDir);
+				if(!outputDir.exists()){
+					outputDir.mkdirs();
+				}
+				CommonUtil.writeFileContent(ExcelReader.extractSqlFromExcel(filePath), outputFilePath);
+			}
+		}
+		String srcDir = outputPath + File.separator + ApiConst.FULLSQL_MAINDIR_NAME;
+		String zipFilePath = srcDir + ".zip";
+		logger.info("全量脚本压缩打包:" + zipFilePath);
+		CommonUtil.toZip(srcDir, zipFilePath, true);
 	}
 }

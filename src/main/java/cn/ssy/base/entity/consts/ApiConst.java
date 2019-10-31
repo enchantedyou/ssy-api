@@ -46,4 +46,6 @@ public class ApiConst {
 	public static final int CALLABLE_SUCCESS_RETURN = 0;
 	//回调线程默认失败返回
 	public static final int CALLABLE_ERROR_RETURN = 9999;
+	//全量脚本主目录名
+	public static final String FULLSQL_MAINDIR_NAME = "dbscript";
 }
