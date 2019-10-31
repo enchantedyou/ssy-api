@@ -57,7 +57,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("Maturity_date");
+		SunlineUtil.sunlineSearchDict("auto_dwdn_ind");
 	}
 	
 	
@@ -130,19 +130,6 @@ public class SimpleTest{
 				System.out.println(sql);
 			}
 		}
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月16日-下午2:24:21</li>
-	 *         <li>功能说明：接口文档字段校验</li>
-	 *         </p>
-	 */
-	@Test
-	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6149", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
 	}
 	
 	
@@ -336,7 +323,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326146");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN_DIT, E_ICOREMODULE.LN,"");
 	}
 	
 	
@@ -388,6 +375,33 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6010", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("co6230", outputPath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年8月16日-下午2:24:21</li>
+	 *         <li>功能说明：接口文档字段校验</li>
+	 *         </p>
+	 */
+	@Test
+	public void test6(){
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6009", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月29日-上午10:58:59</li>
+	 *         <li>功能说明：异常配置错误码排序</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test24() throws Exception{
+		SunlineUtil.sunlineErrorXmlSort(outputPath, true);
 	}
 }

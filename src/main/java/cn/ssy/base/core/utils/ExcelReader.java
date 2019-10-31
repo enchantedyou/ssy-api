@@ -26,6 +26,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import cn.ssy.base.entity.plugins.TwoTuple;
+import cn.ssy.base.entity.sunline.BaseType;
 
 
 /**
@@ -306,7 +307,7 @@ public class ExcelReader {
 	 *         <li>功能说明：获取当前行map形式的数据</li>
 	 *         </p>
 	 * @param row	当前行对象
-	 * @param maxColNum	最好列数
+	 * @param maxColNum	最大列数
 	 * @param colList	列名列表
 	 */
 	private static Map<String, Object> getRowMap(Row row, Integer maxColNum, List<String> colList) {
@@ -393,7 +394,7 @@ public class ExcelReader {
 	 * @param outputPath	文档输出路径
 	 * @throws IOException 
 	 */
-	public static void writeIntfDocument(Map<String, Map<String, String>> baseTypeMap,Map<String, String> flowtranMap,TwoTuple<Map<String, String>, Map<String, String>> fieldTwoTuple,String tamplatePath,String outputPath) throws IOException{
+	public static void writeIntfDocument(Map<String, BaseType> baseTypeMap,Map<String, String> flowtranMap,TwoTuple<Map<String, String>, Map<String, String>> fieldTwoTuple,String tamplatePath,String outputPath) throws IOException{
 		//获取Workbook对象
 		Workbook workbook = getWorkbook(tamplatePath);
 		Sheet tamplateSheet = workbook.cloneSheet(3);
@@ -433,12 +434,12 @@ public class ExcelReader {
 			}else{
 				curRow.createCell(1).setCellValue(key);
 				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
-				Map<String, String> baseTypeSubMap = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
+				BaseType baseType = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
 				
-				String baseType = CommonUtil.isNull(baseTypeSubMap) ? "string" : baseTypeSubMap.get("base");
-				String baseMaxLength = CommonUtil.isNull(baseTypeSubMap) ? "20" : baseTypeSubMap.get("maxLength");
-				String baseFractionDigits = CommonUtil.isNull(baseTypeSubMap) ? "" : baseTypeSubMap.get("fractionDigits");
-				curRow.createCell(3).setCellValue(baseType);
+				String base = CommonUtil.isNull(baseType) ? "string" : baseType.getBase();
+				String baseMaxLength = CommonUtil.isNull(baseType) ? "20" : baseType.getMaxLength();
+				String baseFractionDigits = CommonUtil.isNull(baseType) ? "" : baseType.getFractionDigits();
+				curRow.createCell(3).setCellValue(base);
 				
 				curRow.createCell(4).setCellValue(baseMaxLength);
 				curRow.createCell(5).setCellValue(baseFractionDigits);
@@ -472,12 +473,12 @@ public class ExcelReader {
 			}else{
 				curRow.createCell(1).setCellValue(key);
 				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
-				Map<String, String> baseTypeSubMap = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
+				BaseType baseType = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
 				
-				String baseType = CommonUtil.isNull(baseTypeSubMap) ? "string" : baseTypeSubMap.get("base");
-				String baseMaxLength = CommonUtil.isNull(baseTypeSubMap) ? "20" : baseTypeSubMap.get("maxLength");
-				String baseFractionDigits = CommonUtil.isNull(baseTypeSubMap) ? "" : baseTypeSubMap.get("fractionDigits");
-				curRow.createCell(3).setCellValue(baseType);
+				String base = CommonUtil.isNull(baseType) ? "string" : baseType.getBase();
+				String baseMaxLength = CommonUtil.isNull(baseType) ? "20" : baseType.getMaxLength();
+				String baseFractionDigits = CommonUtil.isNull(baseType) ? "" : baseType.getFractionDigits();
+				curRow.createCell(3).setCellValue(base);
 				
 				curRow.createCell(4).setCellValue(baseMaxLength);
 				curRow.createCell(5).setCellValue(baseFractionDigits);

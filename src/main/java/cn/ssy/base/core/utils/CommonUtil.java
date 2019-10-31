@@ -980,7 +980,7 @@ public class CommonUtil {
 		if(isNull(doc) || isNull(outputPath)){
 			throw new NullParmException("Document对象","格式化标识");
 		}
-		OutputFormat format = new OutputFormat(formatIdent, false, "utf-8");
+		OutputFormat format = new OutputFormat(formatIdent, false, "UTF-8");
 		XMLWriter writer = null;
 		try{
 			File xmlFile = new File(outputPath);

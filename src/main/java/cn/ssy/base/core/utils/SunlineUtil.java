@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -28,7 +29,10 @@ import org.dom4j.Element;
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.plugins.TwoTuple;
+import cn.ssy.base.entity.sunline.BaseType;
 import cn.ssy.base.entity.sunline.Dict;
+import cn.ssy.base.entity.sunline.EnumElement;
+import cn.ssy.base.entity.sunline.EnumType;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -55,15 +59,17 @@ import cn.ssy.base.thread.DownLoadThread;
 public class SunlineUtil {
 	
 	//项目文件hash表,存储Java代码文件和Xml配置文件
-	public final static Map<String, String> projectFileMap = new HashMap<String, String>();
+	public final static Map<String, String> projectFileMap = new LinkedHashMap<String, String>();
 	//项目字典
 	public final static Map<String, Dict> dictMap = new LinkedHashMap<>();
 	//被使用到的枚举
-	private final static Map<String, String> enumMap = new HashMap<String, String>();
+	private final static Map<String, EnumType> enumMap = new LinkedHashMap<String, EnumType>();
+	//基础引用类型
+	private final static Map<String, BaseType> baseTypeMap = new LinkedHashMap<>();
 	//字典优先级
-	private static Map<String, Integer> dictPriorityMap = new HashMap<String, Integer>();
+	private static Map<String, Integer> dictPriorityMap = new LinkedHashMap<String, Integer>();
 	//枚举优先级
-	private static Map<String, Integer> enumPriorityMap = new HashMap<String, Integer>();
+	private static Map<String, Integer> enumPriorityMap = new LinkedHashMap<String, Integer>();
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SunlineUtil.class);
 	//线程池
@@ -106,6 +112,12 @@ public class SunlineUtil {
 			//初始化项目枚举
 			loadProjectEnum();
 			logger.info("初始化项目枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		}
+		if(CommonUtil.isNull(baseTypeMap)){
+			//初始化项目枚举
+			loanProjectBaseType();
+			CommonUtil.printSplitLine(150);
+			logger.info("初始化基础引用类型>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		CommonUtil.printSplitLine(150);
 	}
@@ -158,7 +170,7 @@ public class SunlineUtil {
 		
 		map.put("LnIobusDict", 8);
 		map.put("LnServDict", 9);
-		map.put("CoServDict", 10);
+		map.put("CoServDict", 9);
 		return map;
 	}
 	
@@ -175,12 +187,12 @@ public class SunlineUtil {
 		Map<String, Integer> map = new HashMap<>();
 		map.put("MsEnumType", 1);
 		map.put("EnumType", 2);
-		map.put("LnSysEnumType", 3);
+		map.put("LnBaseEnumType", 3);
 		
-		map.put("LnBaseEnumType", 4);
-		map.put("LnIobusEnumType", 4);
+		map.put("LnSysEnumType", 4);
+		map.put("LnIobusEnumType", 5);
 		map.put("LnServEnumType", 6);
-		map.put("CoServEnumType", 7);
+		map.put("CoServEnumType", 6);
 		
 		return map;
 	}
@@ -208,18 +220,33 @@ public class SunlineUtil {
 					
 					for(Element restrictionType : restrictionTypeList){
 						if("restrictionType".equals(restrictionType.getName())){
-							String curEnumType = CommonUtil.getFirstDotLeftStr(fileName);
 							String enumId = restrictionType.attributeValue("id");
-							String beforeEnumType = enumMap.get(enumId);
+							EnumType beforeEnumType = enumMap.get(enumId);
+							
+							//设置新枚举信息
+							EnumType curEnumType = new EnumType();
+							curEnumType.setBase(restrictionType.attributeValue("base"));
+							curEnumType.setEnumId(enumId);
+							curEnumType.setEnumLocation(CommonUtil.getFirstDotLeftStr(fileName));
+							curEnumType.setLongname(restrictionType.attributeValue("longname"));
+							curEnumType.setMaxLength(restrictionType.attributeValue("maxLength"));
+							curEnumType.setFullName(curEnumType.getEnumLocation() + "." + curEnumType.getEnumId());
+							
+							//设置枚举元素信息
+							List<Element> enumerationList = restrictionType.elements();
+							for(Element enumeration : enumerationList){
+								EnumElement enumElement = new EnumElement(enumeration.attributeValue("id"), enumeration.attributeValue("value"), enumeration.attributeValue("longname"));
+								curEnumType.addEnumElement(enumElement);
+							}
 							
 							//枚举重复性校验
-							if(CommonUtil.isNull(beforeEnumType) || CommonUtil.compare(priorityMap.get(curEnumType),priorityMap.get(beforeEnumType)) < 0){
+							if(CommonUtil.isNull(beforeEnumType) || CommonUtil.compare(priorityMap.get(curEnumType.getEnumLocation()),priorityMap.get(beforeEnumType.getEnumLocation())) < 0){
 								enumMap.put(enumId, curEnumType);
 								if(CommonUtil.isNotNull(beforeEnumType)){
-									logger.warn("枚举["+beforeEnumType+"."+enumId+"]优先级低于["+curEnumType+"."+enumId+"],应当被移除");
+									logger.warn("枚举["+beforeEnumType.getFullName()+"]优先级低于["+curEnumType.getFullName()+"],应当被移除");
 								}
-							}else if(CommonUtil.compare(priorityMap.get(curEnumType),priorityMap.get(beforeEnumType)) == 0){
-								logger.warn("枚举["+beforeEnumType+"."+enumId+"]优先级等于["+curEnumType+"."+enumId+"],应当被移到公用系统部分");
+							}else if(CommonUtil.compare(priorityMap.get(curEnumType.getEnumLocation()),priorityMap.get(beforeEnumType.getEnumLocation())) == 0){
+								logger.warn("枚举["+beforeEnumType.getFullName()+"]优先级等于["+curEnumType.getFullName()+"],应当被移到公用系统部分");
 							}
 						}
 					}
@@ -259,7 +286,7 @@ public class SunlineUtil {
 						String realEnumValue = CommonUtil.getRealType(typeAttribute.getValue());
 						String dictId = element.attributeValue("id");
 						String curRefEnumType = CommonUtil.getFirstDotLeftStr(typeAttribute.getValue());
-						String trueRefEnumType = enumMap.get(realEnumValue);
+						String trueRefEnumType = enumMap.get(realEnumValue).getEnumLocation();
 						
 						if(CommonUtil.isNotNull(curRefEnumType)
 						&& !curRefEnumType.equals("MsEnumType")	
@@ -313,13 +340,39 @@ public class SunlineUtil {
 						if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(priorityMap.get(dictType),priorityMap.get(beforeDictInfo.getDictType())) < 0){
 							dictMap.put(id, dictInfo);
 							if(CommonUtil.isNotNull(beforeDictInfo)){
-								logger.warn("字典["+dictType+"."+id+"]优先级低于["+beforeDictInfo.getDictType()+"."+id+"],应当被移除");
+								logger.warn("字典["+beforeDictInfo.getDictType()+"."+id+"]优先级低于["+dictType+"."+id+"],应当被移除");
 							}
 						}
 					}
 				}
 			}
 			CommonUtil.printSplitLine(150);
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月30日-下午1:30:12</li>
+	 *         <li>功能说明：加载项目基础引用类型</li>
+	 *         </p>
+	 */
+	@SuppressWarnings("unchecked")
+	private static void loanProjectBaseType(){
+		if(CommonUtil.isNotNull(projectFileMap)){
+			Element baseTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("BaseType.u_schema.xml"));
+			List<Element> restrictionTypeList = baseTypeRoot.elements();
+			for(Element restrictionType : restrictionTypeList){
+				BaseType baseType = new BaseType();
+				baseType.setId(restrictionType.attributeValue("id"));
+				baseType.setBase(restrictionType.attributeValue("base"));
+				baseType.setLongname(restrictionType.attributeValue("longname"));
+				
+				baseType.setMaxLength(restrictionType.attributeValue("maxLength"));
+				baseType.setFractionDigits(restrictionType.attributeValue("fractionDigits"));
+				baseTypeMap.put(restrictionType.attributeValue("id"), baseType);
+			}
 		}
 	}
 	
@@ -741,7 +794,7 @@ public class SunlineUtil {
 						if("restrictionType".equals(restrictionType.getName())){
 							String curEnumType = CommonUtil.getFirstDotLeftStr(fileName);
 							String enumId = restrictionType.attributeValue("id");
-							String trueEnumType = enumMap.get(enumId);
+							String trueEnumType = enumMap.get(enumId).getEnumLocation();
 							
 							if(CommonUtil.compare(curEnumType, trueEnumType) != 0){
 								//移除当前枚举节点
@@ -776,7 +829,11 @@ public class SunlineUtil {
 		}
 		Dict dictInfo = dictMap.get(dictFieldName);
 		if(CommonUtil.isNotNull(dictInfo)){
-			logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc());
+			if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
+				logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc() + ",引用类型详情:" + String.valueOf(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
+			}else{
+				logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc() + ",引用类型详情:" + String.valueOf(enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
+			}
 		}else{
 			logger.info("未搜索到相关字典");
 		}
@@ -1664,6 +1721,7 @@ public class SunlineUtil {
 			}
 		}
 		ExcelReader.writeGatewayApi(apiTamplateExcelPath, dataList);
+		logger.info("生成网关API数量:" + dataList.size());
 	}
 	
 	
@@ -1692,25 +1750,12 @@ public class SunlineUtil {
 	 * @param outputPath 接口文档输出路径
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
 	public static void sunlineIntfDocumentGenerate(String flowtranId,String outputPath) throws Exception{
 		if(CommonUtil.isNull(flowtranId) || CommonUtil.isNull(outputPath)){
 			throw new NullParmException("flowtran id","文档输出路径");
 		}
 		//接口文档模板Excel路径
 		String intfDocTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/intf_doc_tamplate.xlsx").getPath();
-		//解析BaseType
-		Map<String, Map<String, String>> baseTypeMap = new LinkedHashMap<>();
-		Element baseTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("BaseType.u_schema.xml"));
-		List<Element> restrictionTypeList = baseTypeRoot.elements();
-		for(Element restrictionType : restrictionTypeList){
-			Map<String, String> baseTypeSubMap = new HashMap<>();
-			baseTypeSubMap.put("longname", restrictionType.attributeValue("longname"));
-			baseTypeSubMap.put("base", restrictionType.attributeValue("base"));
-			baseTypeSubMap.put("maxLength", restrictionType.attributeValue("maxLength"));
-			baseTypeSubMap.put("fractionDigits", restrictionType.attributeValue("fractionDigits"));
-			baseTypeMap.put(restrictionType.attributeValue("id"), baseTypeSubMap);
-		}
 		//解析flotation
 		//定义flowtran信息哈希表
 		Map<String, String> flowtranMap = new LinkedHashMap<>();
@@ -1723,6 +1768,7 @@ public class SunlineUtil {
 		TwoTuple<Map<String, String>, Map<String, String>> twoTuple = sunlineGetFlowtranInOutputField(flowtranId);
 		//Excel写入
 		ExcelReader.writeIntfDocument(baseTypeMap, flowtranMap, twoTuple, intfDocTamplateExcelPath, outputPath);
+		logger.info("生成接口文档:" + flowtranMap.get("longname")+".xlsx");
 	}
 	
 	
@@ -1783,5 +1829,61 @@ public class SunlineUtil {
 			}
 		}
 		return new TwoTuple<Map<String,String>, Map<String,String>>(inputMap, outputMap);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月29日-上午10:56:48</li>
+	 *         <li>功能说明：异常类配置根据错误码排序</li>
+	 *         </p>
+	 * @param outputPath	文件输出路径
+	 */
+	@SuppressWarnings("unchecked")
+	public static void sunlineErrorXmlSort(String outputPath,boolean isAsc){
+		if(CommonUtil.isNull(outputPath)){
+			throw new NullParmException("文件输出路径");
+		}
+		for(String fileName : projectFileMap.keySet()){
+			boolean isOrdered = true;
+			String beforeId = null;
+			//从字典中解析
+			if(CommonUtil.isRegexMatches("^.*?Error.error.xml$", fileName)){
+				Document doc = CommonUtil.getXmlDocument(projectFileMap.get(fileName));
+				Element root = doc.getRootElement();
+				Element errors = root.element("errors");
+				List<Element> errorList = errors.elements();
+				
+				Map<String, Element> errorMap = new LinkedHashMap<>();
+				List<String> errorIdList = new ArrayList<>();
+				for(Element e : errorList){
+					String curId = e.attributeValue("id");
+					if(CommonUtil.isNotNull(beforeId) && (isAsc ? CommonUtil.compare(curId, beforeId) < 0 : CommonUtil.compare(curId, beforeId) > 0)){
+						isOrdered = false;
+					}
+					errorMap.put(curId, e);
+					errorIdList.add(curId);
+					beforeId = curId;
+				}
+				
+				if(!isOrdered){
+					errors.clearContent();
+					Collections.sort(errorIdList);
+					if(!isAsc){
+						Collections.reverse(errorIdList);
+					}
+					
+					for(String id : errorIdList){
+						errors.addText("\r\n\t\t");
+						errors.add(errorMap.get(id));
+					}
+					errors.addText("\r\n\t");
+					CommonUtil.writeDocumentXml(doc, outputPath + File.separator + fileName);
+				}else{
+					logger.info(fileName + "的错误码有序,不处理");
+				}
+			}
+		}
 	}
 }
