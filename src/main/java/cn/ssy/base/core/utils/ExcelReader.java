@@ -27,6 +27,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
+import cn.ssy.base.entity.sunline.EnumType;
+import cn.ssy.base.enums.E_IO;
 import cn.ssy.base.exception.ExcelReaderException;
 
 
@@ -402,7 +404,7 @@ public class ExcelReader {
 	 * @param outputPath	文档输出路径
 	 * @throws IOException 
 	 */
-	public static void writeIntfDocument(Map<String, BaseType> baseTypeMap,Map<String, String> flowtranMap,TwoTuple<Map<String, String>, Map<String, String>> fieldTwoTuple,String tamplatePath,String outputPath) throws IOException{
+	public static void writeIntfDocument(Map<String, String> flowtranMap,TwoTuple<Map<String, String>, Map<String, String>> fieldTwoTuple,String tamplatePath,String outputPath) throws IOException{
 		//获取Workbook对象
 		Workbook workbook = getWorkbook(tamplatePath);
 		Sheet tamplateSheet = workbook.cloneSheet(3);
@@ -418,81 +420,16 @@ public class ExcelReader {
 		//第二行第二列设置交易描述
 		tamplateSheet.getRow(1).getCell(1).setCellValue(flowtranMap.get("longname"));
 		
-		int curRowNum = 6;
-		int inputIndex = 0;
-		int outputIndex = 0;
-		int digit = 0;
-		for(String key : fieldTwoTuple.getFirst().keySet()){
-			Row curRow = tamplateSheet.createRow(curRowNum);
-			boolean isList = false;
-			if("list".equals(fieldTwoTuple.getFirst().get(key))){
-				inputIndex++;
-				digit = 0;
-				isList = true;
-			}else if(key.contains(".")){
-				curRow.createCell(0).setCellValue(inputIndex + "." + (++digit));
-				key = key.substring(key.lastIndexOf(".") + 1);
-			}else{
-				digit = 0;
-				curRow.createCell(0).setCellValue(++inputIndex);
-			}
-			
-			if(isList){
-				curRow.createCell(1).setCellValue(key);
-			}else{
-				curRow.createCell(1).setCellValue(key);
-				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
-				BaseType baseType = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
-				
-				String base = CommonUtil.isNull(baseType) ? "string" : baseType.getBase();
-				String baseMaxLength = CommonUtil.isNull(baseType) ? "20" : baseType.getMaxLength();
-				String baseFractionDigits = CommonUtil.isNull(baseType) ? "" : baseType.getFractionDigits();
-				curRow.createCell(3).setCellValue(base);
-				
-				curRow.createCell(4).setCellValue(baseMaxLength);
-				curRow.createCell(5).setCellValue(baseFractionDigits);
-				curRow.createCell(6).setCellValue("O");
-			}
-			curRowNum++;
-		}
-		
+		Integer curRowNum = 6;
+		//输入字段赋值
+		curRowNum = setIntfDocIOField(fieldTwoTuple.getFirst(), tamplateSheet, curRowNum, E_IO.INPUT);
+		//设置输出域标题
 		copyRows(5, 6, curRowNum, tamplateSheet);
 		tamplateSheet.getRow(curRowNum).getCell(0).setCellValue("输                   出");
 		tamplateSheet.getRow(curRowNum + 1).getCell(6).setCellValue("");
 		curRowNum += 2;
-		
-		for(String key : fieldTwoTuple.getSecond().keySet()){
-			Row curRow = tamplateSheet.createRow(curRowNum);
-			boolean isList = false;
-			if("list".equals(fieldTwoTuple.getSecond().get(key))){
-				outputIndex++;
-				isList = true;
-				digit = 0;
-			}else if(key.contains(".")){
-				curRow.createCell(0).setCellValue(outputIndex + "." + (++digit));
-				key = key.substring(key.lastIndexOf(".") + 1);
-			}else{
-				digit = 0;
-				curRow.createCell(0).setCellValue(++outputIndex);
-			}
-			
-			if(isList){
-				curRow.createCell(1).setCellValue(key);
-			}else{
-				curRow.createCell(1).setCellValue(key);
-				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
-				BaseType baseType = baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
-				
-				String base = CommonUtil.isNull(baseType) ? "string" : baseType.getBase();
-				String baseMaxLength = CommonUtil.isNull(baseType) ? "20" : baseType.getMaxLength();
-				String baseFractionDigits = CommonUtil.isNull(baseType) ? "" : baseType.getFractionDigits();
-				curRow.createCell(3).setCellValue(base);
-				
-				curRow.createCell(4).setCellValue(baseMaxLength);
-				curRow.createCell(5).setCellValue(baseFractionDigits);
-			}
-			curRowNum++;
-		}
+		//输出字段赋值
+		setIntfDocIOField(fieldTwoTuple.getSecond(), tamplateSheet, curRowNum, E_IO.OUTPUT);
 		
 		//移除后重命名
 		workbook.removeSheetAt(3);
@@ -501,6 +438,67 @@ public class ExcelReader {
 	    FileOutputStream stream= FileUtils.openOutputStream(new File(outputPath + "/" + flowtranMap.get("longname")+".xlsx"));
 	    workbook.write(stream);
 	    stream.close();
+	}
+	
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午3:19:41</li>
+	 *         <li>功能说明：生成接口文档子方法:设置接口的输入输出字段到Excel对象</li>
+	 *         </p>
+	 */
+	private static int setIntfDocIOField(Map<String, String> fieldMap,Sheet sheet,Integer curRowNum,E_IO io){
+		int index = 0;
+		int digit = 0;
+		for(String key : fieldMap.keySet()){
+			Row curRow = sheet.createRow(curRowNum);
+			boolean isList = false;
+			if("list".equals(fieldMap.get(key))){
+				index++;
+				digit = 0;
+				isList = true;
+			}else if(key.contains(".")){
+				curRow.createCell(0).setCellValue(index + "." + (++digit));
+				key = key.substring(key.lastIndexOf(".") + 1);
+			}else{
+				digit = 0;
+				curRow.createCell(0).setCellValue(++index);
+			}
+			
+			if(isList){
+				curRow.createCell(1).setCellValue(key);
+			}else{
+				curRow.createCell(1).setCellValue(key);
+				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
+				BaseType baseType = SunlineUtil.baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
+				String baseMaxLength = null;
+				if(CommonUtil.isNull(baseType)){
+					String refType = SunlineUtil.dictMap.get(key).getRefType();
+					EnumType enumType = SunlineUtil.enumMap.get(CommonUtil.getRealType(refType));
+					if(CommonUtil.isNotNull(enumType)){
+						baseMaxLength = enumType.getMaxLength();
+					}else{
+						baseMaxLength = "20";
+					}
+				}else{
+					baseMaxLength = baseType.getMaxLength();
+				}
+				
+				String base = CommonUtil.isNull(baseType) ? "string" : baseType.getBase();
+				String baseFractionDigits = CommonUtil.isNull(baseType) ? "" : baseType.getFractionDigits();
+				curRow.createCell(3).setCellValue(base);
+				
+				curRow.createCell(4).setCellValue(baseMaxLength);
+				curRow.createCell(5).setCellValue(baseFractionDigits);
+				if(io == E_IO.INPUT){
+					curRow.createCell(6).setCellValue("O");
+				}
+			}
+			curRowNum++;
+		}
+		return curRowNum;
 	}
 	
 	

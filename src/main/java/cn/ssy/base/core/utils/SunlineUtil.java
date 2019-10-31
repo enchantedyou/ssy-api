@@ -64,9 +64,9 @@ public class SunlineUtil {
 	//项目字典
 	public final static Map<String, Dict> dictMap = new LinkedHashMap<>();
 	//被使用到的枚举
-	private final static Map<String, EnumType> enumMap = new LinkedHashMap<String, EnumType>();
+	public final static Map<String, EnumType> enumMap = new LinkedHashMap<String, EnumType>();
 	//基础引用类型
-	private final static Map<String, BaseType> baseTypeMap = new LinkedHashMap<>();
+	public final static Map<String, BaseType> baseTypeMap = new LinkedHashMap<>();
 	//字典优先级
 	private static Map<String, Integer> dictPriorityMap = new LinkedHashMap<String, Integer>();
 	//枚举优先级
@@ -1770,7 +1770,7 @@ public class SunlineUtil {
 		//获取输入输出字段
 		TwoTuple<Map<String, String>, Map<String, String>> twoTuple = sunlineGetFlowtranInOutputField(flowtranId);
 		//Excel写入
-		ExcelReader.writeIntfDocument(baseTypeMap, flowtranMap, twoTuple, intfDocTamplateExcelPath, outputPath);
+		ExcelReader.writeIntfDocument(flowtranMap, twoTuple, intfDocTamplateExcelPath, outputPath);
 		logger.info("生成接口文档:" + flowtranMap.get("longname")+".xlsx");
 	}
 	

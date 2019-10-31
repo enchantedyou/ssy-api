@@ -375,7 +375,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("co6230", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6100", outputPath);
 	}
 	
 	
