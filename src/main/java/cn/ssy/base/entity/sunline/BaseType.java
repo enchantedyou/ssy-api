@@ -1,5 +1,7 @@
 package cn.ssy.base.entity.sunline;
 
+import java.io.Serializable;
+
 /**
  * <p>
  * 文件功能说明：
@@ -16,7 +18,9 @@ package cn.ssy.base.entity.sunline;
  *         <li>-----------------------------------------------------------</li>
  *         </p>
  */
-public class BaseType {
+public class BaseType implements Serializable{
+
+	private static final long serialVersionUID = -4704486038192174332L;
 
 	private String id;
 	

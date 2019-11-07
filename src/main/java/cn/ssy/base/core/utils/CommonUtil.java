@@ -1959,4 +1959,47 @@ public class CommonUtil {
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月1日-下午2:01:26</li>
+	 *         <li>功能说明：根据ResultSet生成inset语句</li>
+	 *         </p>
+	 * @param resultSet
+	 * @return
+	 * @throws Exception 
+	 */
+	public static List<String> generateInsertSQL(ResultSet resultSet) throws Exception{
+		List<String> insertSqlList = new ArrayList<String>();
+		if(CommonUtil.isNotNull(resultSet)){
+			String tableName = resultSet.getMetaData().getTableName(1);
+			List<String> colNameList = getColumnNameList(resultSet);
+			List<Map<String, Object>> dataList = resolveResultSetToList(resultSet);
+
+			//生成列字段
+			String colField = new String("(");
+			for(String colName : colNameList){
+				colField += colName + ", ";
+			}
+			colField = colField.substring(0, colField.lastIndexOf(", ")) + ")";
+			
+			
+			for(Map<String, Object> rowMap : dataList){
+				String insertSql = new String("insert into " + tableName + colField + " values (");
+				for(String key : rowMap.keySet()){
+					Object value = rowMap.get(key);
+					if(null == value){
+						insertSql += "NULL, ";
+					}else{
+						insertSql += "'"+value+"', ";
+					}
+				}
+				insertSql = insertSql.substring(0, insertSql.lastIndexOf(", ")) + ");";
+				insertSqlList.add(insertSql);
+			}
+		}
+		return insertSqlList;
+	}
 }

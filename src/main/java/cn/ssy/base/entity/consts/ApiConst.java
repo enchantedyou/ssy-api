@@ -47,5 +47,17 @@ public class ApiConst {
 	//回调线程默认失败返回
 	public static final int CALLABLE_ERROR_RETURN = 9999;
 	//全量脚本主目录名
-	public static final String FULLSQL_MAINDIR_NAME = "dbscript";
+	public static final String FULLSQL_MAINDIR_NAME = "ln_dbscripts";
+	
+	
+	//redis的key:项目文件
+	public static final String REDIS_PROJECT_FILE_KEY = "projectFile";
+	//redis的key:项目字典
+	public static final String REDIS_PROJECT_DICT_KEY = "projectDict";
+	//redis的key:项目枚举
+	public static final String REDIS_PROJECT_ENUM_KEY = "projectEnum";
+	//redis的key:基础引用类型
+	public static final String REDIS_PROJECT_BASETYPE_KEY = "projectBaseType";
+	//redis默认过期时间(一个月)
+	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24 * 30;
 }

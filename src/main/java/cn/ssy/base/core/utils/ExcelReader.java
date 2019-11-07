@@ -18,6 +18,7 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -27,6 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
+import cn.ssy.base.entity.sunline.EnumElement;
 import cn.ssy.base.entity.sunline.EnumType;
 import cn.ssy.base.enums.E_IO;
 import cn.ssy.base.exception.ExcelReaderException;
@@ -132,7 +134,6 @@ public class ExcelReader {
 		}else if(CellType.STRING == cellType){
 			cellData = cell.getStringCellValue();
 		}
-		
 		return cellData;
 	}
 
@@ -419,23 +420,27 @@ public class ExcelReader {
 		}
 		//第二行第二列设置交易描述
 		tamplateSheet.getRow(1).getCell(1).setCellValue(flowtranMap.get("longname"));
+
+		//强制换行
+		CellStyle cellStyle = workbook.createCellStyle();
+		cellStyle.setWrapText(true);
 		
 		Integer curRowNum = 6;
 		//输入字段赋值
-		curRowNum = setIntfDocIOField(fieldTwoTuple.getFirst(), tamplateSheet, curRowNum, E_IO.INPUT);
+		curRowNum = setIntfDocIOField(fieldTwoTuple.getFirst(), tamplateSheet, curRowNum, cellStyle, E_IO.INPUT);
 		//设置输出域标题
 		copyRows(5, 6, curRowNum, tamplateSheet);
 		tamplateSheet.getRow(curRowNum).getCell(0).setCellValue("输                   出");
 		tamplateSheet.getRow(curRowNum + 1).getCell(6).setCellValue("");
 		curRowNum += 2;
 		//输出字段赋值
-		setIntfDocIOField(fieldTwoTuple.getSecond(), tamplateSheet, curRowNum, E_IO.OUTPUT);
+		setIntfDocIOField(fieldTwoTuple.getSecond(), tamplateSheet, curRowNum, cellStyle, E_IO.OUTPUT);
 		
 		//移除后重命名
 		workbook.removeSheetAt(3);
 		workbook.setSheetName(3, workbook.getSheetName(3).substring(0,4));
 		//写入文件
-	    FileOutputStream stream= FileUtils.openOutputStream(new File(outputPath + "/" + flowtranMap.get("longname")+".xlsx"));
+	    FileOutputStream stream= FileUtils.openOutputStream(new File(outputPath + "/" + flowtranMap.get("id") + "_" + flowtranMap.get("longname")+"V0.1.xlsx"));
 	    workbook.write(stream);
 	    stream.close();
 	}
@@ -449,7 +454,7 @@ public class ExcelReader {
 	 *         <li>功能说明：生成接口文档子方法:设置接口的输入输出字段到Excel对象</li>
 	 *         </p>
 	 */
-	private static int setIntfDocIOField(Map<String, String> fieldMap,Sheet sheet,Integer curRowNum,E_IO io){
+	private static int setIntfDocIOField(Map<String, String> fieldMap,Sheet sheet,Integer curRowNum,CellStyle cellStyle,E_IO io){
 		int index = 0;
 		int digit = 0;
 		for(String key : fieldMap.keySet()){
@@ -474,11 +479,14 @@ public class ExcelReader {
 				curRow.createCell(2).setCellValue(SunlineUtil.dictMap.get(key).getDesc());
 				BaseType baseType = SunlineUtil.baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
 				String baseMaxLength = null;
+				
+				List<EnumElement> enumElementList = null;
 				if(CommonUtil.isNull(baseType)){
 					String refType = SunlineUtil.dictMap.get(key).getRefType();
 					EnumType enumType = SunlineUtil.enumMap.get(CommonUtil.getRealType(refType));
 					if(CommonUtil.isNotNull(enumType)){
 						baseMaxLength = enumType.getMaxLength();
+						enumElementList = enumType.getElementList();
 					}else{
 						baseMaxLength = "20";
 					}
@@ -494,6 +502,17 @@ public class ExcelReader {
 				curRow.createCell(5).setCellValue(baseFractionDigits);
 				if(io == E_IO.INPUT){
 					curRow.createCell(6).setCellValue("O");
+					if(CommonUtil.isNotNull(enumElementList)){
+						StringBuffer buffer = new StringBuffer();
+						for(EnumElement e : enumElementList){
+							if(CommonUtil.isNotNull(e.getValue())){
+								buffer.append(e.getValue()).append(":").append(e.getLongname()).append(";\r\n");
+							}
+						}
+						Cell cell = curRow.createCell(7);
+						cell.setCellStyle(cellStyle);
+						cell.setCellValue(buffer.toString().substring(0,buffer.toString().lastIndexOf("\r\n")));
+					}
 				}
 			}
 			curRowNum++;
@@ -623,7 +642,7 @@ public class ExcelReader {
 				}
 			}
 		}
-		if(CommonUtil.isNull(buffer.toString())){
+		if(CommonUtil.isNull(buffer.toString().trim())){
 			throw new ExcelReaderException("Excel解析SQL失败,文件路径:" + excelPath);
 		}
 		buffer.append("commit;");

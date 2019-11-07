@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -179,7 +180,7 @@ public class JDBCUtils {
 	 * @param parameter
 	 * @return 返回是否成功的真假值
 	 */
-	public static synchronized boolean executeUpdate(String sql, String[] parameter,String datasourceId) {
+	public static synchronized int executeUpdate(String sql, String[] parameter,String datasourceId) {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -191,9 +192,9 @@ public class JDBCUtils {
 						ps.setString(i + 1, parameter[i]);
 					}
 				}
-				ps.executeUpdate();
+				int effectNum = ps.executeUpdate();
 				ct.commit();
-				return true;
+				return effectNum;
 			}
 		} catch (Exception e) {
 			try {
@@ -207,9 +208,89 @@ public class JDBCUtils {
 			}
 			CommonUtil.printLogError(e, logger);
 		}
-		return false;
+		return 0;
+	}
+	
+	
+	
+	/**
+	 * 含参sql语句的更新方法,含增丶删丶改
+	 * 
+	 * @param sql
+	 * @param parameter
+	 * @return 返回是否成功的真假值
+	 */
+	public static synchronized int executeUpdate(List<String> sqlList, String[] parameter,String datasourceId) {
+		try {
+			ct = getConnection(datasourceId);
+			if(ct != null && sqlList != null){
+				ct.setAutoCommit(false);// 取消自动提交
+				int effectNum = 0;
+				
+				for(String sql : sqlList){
+					ps = ct.prepareStatement(sql);
+					if (null != parameter) {
+						for (int i = 0; i < parameter.length; i++) {
+							ps.setString(i + 1, parameter[i]);
+						}
+					}
+					effectNum += ps.executeUpdate();
+				}
+				ct.commit();
+				return effectNum;
+			}
+		} catch (Exception e) {
+			try {
+				//回滚
+				if(ct != null){
+					ct.rollback();
+				}
+			}
+			catch (SQLException ex) {
+				CommonUtil.printLogError(ex, logger);
+			}
+			CommonUtil.printLogError(e, logger);
+		}
+		return 0;
 	}
 
+	
+	/**
+	 * 批量更新: 无参sql语句的更新方法,含增丶删丶改,入参为SQL列表
+	 * 
+	 * @param sqlList
+	 * @return 返回是否成功的真假值
+	 */
+	public static synchronized int executeUpdate(List<String> sqlList,String datasourceId) {
+		try {
+			ct = getConnection(datasourceId);
+			if(ct != null && sqlList != null){
+				ct.setAutoCommit(false);
+				int effectNum = 0;
+				
+				for(String sql : sqlList){
+					ps = ct.prepareStatement(sql);
+					effectNum += ps.executeUpdate();
+				}
+				
+				ct.commit();
+				return effectNum;
+			}
+		} catch (Exception e) {
+			try {
+				//回滚
+				if(ct != null){
+					ct.rollback();
+				}
+			}
+			catch (SQLException ex) {
+				CommonUtil.printLogError(ex, logger);
+			}
+			CommonUtil.printLogError(e, logger);
+		}
+		return 0;
+	}
+	
 	
 	/**
 	 * 重载更新方法: 无参sql语句的更新方法,含增丶删丶改
@@ -217,16 +298,16 @@ public class JDBCUtils {
 	 * @param sql
 	 * @return 返回是否成功的真假值
 	 */
-	public static synchronized boolean executeUpdate(String sql,String datasourceId) {
+	public static synchronized int executeUpdate(String sql,String datasourceId) {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
 				ct.setAutoCommit(false);
 				ps = ct.prepareStatement(sql);
-				ps.executeUpdate();
+				int effectNum = ps.executeUpdate();
 				
 				ct.commit();
-				return true;
+				return effectNum;
 			}
 		} catch (Exception e) {
 			try {
@@ -240,7 +321,7 @@ public class JDBCUtils {
 			}
 			CommonUtil.printLogError(e, logger);
 		}
-		return false;
+		return 0;
 	}
 
 	/**
@@ -250,22 +331,23 @@ public class JDBCUtils {
 	 * @param parameter
 	 * @return 返回是否成功的真假值
 	 */
-	public static synchronized boolean executeUpdate(String[] sql, String[][] parameter,String datasourceId) {
+	public static synchronized int executeUpdate(String[] sql, String[][] parameter,String datasourceId) {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
 				ct.setAutoCommit(false);// 取消自动提交
+				int effectNum = 0;
 				for (int i = 0; i < sql.length; i++) {
 					if (null != parameter) {
 						ps = ct.prepareStatement(sql[i]);
 						for (int j = 0; j < parameter.length; j++) {
 							ps.setString(j + 1, parameter[i][j]);
 						}
-						ps.executeUpdate();
+						effectNum += ps.executeUpdate();
 					}
 				}
 				ct.commit();// 提交事务
-				return true;
+				return effectNum;
 			}
 		} catch (Exception e) {
 			try {
@@ -277,7 +359,7 @@ public class JDBCUtils {
 			}
 			CommonUtil.printLogError(e, logger);
 		}
-		return false;
+		return 0;
 	}
 	
 	

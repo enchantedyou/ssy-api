@@ -1,5 +1,7 @@
 package cn.ssy.base.entity.sunline;
 
+import java.io.Serializable;
+
 /**
  * <p>
  * 文件功能说明：
@@ -16,8 +18,10 @@ package cn.ssy.base.entity.sunline;
  *         <li>-----------------------------------------------------------</li>
  *         </p>
  */
-public class EnumElement {
+public class EnumElement implements Serializable{
 	
+	private static final long serialVersionUID = 7318002592881963378L;
+
 	private String id;
 	
 	private String value;

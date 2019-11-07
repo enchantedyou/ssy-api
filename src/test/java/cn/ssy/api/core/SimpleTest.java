@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.StringTokenizer;
+
+import net.sf.json.JSONObject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,13 +19,14 @@ import org.junit.Test;
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
+import cn.ssy.base.core.utils.RedisOperateUtil;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
-import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_PACKAGETYPE;
+import cn.ssy.base.exception.NullParmException;
 
 public class SimpleTest{
 	
@@ -28,7 +34,7 @@ public class SimpleTest{
 	
 	@Before
 	public void before(){
-		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/", null, null);
+		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/", null, null, true);
 	}
 	
 	/**
@@ -57,7 +63,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("rpym_account_ccy");
+		SunlineUtil.sunlineSearchDict("rpym_fund_method");
 	}
 	
 	
@@ -142,7 +148,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7(){
-		BatTaskUtil.startupTask("ap05",40,"");
+		BatTaskUtil.startupTask("ln01",12,"");
 		BatTaskUtil.printBatchTastExecuteRes();
 	}
 	
@@ -175,7 +181,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));*/
 		
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnScheduleListQueryOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnIntReversalRpymQueryOut"));
 	}
 	
 	
@@ -305,7 +311,7 @@ public class SimpleTest{
 		int success = 0;
 		for(Map<String, Object> map : loanList){
 			System.out.println("处理:" + map.get("loan_no"));
-			if(JDBCUtils.executeUpdate("update lna_repayment set early_rpym_interest_method = 'NO' where loan_no = ?",new String[]{map.get("loan_no").toString()},dataSource)){
+			if(JDBCUtils.executeUpdate("update lna_repayment set early_rpym_interest_method = 'NO' where loan_no = ?",new String[]{map.get("loan_no").toString()},dataSource) > 0){
 				success++;
 			}
 		}
@@ -323,7 +329,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN_DIT, E_ICOREMODULE.LN,"");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326157","326158");
 	}
 	
 	
@@ -347,27 +353,6 @@ public class SimpleTest{
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年10月23日-下午4:49:50</li>
-	 *         <li>功能说明：</li>
-	 *         </p>
-	 */
-	@Test
-	public void test22(){
-		List<TspTranController> taskList = BatTaskUtil.getBatTaskList();
-		String tranChineseName = "";
-		for(TspTranController task : taskList){
-			if(task.getStepId().equals(131) && task.getTranGroupId().equals("830")){
-				tranChineseName = task.getTranChineseName();
-				break;
-			}
-		}
-		System.out.println(tranChineseName);
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
 	 *         <li>2019年10月29日-上午9:57:52</li>
 	 *         <li>功能说明：接口文档自动生成</li>
 	 *         </p>
@@ -375,7 +360,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6100", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6073", outputPath);
 	}
 	
 	
@@ -388,7 +373,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6009", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6041", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
 	}
 	
 	
@@ -417,5 +402,121 @@ public class SimpleTest{
 	@Test
 	public void test25() throws IOException{
 		SunlineUtil.sunlineFullSQLGenerate(outputPath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午5:29:13</li>
+	 *         <li>功能说明：删除产品</li>
+	 *         </p>
+	 * @throws IOException
+	 */
+	@Test
+	public void test26() throws IOException{
+		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN_DIT, "L000000a");
+	}
+	
+	
+	/**
+	 * @throws Exception 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午6:50:42</li>
+	 *         <li>功能说明：贷款产品同步</li>
+	 *         </p>
+	 */
+	@Test
+	public void test27() throws Exception{
+		SunlineUtil.sunlineLnProductSync(ApiConst.DATASOURCE_ICORE_LN, ApiConst.DATASOURCE_ICORE_LN_DIT, false);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月4日-上午10:38:43</li>
+	 *         <li>功能说明：字段引用字典校验</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test28() throws Exception{
+		RedisOperateUtil redisOperateUtil = new RedisOperateUtil();
+		System.out.println(redisOperateUtil.getHashValue(ApiConst.REDIS_PROJECT_FILE_KEY, "LnServDict.d_schema.xml"));
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月4日-上午10:39:00</li>
+	 *         <li>功能说明：字典引用枚举校验</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test29() throws Exception{
+		SunlineUtil.sunlineEnumRefValidation(outputPath + File.separator + "ln");
+	}
+	
+	
+	@Test
+	public void test30() throws Exception{
+		String tenor = "";
+		System.out.println(tenor.substring(0,tenor.length() - 1));
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午6:29:46</li>
+	 *         <li>功能说明：请求报文转换</li>
+	 *         </p>
+	 * @param param
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public String requestMsgTransform(String param){
+		if(CommonUtil.isNull(param)){
+			throw new NullParmException("请求数据");
+		}
+		Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+		StringTokenizer tokenizer = new StringTokenizer(param,"&");
+		
+		while(tokenizer.hasMoreTokens()){
+			String token = tokenizer.nextToken();
+			if(token.contains("=")){
+				String[] tokenArray = token.split("=");
+				String key = tokenArray[0];
+				String value = tokenArray[1];
+				
+				if(resultMap.keySet().contains(key)){
+					List<String> list = new ArrayList<String>();
+					if(resultMap.get(key) instanceof String){
+						list.add(String.valueOf(resultMap.get(key)));
+						list.add(value);
+					}else if(resultMap.get(key) instanceof List<?>){
+						list = (List<String>) resultMap.get(key);
+						list.add(value);
+					}
+					resultMap.put(key, list);
+				}else{
+					if(value.contains(",")){
+						List<String> list = new ArrayList<String>();
+						String[] valueArray = value.split(",");
+						for(String v : valueArray){
+							list.add(v);
+						}
+						resultMap.put(key, list);
+					}else{
+						resultMap.put(key, value);
+					}
+				}
+			}
+		}
+		return JSONObject.fromObject(resultMap).toString();
 	}
 }

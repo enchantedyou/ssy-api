@@ -1,10 +1,13 @@
 package cn.ssy.base.entity.sunline;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 //枚举实体类
-public class EnumType {
+public class EnumType implements Serializable{
+
+	private static final long serialVersionUID = -8374712277374090092L;
 
 	private String enumId;
 	
