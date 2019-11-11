@@ -58,6 +58,6 @@ public class ApiConst {
 	public static final String REDIS_PROJECT_ENUM_KEY = "projectEnum";
 	//redis的key:基础引用类型
 	public static final String REDIS_PROJECT_BASETYPE_KEY = "projectBaseType";
-	//redis默认过期时间(一个月)
-	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24 * 30;
+	//redis默认过期时间(一天)
+	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24;
 }

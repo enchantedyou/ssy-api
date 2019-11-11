@@ -3,8 +3,10 @@ package cn.ssy.api.core;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("rpym_fund_method");
+		SunlineUtil.sunlineSearchDict("project_no_head");
 	}
 	
 	
@@ -148,7 +150,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7(){
-		BatTaskUtil.startupTask("ln01",12,"");
+		BatTaskUtil.startupTask("ap05",40,"");
 		BatTaskUtil.printBatchTastExecuteRes();
 	}
 	
@@ -181,7 +183,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));*/
 		
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnIntReversalRpymQueryOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
 	}
 	
 	
@@ -329,7 +331,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326157","326158");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_BATCORE, E_ICOREMODULE.LN);
 	}
 	
 	
@@ -464,8 +466,12 @@ public class SimpleTest{
 	
 	@Test
 	public void test30() throws Exception{
-		String tenor = "";
-		System.out.println(tenor.substring(0,tenor.length() - 1));
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("key", 123);
+		if(map.get("key") instanceof BigDecimal){
+			System.out.println(new BigDecimal(String.valueOf(map.get("key"))));
+		}
+		System.out.println(map.get("key").getClass());
 	}
 	
 	

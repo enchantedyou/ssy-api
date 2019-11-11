@@ -2,6 +2,7 @@ package cn.ssy.base.thread;
 
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -12,6 +13,7 @@ import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.entity.mybatis.TspTranController;
+import cn.ssy.base.entity.plugins.TwoTuple;
 
 
 /**
@@ -58,8 +60,18 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 		String groupId = null;
 		
 		List<TspTranController> taskList = BatTaskUtil.getBatTaskList();
-		int curTaskNum = 0;
-		int totalTaskNum = CommonUtil.isNull(taskList) ? 0 : taskList.size();
+		Map<String, TwoTuple<TspTranController, Integer>> taskMap = new LinkedHashMap<String, TwoTuple<TspTranController, Integer>>();
+		int totalTaskNum = 0;
+		if(CommonUtil.isNotNull(taskList)){
+			for(int i = 0;i < taskList.size();i++){
+				if(taskList.get(i).getExecutionCode().equals("1")){
+					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), ++totalTaskNum));
+				}else{
+					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), -1));
+					
+				}
+			}
+		}
 		
 		do{
 			ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{taskNum,tranId}, BatTaskUtil.batSettingMap.get("datasource"));
@@ -69,26 +81,15 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 			stepId = CommonUtil.fetchResultSetValue(resultSet, "current_step");
 			groupId = CommonUtil.fetchResultSetValue(resultSet, "current_tran_group_id");
 			
-			String tranChineseName = "";
-			TspTranController tsp = new TspTranController();
-			if(CommonUtil.isNotNull(stepId)){
-				for(TspTranController task : taskList){
-					if(task.getStepId().equals(Integer.parseInt(stepId)) && task.getTranGroupId().equals(groupId)){
-						tranChineseName = task.getTranChineseName();
-						break;
-					}
+			if(CommonUtil.isNotNull(taskMap.get(stepId))){
+				TspTranController tsp = taskMap.get(stepId).getFirst();
+				logger.info("执行状态:"+tranState+",交易日期:"+trxnDate+",步骤号:"+stepId+",组号:"+groupId+",交易描述:"+taskMap.get(stepId).getFirst().getTranChineseName());
+				String curTask = tsp.getTranCode();
+				
+				if(CommonUtil.isNotNull(curTask) && CommonUtil.compare(curTask, beforeTask) != 0 && taskMap.get(stepId).getSecond() != -1){
+					logger.info("批量任务["+curTask+"]"+taskMap.get(stepId).getFirst().getTranChineseName()+"开始执行("+(taskMap.get(stepId).getSecond())+"/"+totalTaskNum+")");
+					beforeTask = curTask;
 				}
-				tsp = BatTaskUtil.getBatTaskByTranCode(Integer.parseInt(stepId));
-				logger.info("执行状态:"+tranState+",交易日期:"+trxnDate+",步骤号:"+stepId+",组号:"+groupId+",批量标识:"+taskNum);
-			}
-			
-			if(CommonUtil.isNull(tsp)){
-				continue;
-			}
-			String curTask = tsp.getTranCode();
-			if(CommonUtil.isNotNull(curTask) && CommonUtil.compare(curTask, beforeTask) != 0){
-				logger.info("批量任务["+curTask+"]"+tranChineseName+"开始执行("+(++curTaskNum)+"/"+totalTaskNum+")");
-				beforeTask = curTask;
 			}
 			CommonUtil.systemPause(delay);
 		}while(!BatTaskUtil.SUCCESS_STATE.equals(tranState) && !BatTaskUtil.FAILURE_STATE.equals(tranState));

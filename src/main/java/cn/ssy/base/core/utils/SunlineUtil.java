@@ -104,6 +104,7 @@ public class SunlineUtil {
 				}
 			}else{
 				loadProjectFile(new File(projectPath));
+				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_FILE_KEY, projectFileMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化项目文件>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
@@ -128,6 +129,7 @@ public class SunlineUtil {
 				}
 			}else{
 				loadProjectDict();
+				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化项目字典>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
@@ -142,6 +144,7 @@ public class SunlineUtil {
 				}
 			}else{
 				loadProjectEnum();
+				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化项目枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
@@ -156,8 +159,9 @@ public class SunlineUtil {
 				}
 			}else{
 				loanProjectBaseType();
+				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化基础引用类型>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化基础类型>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		CommonUtil.printSplitLine(150);
 	}

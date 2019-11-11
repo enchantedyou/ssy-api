@@ -55,7 +55,7 @@ public class BatTaskUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static List<TspTranController> getBatTaskList(){
-		String sql = "select * from tsp_tran_controller where execution_code = '1' order by step_id;";
+		String sql = "select * from tsp_tran_controller order by step_id;";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, batSettingMap.get("datasource"));
 		List<TspTranController> taskList = new ArrayList<TspTranController>();
 		if(CommonUtil.getResultSetRecordNum(resultSet) > 1){
