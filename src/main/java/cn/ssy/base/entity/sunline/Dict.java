@@ -87,6 +87,6 @@ public class Dict implements Serializable{
 
 	@Override
 	public String toString() {
-		return "DictInfo [id=" + id + ", dictType=" + dictType + ", longname=" + longname + ", refType=" + refType + ", desc=" + desc + "]";
+		return "[字典]id:" + id + ",字典类型:" + dictType + ",引用类型:" + refType + ",中文描述:" + desc + ",英文描述:" + longname;
 	}
 }

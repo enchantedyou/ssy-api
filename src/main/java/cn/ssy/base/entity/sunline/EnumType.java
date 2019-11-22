@@ -85,7 +85,10 @@ public class EnumType implements Serializable{
 
 	@Override
 	public String toString() {
-		return "EnumType [enumId=" + enumId + ", EnumLocation=" + EnumLocation + ", longname=" + longname + ", base=" + base + ", maxLength=" + maxLength + ", fullName="
-				+ fullName + ", elementList=" + elementList + "]";
+		String str = "\r\n[枚举]id:" + enumId + ",枚举类型:" + EnumLocation + ",描述:" + longname + ",类型:" + base + ",全名:" + fullName + ",最大长度:" + maxLength;
+		for(EnumElement e : elementList){
+			str += e.toString();
+		}
+		return str;
 	}
 }

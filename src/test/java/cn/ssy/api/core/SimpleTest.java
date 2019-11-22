@@ -3,10 +3,9 @@ package cn.ssy.api.core;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +14,13 @@ import java.util.StringTokenizer;
 
 import net.sf.json.JSONObject;
 
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
-import cn.ssy.base.core.utils.RedisOperateUtil;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.enums.E_ICOREMODULE;
@@ -34,9 +33,12 @@ public class SimpleTest{
 	
 	public String outputPath = "C:/Users/36045/Desktop/";
 	
+	//log4j日志
+	private static final Logger logger = Logger.getLogger(SimpleTest.class);
+	
 	@Before
-	public void before(){
-		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/", null, null, true);
+	public void before() throws SQLException{
+		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/",true);
 	}
 	
 	/**
@@ -65,7 +67,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("project_no_head");
+		SunlineUtil.sunlineSearchDict("loan_no");
 	}
 	
 	
@@ -88,6 +90,7 @@ public class SimpleTest{
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月8日-上午10:47:54</li>
@@ -95,7 +98,7 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test3(){
+	public void test3() throws SQLException{
 		List<String> requestList = SunlineUtil.sunlineGetYfditSuccessReq(6200);
 		if(CommonUtil.isNotNull(requestList)){
 			for(String req : requestList){
@@ -106,6 +109,7 @@ public class SimpleTest{
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月15日-下午7:21:40</li>
@@ -113,7 +117,7 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test4(){
+	public void test4() throws SQLException{
 		List<String> sqlList = SunlineUtil.sunlineGetTranControlSql(E_ICOREMODULE.LN);
 		if(CommonUtil.isNotNull(sqlList)){
 			for(String sql : sqlList){
@@ -124,6 +128,7 @@ public class SimpleTest{
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月15日-下午7:32:10</li>
@@ -131,7 +136,7 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test5(){
+	public void test5() throws SQLException{
 		List<String> sqlList = SunlineUtil.sunlineGetTranGroupSql(E_ICOREMODULE.LN);
 		if(CommonUtil.isNotNull(sqlList)){
 			for(String sql : sqlList){
@@ -142,6 +147,7 @@ public class SimpleTest{
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月30日-下午1:35:08</li>
@@ -149,7 +155,7 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test7(){
+	public void test7() throws SQLException{
 		BatTaskUtil.startupTask("ap05",40,"");
 		BatTaskUtil.printBatchTastExecuteRes();
 	}
@@ -164,7 +170,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test8(){
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnRepaymentTrialOutType"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnRepaymentInfo"));
 	}
 	
 	
@@ -177,25 +183,28 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test9(){
-		/*System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
+		/*
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnBasicInfo"))
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnRepaymentInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnAccrualInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));*/
-		
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
+		*/
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnAccrualInfo"));
 	}
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月30日-下午1:36:03</li>
-	 *         <li>功能说明：杀死数据库死锁进程</li>
+	 *         <li>功能说明：数据库解锁</li>
 	 *         </p>
 	 */
 	@Test
-	public void test10(){
+	public void test10() throws SQLException{
 		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
 	}
 
@@ -306,7 +315,7 @@ public class SimpleTest{
 	
 	
 	@Test
-	public void test19(){
+	public void test19() throws SQLException{
 		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
 		List<Map<String, Object>> loanList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select loan_no from lna_accrual  where advance_interest_method = 'PRINCIPAL' OR advance_interest_method = 'TOTAL'", dataSource));
 		int total = loanList.size();
@@ -331,7 +340,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_BATCORE, E_ICOREMODULE.LN);
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326159");
 	}
 	
 	
@@ -362,7 +371,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6073", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6014", outputPath);
 	}
 	
 	
@@ -375,7 +384,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6041", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6074", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
 	}
 	
 	
@@ -392,21 +401,6 @@ public class SimpleTest{
 		SunlineUtil.sunlineErrorXmlSort(outputPath, true);
 	}
 	
-	
-	/**
-	 * @throws IOException 
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年10月31日-下午1:20:34</li>
-	 *         <li>功能说明：全量脚本生成</li>
-	 *         </p>
-	 */
-	@Test
-	public void test25() throws IOException{
-		SunlineUtil.sunlineFullSQLGenerate(outputPath);
-	}
-	
-	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -414,9 +408,10 @@ public class SimpleTest{
 	 *         <li>功能说明：删除产品</li>
 	 *         </p>
 	 * @throws IOException
+	 * @throws SQLException 
 	 */
 	@Test
-	public void test26() throws IOException{
+	public void test26() throws IOException, SQLException{
 		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN_DIT, "L000000a");
 	}
 	
@@ -445,8 +440,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test28() throws Exception{
-		RedisOperateUtil redisOperateUtil = new RedisOperateUtil();
-		System.out.println(redisOperateUtil.getHashValue(ApiConst.REDIS_PROJECT_FILE_KEY, "LnServDict.d_schema.xml"));
+		SunlineUtil.sunlineDictRefValidation(outputPath + File.separator + "ln");
 	}
 	
 	
@@ -464,14 +458,45 @@ public class SimpleTest{
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月13日-下午1:14:46</li>
+	 *         <li>功能说明：检查未使用到的错误码</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test30() throws Exception{
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("key", 123);
-		if(map.get("key") instanceof BigDecimal){
-			System.out.println(new BigDecimal(String.valueOf(map.get("key"))));
-		}
-		System.out.println(map.get("key").getClass());
+		//SunlineUtil.sunlineCheckUnusedErrorCode(outputPath);
+	}
+	
+	/**
+	 * @throws IOException 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年10月31日-下午1:20:34</li>
+	 *         <li>功能说明：全量脚本生成</li>
+	 *         </p>
+	 */
+	@Test
+	public void test25() throws IOException{
+		SunlineUtil.sunlineFullSQLGenerate(outputPath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月13日-下午1:15:11</li>
+	 *         <li>功能说明：执行全量脚本</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test31() throws Exception{
+		File file = new File("C:/Users/36045/Desktop/ln_dbscripts");
+		executeFullSql(file);
 	}
 	
 	
@@ -524,5 +549,31 @@ public class SimpleTest{
 			}
 		}
 		return JSONObject.fromObject(resultMap).toString();
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月13日-下午1:12:47</li>
+	 *         <li>功能说明：执行全量SQL</li>
+	 *         </p>
+	 * @param file
+	 * @throws SQLException 
+	 */
+	public static void executeFullSql(File file) throws SQLException {
+		if (file != null) {
+			if (file.isDirectory()) {
+				// 列举此目录下所有文件及文件夹
+				File[] list = file.listFiles();
+				for (int i = 0; i < list.length; i++) {
+					executeFullSql(list[i]);
+				}
+			} else {
+				String sql = CommonUtil.readFileContent(file.getPath());
+				logger.info("执行[" + file.getName() + "]\r\n" + sql);
+				logger.info("生效记录条数:" + JDBCUtils.executeUpdate(Arrays.asList(sql.split("\n")), ApiConst.DATASOURCE_ICORE_LN_DIT));
+			}
+		}
 	}
 }

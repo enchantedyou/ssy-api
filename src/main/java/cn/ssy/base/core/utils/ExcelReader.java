@@ -110,7 +110,7 @@ public class ExcelReader {
 	 * @param cell	cell对象
 	 * @return
 	 */
-	public static Object getCallObjectData(Cell cell){
+	public static Object getCellObjectData(Cell cell){
 		if(cell == null){
 			return  null;
 		}
@@ -266,7 +266,7 @@ public class ExcelReader {
 					//获取第0列的数据,指定起始扫描位置
 					Cell cell = row.getCell(0);
 					if(CommonUtil.isNotNull(cell)){
-						Object cellData = getCallObjectData(cell);
+						Object cellData = getCellObjectData(cell);
 						
 						if("输入".equals(String.valueOf(cellData).replaceAll(" ", ""))){
 							logger.info("标记输入行扫描位置");
@@ -323,11 +323,12 @@ public class ExcelReader {
 	 */
 	private static Map<String, Object> getRowMap(Row row, Integer maxColNum, List<String> colList) {
 		Map<String, Object> rowMap = new HashMap<String, Object>();
+		maxColNum = maxColNum > colList.size() ? colList.size() : maxColNum;
 		//遍历每一列的数据
 		for(int j = 0;j < maxColNum;j++){
 			Cell cell = row.getCell(j);
 			if(CommonUtil.isNotNull(cell)){
-				Object cellData = getCallObjectData(cell);
+				Object cellData = getCellObjectData(cell);
 				String colName = colList.get(j);
 				if(CommonUtil.isNotNull(cellData) && CommonUtil.isNotNull(colName)){
 					rowMap.put(colName, cell == null ? "" : cellData);
@@ -373,7 +374,7 @@ public class ExcelReader {
 					if(CommonUtil.isNotNull(row)){
 						Cell cell = row.getCell(0);
 						if(CommonUtil.isNotNull(cell)){
-							String colName = String.valueOf(getCallObjectData(cell));
+							String colName = String.valueOf(getCellObjectData(cell));
 							if(CommonUtil.isNotNull(map.get(colName))){
 								row.getCell(1).setCellValue(map.get(colName));
 							}
@@ -481,12 +482,14 @@ public class ExcelReader {
 				String baseMaxLength = null;
 				
 				List<EnumElement> enumElementList = null;
+				String enumId = null;
 				if(CommonUtil.isNull(baseType)){
 					String refType = SunlineUtil.dictMap.get(key).getRefType();
 					EnumType enumType = SunlineUtil.enumMap.get(CommonUtil.getRealType(refType));
 					if(CommonUtil.isNotNull(enumType)){
 						baseMaxLength = enumType.getMaxLength();
 						enumElementList = enumType.getElementList();
+						enumId = enumType.getEnumId();
 					}else{
 						baseMaxLength = "20";
 					}
@@ -506,7 +509,9 @@ public class ExcelReader {
 						StringBuffer buffer = new StringBuffer();
 						for(EnumElement e : enumElementList){
 							if(CommonUtil.isNotNull(e.getValue())){
-								buffer.append(e.getValue()).append(":").append(e.getLongname()).append(";\r\n");
+								//获取枚举值的中文
+								String longnameCN = SunlineUtil.ctEnumMap.get(enumId + "." + e.getValue());
+								buffer.append(e.getValue()).append(":").append(CommonUtil.nvl(longnameCN, e.getLongname())).append(";\r\n");
 							}
 						}
 						Cell cell = curRow.createCell(7);
@@ -625,7 +630,7 @@ public class ExcelReader {
 		
 		//遍历列
 		for(int i = 0;i <= maxColNum;i++){
-			Object cellData = getCallObjectData(firstRow.getCell(i));
+			Object cellData = getCellObjectData(firstRow.getCell(i));
 			if(CommonUtil.isNull(cellData)){
 				colDataIndex = i + 1;
 				break;
@@ -636,7 +641,7 @@ public class ExcelReader {
 		for(int i = 0;i < maxRowNum;i++){
 			Row curRow = sheet.getRow(i);
 			if(curRow != null){
-				Object rowCellData = getCallObjectData(curRow.getCell(colDataIndex));
+				Object rowCellData = getCellObjectData(curRow.getCell(colDataIndex));
 				if(CommonUtil.isNotNull(rowCellData)){
 					buffer.append(String.valueOf(rowCellData)).append("\r\n");
 				}

@@ -1667,7 +1667,7 @@ public class CommonUtil {
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月19日-下午1:31:22</li>
-	 *         <li>功能说明：从ResultSet中获取指定字段的值</li>
+	 *         <li>功能说明：从ResultSet中获取第一行指定字段的值</li>
 	 *         </p>
 	 * @param set
 	 * @param fieldName

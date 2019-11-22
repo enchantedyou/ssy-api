@@ -108,23 +108,20 @@ public class JDBCUtils {
 	 * 获取与数据库之间的连接
 	 * 
 	 * @return
+	 * @throws SQLException 
 	 */
-	private static synchronized Connection getConnection(String datasourceId) {
-		try {
-			if(CommonUtil.compare(datasourceId, DynamicDataSource.getBeforeDatasource()) != 0){
-				DynamicDataSource.setDataSourceKey(datasourceId);
-				String curDatasource = DynamicDataSource.getDataSource();
-				logger.info("获取数据源连接,当前数据源:"+curDatasource);
-				DynamicDataSource.setBeforeDatasource(datasourceId);
-				
-				if(CommonUtil.isNull(curDatasource)){
-					logger.error("获取数据源连接失败");
-				}
+	private static synchronized Connection getConnection(String datasourceId) throws SQLException {
+		if(CommonUtil.compare(datasourceId, DynamicDataSource.getBeforeDatasource()) != 0){
+			DynamicDataSource.setDataSourceKey(datasourceId);
+			String curDatasource = DynamicDataSource.getDataSource();
+			logger.info("获取数据源连接,当前数据源:"+curDatasource);
+			DynamicDataSource.setBeforeDatasource(datasourceId);
+			
+			if(CommonUtil.isNull(curDatasource)){
+				logger.error("获取数据源连接失败");
 			}
-			ct = DynamicDataSource.getConnection();
-		} catch (Exception e) {
-			CommonUtil.printLogError(e, logger);
 		}
+		ct = DynamicDataSource.getConnection();
 		return ct;
 	}
 
@@ -134,16 +131,13 @@ public class JDBCUtils {
 	 * 
 	 * @param sql
 	 * @return 返回查询到的结果集
+	 * @throws SQLException 
 	 */
-	public static synchronized ResultSet executeQuery(String sql,String datasourceId) {
+	public static synchronized ResultSet executeQuery(String sql,String datasourceId) throws SQLException {
 		ct = getConnection(datasourceId);
-		try {
-			if(ct != null){
-				ps = ct.prepareStatement(sql);
-				res = ps.executeQuery();
-			}
-		} catch (SQLException e) {
-			CommonUtil.printLogError(e, logger);
+		if(ct != null){
+			ps = ct.prepareStatement(sql);
+			res = ps.executeQuery();
 		}
 		return res;
 	}
@@ -154,21 +148,18 @@ public class JDBCUtils {
 	 * @param sql
 	 * @param parameter
 	 * @return 返回查询到的结果集
+	 * @throws SQLException 
 	 */
-	public static synchronized ResultSet executeQuery(String sql, String[] parameter,String datasourceId) {
-		try {
-			ct = getConnection(datasourceId);
-			if(ct != null){
-				ps = ct.prepareStatement(sql);
-				if (null != parameter) {
-					for (int i = 0; i < parameter.length; i++) {
-						ps.setString(i + 1, parameter[i]);
-					}
+	public static synchronized ResultSet executeQuery(String sql, String[] parameter,String datasourceId) throws SQLException {
+		ct = getConnection(datasourceId);
+		if(ct != null){
+			ps = ct.prepareStatement(sql);
+			if (null != parameter) {
+				for (int i = 0; i < parameter.length; i++) {
+					ps.setString(i + 1, parameter[i]);
 				}
-				res = ps.executeQuery();
 			}
-		} catch (SQLException e) {
-			CommonUtil.printLogError(e, logger);
+			res = ps.executeQuery();
 		}
 		return res;
 	}
@@ -179,8 +170,9 @@ public class JDBCUtils {
 	 * @param sql
 	 * @param parameter
 	 * @return 返回是否成功的真假值
+	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String sql, String[] parameter,String datasourceId) {
+	public static synchronized int executeUpdate(String sql, String[] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -197,16 +189,11 @@ public class JDBCUtils {
 				return effectNum;
 			}
 		} catch (Exception e) {
-			try {
-				//回滚
-				if(ct != null){
-					ct.rollback();
-				}
+			//回滚
+			if(ct != null){
+				ct.rollback();
 			}
-			catch (SQLException ex) {
-				CommonUtil.printLogError(ex, logger);
-			}
-			CommonUtil.printLogError(e, logger);
+			throw new SQLException(e);
 		}
 		return 0;
 	}
@@ -219,8 +206,9 @@ public class JDBCUtils {
 	 * @param sql
 	 * @param parameter
 	 * @return 返回是否成功的真假值
+	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(List<String> sqlList, String[] parameter,String datasourceId) {
+	public static synchronized int executeUpdate(List<String> sqlList, String[] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null && sqlList != null){
@@ -240,16 +228,11 @@ public class JDBCUtils {
 				return effectNum;
 			}
 		} catch (Exception e) {
-			try {
-				//回滚
-				if(ct != null){
-					ct.rollback();
-				}
+			//回滚
+			if(ct != null){
+				ct.rollback();
 			}
-			catch (SQLException ex) {
-				CommonUtil.printLogError(ex, logger);
-			}
-			CommonUtil.printLogError(e, logger);
+			throw new SQLException(e);
 		}
 		return 0;
 	}
@@ -260,8 +243,9 @@ public class JDBCUtils {
 	 * 
 	 * @param sqlList
 	 * @return 返回是否成功的真假值
+	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(List<String> sqlList,String datasourceId) {
+	public static synchronized int executeUpdate(List<String> sqlList,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null && sqlList != null){
@@ -272,21 +256,15 @@ public class JDBCUtils {
 					ps = ct.prepareStatement(sql);
 					effectNum += ps.executeUpdate();
 				}
-				
 				ct.commit();
 				return effectNum;
 			}
 		} catch (Exception e) {
-			try {
-				//回滚
-				if(ct != null){
-					ct.rollback();
-				}
+			//回滚
+			if(ct != null){
+				ct.rollback();
 			}
-			catch (SQLException ex) {
-				CommonUtil.printLogError(ex, logger);
-			}
-			CommonUtil.printLogError(e, logger);
+			throw new SQLException(e);
 		}
 		return 0;
 	}
@@ -297,29 +275,26 @@ public class JDBCUtils {
 	 * 
 	 * @param sql
 	 * @return 返回是否成功的真假值
+	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String sql,String datasourceId) {
+	public static synchronized int executeUpdate(String sql, String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
 				ct.setAutoCommit(false);
+				int effectNum = 0;
 				ps = ct.prepareStatement(sql);
-				int effectNum = ps.executeUpdate();
+				effectNum = ps.executeUpdate();
 				
 				ct.commit();
 				return effectNum;
 			}
-		} catch (Exception e) {
-			try {
-				//回滚
-				if(ct != null){
-					ct.rollback();
-				}
+		} catch (SQLException e) {
+			//回滚
+			if(ct != null){
+				ct.rollback();
 			}
-			catch (SQLException ex) {
-				CommonUtil.printLogError(ex, logger);
-			}
-			CommonUtil.printLogError(e, logger);
+			throw new SQLException(e);
 		}
 		return 0;
 	}
@@ -330,8 +305,9 @@ public class JDBCUtils {
 	 * @param sql
 	 * @param parameter
 	 * @return 返回是否成功的真假值
+	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String[] sql, String[][] parameter,String datasourceId) {
+	public static synchronized int executeUpdate(String[] sql, String[][] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -349,15 +325,12 @@ public class JDBCUtils {
 				ct.commit();// 提交事务
 				return effectNum;
 			}
-		} catch (Exception e) {
-			try {
+		} catch (SQLException e) {
+			if(ct != null){
 				//回滚
 				ct.rollback();
 			}
-			catch (SQLException ex) {
-				CommonUtil.printLogError(ex, logger);
-			}
-			CommonUtil.printLogError(e, logger);
+			throw new SQLException(e);
 		}
 		return 0;
 	}

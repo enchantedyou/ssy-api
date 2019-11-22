@@ -6,11 +6,11 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -38,6 +38,7 @@ import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_PACKAGETYPE;
+import cn.ssy.base.exception.ConfigSettingException;
 import cn.ssy.base.exception.NullParmException;
 import cn.ssy.base.thread.DownLoadThread;
 
@@ -68,9 +69,11 @@ public class SunlineUtil {
 	//基础引用类型
 	public static Map<String, BaseType> baseTypeMap = new LinkedHashMap<String, BaseType>();
 	//字典优先级
-	private static Map<String, Integer> dictPriorityMap = new LinkedHashMap<String, Integer>();
+	private static Map<String, String> dictPriorityMap = new LinkedHashMap<String, String>();
 	//枚举优先级
-	private static Map<String, Integer> enumPriorityMap = new LinkedHashMap<String, Integer>();
+	private static Map<String, String> enumPriorityMap = new LinkedHashMap<String, String>();
+	//内管枚举(用于获取枚举值的中文描述)
+	public static Map<String, String> ctEnumMap = new LinkedHashMap<String, String>();
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SunlineUtil.class);
 	//线程池
@@ -87,47 +90,40 @@ public class SunlineUtil {
 	 *         <li>功能说明：工具初始化</li>
 	 *         </p>
 	 * @param projectPath	项目目录路径
-	 * @param dictPriorityMap	字典优先级
-	 * @param enumPriorityMap	枚举优先级
 	 * @param redisFirst	优先从redis缓存中获取数据
+	 * @throws SQLException 
 	 */
 	@SuppressWarnings("unchecked")
-	public static void sunlineInitializer(String projectPath,Map<String, Integer> dictPriorityMap,Map<String, Integer> enumPriorityMap,boolean redisFirst){
+	public static void sunlineInitializer(String projectPath,boolean redisFirst) throws SQLException{
+		//重新加载字典和枚举标志
 		if(CommonUtil.isNotNull(projectPath) && CommonUtil.isNull(projectFileMap)){
 			//初始化项目文件
-			if(redisFirst){
-				projectFileMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_FILE_KEY);
-				if(CommonUtil.isNull(projectFileMap)){
-					projectFileMap = new LinkedHashMap<>();
-					loadProjectFile(new File(projectPath));
-					redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_FILE_KEY, projectFileMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
-				}
-			}else{
+			projectFileMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_FILE_KEY);
+			if(!redisFirst || CommonUtil.isNull(projectFileMap)){
 				loadProjectFile(new File(projectPath));
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_FILE_KEY, projectFileMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化项目文件>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
-		if(CommonUtil.isNotNull(dictPriorityMap)){
+		//读取字典和枚举优先级
+		Map<String, String> tmpDictPriorityMap = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/priority/dictPriority.properties").getPath());
+		Map<String, String> tmpEnumPriorityMap = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/priority/enumPriority.properties").getPath());
+		if(CommonUtil.isNotNull(tmpDictPriorityMap)){
 			//初始化字典优先级
-			SunlineUtil.dictPriorityMap = dictPriorityMap;
+			SunlineUtil.dictPriorityMap = tmpDictPriorityMap;
 			logger.info("初始化字典优先级>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
-		if(CommonUtil.isNotNull(enumPriorityMap)){
+		if(CommonUtil.isNotNull(tmpEnumPriorityMap)){
 			//初始化枚举优先级
-			SunlineUtil.enumPriorityMap = enumPriorityMap;
+			SunlineUtil.enumPriorityMap = tmpEnumPriorityMap;
 			logger.info("初始化枚举优先级>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
+		//优先级检查
+		checkPrioritySetting();
 		if(CommonUtil.isNull(dictMap)){
 			//初始化项目字典
-			if(redisFirst){
-				dictMap = (Map<String, Dict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_DICT_KEY);
-				if(CommonUtil.isNull(dictMap)){
-					dictMap = new LinkedHashMap<>();
-					loadProjectDict();
-					redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
-				}
-			}else{
+			dictMap = (Map<String, Dict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_DICT_KEY);
+			if(!redisFirst || CommonUtil.isNull(dictMap)){
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -135,33 +131,30 @@ public class SunlineUtil {
 		}
 		if(CommonUtil.isNull(enumMap)){
 			//初始化项目枚举
-			if(redisFirst){
-				enumMap = (Map<String, EnumType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_ENUM_KEY);
-				if(CommonUtil.isNull(enumMap)){
-					enumMap = new LinkedHashMap<>();
-					loadProjectEnum();
-					redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
-				}
-			}else{
+			enumMap = (Map<String, EnumType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_ENUM_KEY);
+			if(!redisFirst || CommonUtil.isNull(enumMap)){
 				loadProjectEnum();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化项目枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		if(CommonUtil.isNull(baseTypeMap)){
-			//初始化项目枚举
-			if(redisFirst){
-				baseTypeMap = (Map<String, BaseType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_BASETYPE_KEY);
-				if(CommonUtil.isNull(baseTypeMap)){
-					baseTypeMap = new LinkedHashMap<>();
-					loanProjectBaseType();
-					redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
-				}
-			}else{
+			//初始化基础类型
+			baseTypeMap = (Map<String, BaseType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_BASETYPE_KEY);
+			if(!redisFirst || CommonUtil.isNull(baseTypeMap)){
 				loanProjectBaseType();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化基础类型>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		}
+		if(CommonUtil.isNull(ctEnumMap)){
+			//初始化内管枚举
+			ctEnumMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_CT_DICT_KEY);
+			if(!redisFirst || CommonUtil.isNull(ctEnumMap)){
+				loanCtDict();
+				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
+			}
+			logger.info("初始化内管枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		CommonUtil.printSplitLine(150);
 	}
@@ -196,6 +189,47 @@ public class SunlineUtil {
 	
 	
 	/**
+	 * @throws SQLException 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月14日-下午3:37:25</li>
+	 *         <li>功能说明：加载内管枚举</li>
+	 *         </p>
+	 */
+	private static void loanCtDict() throws SQLException {
+		ResultSet resultSet = JDBCUtils.executeQuery("select * from ap_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT);
+		while(resultSet.next()){
+			ctEnumMap.put(resultSet.getString("dict_type") + "." + resultSet.getString("dict_id"), resultSet.getString("dict_name"));
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月12日-下午3:56:33</li>
+	 *         <li>功能说明：检查优先级设置(字典和枚举)</li>
+	 *         </p>
+	 */
+	private static void checkPrioritySetting(){
+		//检查字典优先级设置
+		for(String dictType : dictPriorityMap.keySet()){
+			String priorityValue = dictPriorityMap.get(dictType);
+			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) && CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+				throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
+			}
+		}
+		//检查枚举优先级设置
+		for(String enumType : enumPriorityMap.keySet()){
+			String priorityValue = enumPriorityMap.get(enumType);
+			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) && CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+				throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
+			}
+		}
+	}
+	
+	
+	/**
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年7月31日-下午1:30:10</li>
@@ -203,20 +237,20 @@ public class SunlineUtil {
 	 *         </p>
 	 * @return
 	 */
-	private static Map<String, Integer> getDefaultDictPriorityMap(){
-		Map<String, Integer> map = new HashMap<>();
-		map.put("MsDict", 1);
-		map.put("SysDict", 2);
-		map.put("ApDict", 3);
+	private static Map<String, String> getDefaultDictPriorityMap(){
+		Map<String, String> map = new HashMap<>();
+		map.put("MsDict", "1");
+		map.put("SysDict", "2");
+		map.put("ApDict", "3");
 		
-		map.put("ApBaseDict", 4);
-		map.put("CtBaseDict", 5);
-		map.put("LnSysDict", 6);
-		map.put("LnBaseDict", 7);
+		map.put("ApBaseDict", "4");
+		map.put("CtBaseDict", "5");
+		map.put("LnSysDict", "6");
+		map.put("LnBaseDict", "7");
 		
-		map.put("LnIobusDict", 8);
-		map.put("LnServDict", 9);
-		map.put("CoServDict", 9);
+		map.put("LnIobusDict", "8");
+		map.put("LnServDict", "9");
+		map.put("CoServDict", "9");
 		return map;
 	}
 	
@@ -229,16 +263,16 @@ public class SunlineUtil {
 	 *         </p>
 	 * @return
 	 */
-	private static Map<String, Integer> getDefaultEnumPriorityMap(){
-		Map<String, Integer> map = new HashMap<>();
-		map.put("MsEnumType", 1);
-		map.put("EnumType", 2);
-		map.put("LnBaseEnumType", 3);
+	private static Map<String, String> getDefaultEnumPriorityMap(){
+		Map<String, String> map = new HashMap<>();
+		map.put("MsEnumType", "1");
+		map.put("EnumType", "2");
+		map.put("LnBaseEnumType", "3");
 		
-		map.put("LnSysEnumType", 4);
-		map.put("LnIobusEnumType", 5);
-		map.put("LnServEnumType", 6);
-		map.put("CoServEnumType", 6);
+		map.put("LnSysEnumType", "4");
+		map.put("LnIobusEnumType", "5");
+		map.put("LnServEnumType", "6");
+		map.put("CoServEnumType", "6");
 		
 		return map;
 	}
@@ -255,7 +289,7 @@ public class SunlineUtil {
 	@SuppressWarnings("unchecked")
 	private static void loadProjectEnum(){
 		if(CommonUtil.isNull(enumMap) && CommonUtil.isNotNull(projectFileMap)){
-			Map<String, Integer> priorityMap = CommonUtil.nvl(enumPriorityMap, getDefaultEnumPriorityMap());
+			Map<String, String> priorityMap = CommonUtil.nvl(enumPriorityMap, getDefaultEnumPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从枚举中解析
 				if(CommonUtil.isRegexMatches("^.*?EnumType.*.xml$", fileName)){
@@ -338,7 +372,7 @@ public class SunlineUtil {
 						EnumType trueRefEnumType = enumMap.get(realEnumValue);
 						
 						if(CommonUtil.isNotNull(curRefEnumTypeLocation)
-						&& !curRefEnumTypeLocation.equals("MsEnumType")	
+						&& !curRefEnumTypeLocation.equals("MsEnumType")
 						&& CommonUtil.isNotNull(trueRefEnumType)
 						&& CommonUtil.compare(trueRefEnumType.getEnumLocation(), curRefEnumTypeLocation) != 0){
 							//字典的枚举引用类型不正确,替换
@@ -368,7 +402,7 @@ public class SunlineUtil {
 	 */
 	private static void loadProjectDict(){
 		if(CommonUtil.isNull(dictMap) && CommonUtil.isNotNull(projectFileMap)){
-			Map<String, Integer> priorityMap = CommonUtil.nvl(dictPriorityMap, getDefaultDictPriorityMap());
+			Map<String, String> priorityMap = CommonUtil.nvl(dictPriorityMap, getDefaultDictPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从字典中解析
 				if(CommonUtil.isRegexMatches("^.*?Dict.*.xml$", fileName)){
@@ -859,9 +893,11 @@ public class SunlineUtil {
 		Dict dictInfo = dictMap.get(dictFieldName);
 		if(CommonUtil.isNotNull(dictInfo)){
 			if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
-				logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc() + ",引用类型详情:" + String.valueOf(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
+				logger.info(dictInfo.toString());
+				logger.info(String.valueOf(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
 			}else{
-				logger.info("字段["+dictFieldName+"]存在于:"+dictInfo.getDictType()+",引用类型:"+dictInfo.getRefType()+",描述:"+dictInfo.getDesc() + ",引用类型详情:" + String.valueOf(enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
+				logger.info(dictInfo.toString());
+				logger.info(String.valueOf(enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
 			}
 		}else{
 			logger.info("未搜索到相关字典");
@@ -1035,15 +1071,15 @@ public class SunlineUtil {
 			logger.error("未搜索到相关flowtran");
 		}else{
 			//获取输入输出字段
-			List<Element> input = CommonUtil.searchXmlElementList(doc.getRootElement(), "input");
-			List<Element> output = CommonUtil.searchXmlElementList(doc.getRootElement(), "output");
+			Element input = CommonUtil.searchXmlElement(doc.getRootElement(), "input");
+			Element output = CommonUtil.searchXmlElement(doc.getRootElement(), "output");
 			
 			buffer.append("\r\n" + CommonUtil.buildSplitLine(100) + "\r\n");
 			buffer.append("输入接口校验开始\r\n");
 			buffer.append(CommonUtil.buildSplitLine(100) + "\r\n");
 			
 			//输入接口校验
-			List<Element> inputFieldList = getAllFieldList(input);
+			List<Element> inputFieldList = CommonUtil.searchTargetAllXmlElement(input, "field");
 			if(CommonUtil.isNotNull(inputFieldList)){
 				ListIterator<Element> iterator = inputFieldList.listIterator();
 				while(iterator.hasNext()){
@@ -1061,7 +1097,7 @@ public class SunlineUtil {
 			for(Map<String, Object> rowMap : inputRowMapList){
 				String id = String.valueOf(rowMap.get("名称"));
 				String serialNo = String.valueOf(rowMap.get("序号"));
-				if(CommonUtil.isNotNull(serialNo)){
+				if(CommonUtil.isNotNull(serialNo) && !CommonUtil.isContainChinese(id)){
 					buffer.append("["+serialNo+"]输入字段["+id+"]已在flowtran中删除\r\n");
 				}
 			}
@@ -1069,7 +1105,7 @@ public class SunlineUtil {
 			buffer.append("输出接口校验开始\r\n");
 			
 			//输出接口校验
-			List<Element> outputFieldList = getAllFieldList(output);
+			List<Element> outputFieldList = CommonUtil.searchTargetAllXmlElement(output, "field");
 			if(CommonUtil.isNotNull(outputFieldList)){
 				ListIterator<Element> iterator = outputFieldList.listIterator();
 				while(iterator.hasNext()){
@@ -1089,7 +1125,7 @@ public class SunlineUtil {
 				for(Map<String, Object> rowMap : outputRowMapList){
 					String id = String.valueOf(rowMap.get("名称"));
 					String serialNo = String.valueOf(rowMap.get("序号"));
-					if(CommonUtil.isNotNull(serialNo)){
+					if(CommonUtil.isNotNull(serialNo) && !CommonUtil.isContainChinese(id)){
 						buffer.append("["+serialNo+"]输出字段["+id+"]已在flowtran中删除\r\n");
 					}
 				}
@@ -1104,36 +1140,6 @@ public class SunlineUtil {
 	}
 	
 	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月16日-下午12:18:22</li>
-	 *         <li>功能说明：获取当前字段列表的所有字段和子字段</li>
-	 *         </p>
-	 * @param fieldList	字段列表
-	 * @return
-	 */
-	private static List<Element> getAllFieldList(List<Element> fieldList){
-		if(CommonUtil.isNull(fieldList)){
-			return null;
-		}
-		List<Element> resultList = new LinkedList<Element>();
-		for(Element field : fieldList){
-			List<Element> inputSubFieldList = CommonUtil.searchXmlElementList(field, "fields");
-			
-			if(CommonUtil.isNotNull(inputSubFieldList)){
-				for(Element inputSubField : inputSubFieldList){
-					resultList.add(inputSubField);
-				}
-			}
-			else{
-				resultList.add(field);
-			}
-		}
-		return resultList;
-	}
-
-
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -1275,8 +1281,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param trxnCode
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode,String querySql){
+	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode,String querySql) throws SQLException{
 		if(CommonUtil.isNull(trxnCode)){
 			return null;
 		}else{
@@ -1318,8 +1325,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param trxnCode
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode){
+	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode) throws SQLException{
 		return sunlineGetYfditSuccessReq(trxnCode, null);
 	}
 	
@@ -1332,8 +1340,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param module 模块
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static List<String> sunlineGetTranControlSql(E_ICOREMODULE module){
+	public static List<String> sunlineGetTranControlSql(E_ICOREMODULE module) throws SQLException{
 		List<String> sqlList = new ArrayList<String>();
 		if(CommonUtil.isNull(module)){
 			return sqlList;
@@ -1374,8 +1383,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param module	模块
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static List<String> sunlineGetTranGroupSql(E_ICOREMODULE module){
+	public static List<String> sunlineGetTranGroupSql(E_ICOREMODULE module) throws SQLException{
 		List<String> sqlList = new ArrayList<String>();
 		if(CommonUtil.isNull(module)){
 			return sqlList;
@@ -1505,7 +1515,7 @@ public class SunlineUtil {
 				Map<String, Object> fieldValueMap = new LinkedHashMap<>();
 				fieldValueMap.put("prop", id);
 				fieldValueMap.put("label", desc);
-				fieldValueMap.put("width", 150);
+				//fieldValueMap.put("width", 150);
 				fieldValueMap.put("disabled", true);
 				
 				//枚举处理
@@ -1538,38 +1548,38 @@ public class SunlineUtil {
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月30日-下午1:23:56</li>
 	 *         <li>功能说明：杀死锁进程</li>
 	 *         </p>
 	 */
-	public static void sunlineKillProcess(String dataSourceId){
+	public static void sunlineKillProcess(String dataSourceId) throws SQLException{
 		ResultSet resultSet = JDBCUtils.executeQuery("show full PROCESSLIST", dataSourceId);
-		try{
-			Map<String, String> processMap = new HashMap<String, String>();
-			int killNum = 0;
-			while(resultSet.next()){
-				String command = resultSet.getString("command");
-				String id = resultSet.getString("id");
-				
-				
-				if("Sleep".equals(command)){
-					processMap.put(id, command);
-				}
-			}
+		Map<String, String> processMap = new HashMap<String, String>();
+		int killNum = 0;
+		while(resultSet.next()){
+			String command = resultSet.getString("command");
+			String id = resultSet.getString("id");
 			
-			for(String id : processMap.keySet()){
-				if(JDBCUtils.executeUpdate("kill " + id, dataSourceId) > 0){
-					killNum++;
-				}
-				logger.info("关闭进程" + id);
+			
+			if("Sleep".equals(command)){
+				processMap.put(id, command);
 			}
-			CommonUtil.printSplitLine(120);
-			logger.info("成功关闭的进程数量:" + killNum);
-		}catch(Exception e){
-			logger.error("关闭进程异常");
 		}
+		
+		for(String id : processMap.keySet()){
+			try{
+				JDBCUtils.executeUpdate("kill " + id, dataSourceId);
+				killNum++;
+				logger.info("关闭进程" + id + "成功");
+			}catch(SQLException e){
+				logger.error("关闭进程" + id + "失败");
+			}
+		}
+		CommonUtil.printSplitLine(120);
+		logger.info("成功关闭的进程数量:" + killNum);
 	}
 	
 	
@@ -1764,8 +1774,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param dataSource
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static List<Map<String, Object>> sunlineGetEffectLoanList(String dataSource){
+	public static List<Map<String, Object>> sunlineGetEffectLoanList(String dataSource) throws SQLException{
 		String sql = "select a.* from lna_loan a,lnf_basic b where a.loan_status = 'NORMAL' and a.settl_ind = 'N' and a.wrof_ind = 'N' and a.loan_classification = 1 and a.prod_id = b.prod_id limit 100";
 		return CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery(sql, dataSource));
 	}
@@ -1879,7 +1890,7 @@ public class SunlineUtil {
 		for(String fileName : projectFileMap.keySet()){
 			boolean isOrdered = true;
 			String beforeId = null;
-			//从字典中解析
+			//从错误配置中解析
 			if(CommonUtil.isRegexMatches("^.*?Error.error.xml$", fileName)){
 				Document doc = CommonUtil.getXmlDocument(projectFileMap.get(fileName));
 				Element root = doc.getRootElement();
@@ -1961,8 +1972,9 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param dataSource	数据源
 	 * @param prodId	产品编号
+	 * @throws SQLException 
 	 */
-	public static void sunlineDeleteLnProduct(String dataSource,String... prodId){
+	public static void sunlineDeleteLnProduct(String dataSource,String... prodId) throws SQLException{
 		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(prodId)){
 			throw new NullParmException("数据源","产品编号");
 		}
@@ -1989,17 +2001,17 @@ public class SunlineUtil {
 	 * @param isCheckUnlinked	是否检查为关联产品,为true时只检查不同步,为false时只同步不检查,且会移除未关联的产品属性
 	 * @throws Exception 
 	 */
-	public static void sunlineLnProductSync(String fromDataSource,String toDataSource,boolean isCheckUnlinked) throws Exception{
+	public static void sunlineLnProductSync(String fromDataSource,String toDataSource,boolean isCheckUnlinked,String...prodId) throws Exception{
 		if(CommonUtil.isNull(fromDataSource) || CommonUtil.isNull(toDataSource)){
 			throw new NullParmException("源数据源","目的数据源");
 		}
 		
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_basic", isCheckUnlinked);
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_drawdown", isCheckUnlinked);
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_repayment", isCheckUnlinked);
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_accrual", isCheckUnlinked);
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_maturity", isCheckUnlinked);
-		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_field_control", isCheckUnlinked);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_basic", isCheckUnlinked,prodId);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_drawdown", isCheckUnlinked,prodId);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_repayment", isCheckUnlinked,prodId);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_accrual", isCheckUnlinked,prodId);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_maturity", isCheckUnlinked,prodId);
+		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_field_control", isCheckUnlinked,prodId);
 	}
 	
 	
@@ -2014,45 +2026,88 @@ public class SunlineUtil {
 	 * @param tableName
 	 * @throws Exception
 	 */
-	private static void sunlineLnProductSync(String fromDataSource,String toDataSource, String tableName, boolean isCheckUnlinked) throws Exception{
-		List<Map<String, Object>> resultList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select prod_id from " + tableName, fromDataSource));
+	private static void sunlineLnProductSync(String fromDataSource,String toDataSource, String tableName, boolean isCheckUnlinked,String...prodId) throws Exception{
+		//获取要处理的产品号
+		List<String> prodList = new ArrayList<>();
+		if(CommonUtil.isNull(prodId)){
+			List<Map<String, Object>> resultList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select prod_id from " + tableName, fromDataSource));
+			for(Map<String, Object> map : resultList){
+				prodList.add(String.valueOf(map.get("prod_id")));
+			}
+		}else{
+			prodList.addAll(Arrays.asList(prodId));
+		}
+		//没有产品编号,不处理
+		if(CommonUtil.isNull(prodList)){
+			return;
+		}
+		//生成inSQL
+		String inSql = new String("(");
+		for(String pd : prodList){
+			inSql += "'" + pd + "',";
+		}
+		inSql = inSql.substring(0, inSql.length() - 1) + ");";
 		
 		List<Map<String, Object>> fromResList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select prod_id from "+tableName+" where prod_id not in (select DISTINCT a.prod_id from lnf_basic a join lnf_repayment b join lnf_drawdown c join lnf_maturity d join lnf_accrual e join lnf_field_control f on a.prod_id = b.prod_id and b.prod_id = c.prod_id and c.prod_id = d.prod_id and d.prod_id = e.prod_id and e.prod_id = f.prod_id);", fromDataSource));
 		List<Map<String, Object>> toResList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select prod_id from "+tableName+" where prod_id not in (select DISTINCT a.prod_id from lnf_basic a join lnf_repayment b join lnf_drawdown c join lnf_maturity d join lnf_accrual e join lnf_field_control f on a.prod_id = b.prod_id and b.prod_id = c.prod_id and c.prod_id = d.prod_id and d.prod_id = e.prod_id and e.prod_id = f.prod_id);", toDataSource));
-		if(isCheckUnlinked){
-			//只检查,不移除
-			if(CommonUtil.isNotNull(fromResList)){
-				for(Map<String, Object> rowMap : fromResList){
-					logger.info("源数据源[" + fromDataSource + "]未关联的产品属性["+tableName+"]的产品编号:" + rowMap.get("prod_id"));
-				}
-			}else{
-				logger.info("源数据源[" + fromDataSource + "]无未关联的产品属性["+tableName+"]");
-			}
-			if(CommonUtil.isNotNull(toResList)){
-				for(Map<String, Object> rowMap : toResList){
-					logger.info("目标数据源[" + toResList + "]未关联的产品属性["+tableName+"]的产品编号:" + rowMap.get("prod_id"));
-				}
-			}else{
-				logger.info("目标数据源[" + toDataSource + "]无未关联的产品属性["+tableName+"]");
+		
+		//检查未关联的产品
+		if(CommonUtil.isNotNull(fromResList)){
+			for(Map<String, Object> rowMap : fromResList){
+				logger.info("源数据源[" + fromDataSource + "]未关联的产品属性["+tableName+"]的产品编号:" + rowMap.get("prod_id"));
 			}
 		}else{
-			//移除未关联的产品
-			for(Map<String, Object> rowMap: fromResList){
-				logger.info("移除源数据源["+fromDataSource+"]未关联的产品属性["+tableName+"]:" + JDBCUtils.executeUpdate("delete from "+tableName+" where prod_id = ?", new String[]{String.valueOf(rowMap.get("prod_id"))} ,fromDataSource));
-			}
-			for(Map<String, Object> rowMap: toResList){
-				logger.info("移除目标数据源["+toDataSource+"]未关联的产品属性["+tableName+"]:" + JDBCUtils.executeUpdate("delete from "+tableName+" where prod_id = ?", new String[]{String.valueOf(rowMap.get("prod_id"))} ,toDataSource));
-			}
-			//移除目标数据源的相关产品
-			List<String> deleteSqlList = new ArrayList<String>();
-			for(Map<String, Object> map : resultList){
-				String prodId = String.valueOf(map.get("prod_id"));
-				deleteSqlList.add("delete from " + tableName + " where prod_id = '" + prodId+"';");
-			}
-			List<String> insertSqlList = CommonUtil.generateInsertSQL(JDBCUtils.executeQuery("select * from " + tableName, fromDataSource));
-			deleteSqlList.addAll(insertSqlList);
-			logger.info("处理贷款产品的[" + tableName + "]属性,待处理记录数:"+deleteSqlList.size()+",实际处理记录数:" + JDBCUtils.executeUpdate(deleteSqlList, toDataSource));
+			logger.info("源数据源[" + fromDataSource + "]无未关联的产品属性["+tableName+"]");
 		}
+		if(CommonUtil.isNotNull(toResList)){
+			for(Map<String, Object> rowMap : toResList){
+				logger.info("目标数据源[" + toResList + "]未关联的产品属性["+tableName+"]的产品编号:" + rowMap.get("prod_id"));
+			}
+		}else{
+			logger.info("目标数据源[" + toDataSource + "]无未关联的产品属性["+tableName+"]");
+		}
+		//移除目标数据源的相关产品
+		List<String> sqlList = new ArrayList<String>();
+		sqlList.add("delete from " + tableName + " where prod_id in " + inSql);
+		List<String> insertSqlList = CommonUtil.generateInsertSQL(JDBCUtils.executeQuery("select * from " + tableName + " where prod_id in " + inSql, fromDataSource));
+		sqlList.addAll(insertSqlList);
+		logger.info("处理贷款产品的[" + tableName + "]属性,待处理记录数:"+sqlList.size()+",实际处理记录数:" + JDBCUtils.executeUpdate(sqlList, toDataSource));
 		CommonUtil.printSplitLine(150);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月12日-下午5:29:28</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 */
+	public static void sunlineCheckUnusedErrorCode(String outputPath){
+		StringBuffer buffer = new StringBuffer();
+		for(String fileName : projectFileMap.keySet()){
+			//从错误配置中解析
+			if(CommonUtil.isRegexMatches("^.*?Error.error.xml$", fileName)){
+				Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
+				List<Element> errorList = CommonUtil.searchTargetAllXmlElement(root, "error");
+				for(Element error : errorList){
+					boolean isUsed = false;
+					String checkStr = CommonUtil.getFirstDotLeftStr(fileName) + "." + fileName.split("Error")[0] + ".";
+					for(String javaFile : projectFileMap.keySet()){
+						if(CommonUtil.isRegexMatches("^Ln.*?.java$", javaFile)){
+							if(CommonUtil.readFileContent(projectFileMap.get(javaFile)).contains(checkStr + error.attributeValue("id") + "(")){
+								logger.info(fileName + "->错误码["+error.attributeValue("id")+"]被["+javaFile+"]使用");
+								isUsed = true;
+								break;
+							}
+						}
+					}
+					if(!isUsed){
+						buffer.append(fileName).append("-").append(error.attributeValue("id")).append("\r\n");
+					}
+				}
+			}
+		}
+		CommonUtil.writeFileContent(buffer.toString(), outputPath + File.separator + "unusedErrorCode.txt");
 	}
 }

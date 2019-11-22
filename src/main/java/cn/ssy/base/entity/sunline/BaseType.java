@@ -87,6 +87,6 @@ public class BaseType implements Serializable{
 
 	@Override
 	public String toString() {
-		return "BaseType [id=" + id + ", base=" + base + ", longname=" + longname + ", maxLength=" + maxLength + ", fractionDigits=" + fractionDigits + "]";
+		return "[基础类型]id:" + id + ",类型:" + base + ",描述:" + longname + ",最大长度:" + maxLength + ",小数位数:" + fractionDigits;
 	}
 }

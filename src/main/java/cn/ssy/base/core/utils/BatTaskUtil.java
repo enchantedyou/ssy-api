@@ -1,6 +1,7 @@
 package cn.ssy.base.core.utils;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,9 +53,10 @@ public class BatTaskUtil {
 	 *         <li>功能说明：获取批量任务列表</li>
 	 *         </p>
 	 * @return
+	 * @throws SQLException 
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<TspTranController> getBatTaskList(){
+	public static List<TspTranController> getBatTaskList() throws SQLException{
 		String sql = "select * from tsp_tran_controller order by step_id;";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, batSettingMap.get("datasource"));
 		List<TspTranController> taskList = new ArrayList<TspTranController>();
@@ -75,8 +77,9 @@ public class BatTaskUtil {
 	 *         </p>
 	 * @param tranCode	批量交易码
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static TspTranController getBatTaskByTranCode(Integer stepId){
+	public static TspTranController getBatTaskByTranCode(Integer stepId) throws SQLException{
 		String sql = "select * from tsp_tran_controller where step_id = ? and execution_code = '1' order by step_id;";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{String.valueOf(stepId)},batSettingMap.get("datasource"));
 		return (TspTranController) CommonUtil.mappingResultSet(resultSet, TspTranController.class);
@@ -90,8 +93,9 @@ public class BatTaskUtil {
 	 *         <li>功能说明：启动贷款批量</li>
 	 *         </p>
 	 * @param tranCode
+	 * @throws SQLException 
 	 */
-	public static void startupTask(String tranCode,Integer stepId,String taskNum){
+	public static void startupTask(String tranCode,Integer stepId,String taskNum) throws SQLException{
 		String trxnDate = CommonUtil.fetchResultSetValue(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), "trxn_date");
 		TspTranController bat = getBatTaskByTranCode(stepId);
 		if(CommonUtil.isNull(bat) || CommonUtil.isNull(trxnDate)){

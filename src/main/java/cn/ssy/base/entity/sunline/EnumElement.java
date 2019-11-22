@@ -61,6 +61,6 @@ public class EnumElement implements Serializable{
 
 	@Override
 	public String toString() {
-		return "EnumElement [id=" + id + ", value=" + value + ", longname=" + longname + "]";
+		return "\r\n[枚举元素]id:" + id + ",枚举值:" + value + ",描述:" + longname;
 	}
 }

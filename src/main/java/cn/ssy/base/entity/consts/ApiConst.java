@@ -30,8 +30,12 @@ public class ApiConst {
 	public static final String DATASOURCE_ATPCORE = "ATPCORE";
 	//BAT批量环境
 	public static final String DATASOURCE_BATCORE = "BATCORE";
-	//贷款测试环境
+	//贷款研发测试环境
 	public static final String DATASOURCE_ICORE_LN_DIT = "ICORE3.0LN_DIT";
+	//内管研发测试环境
+	public static final String DATASOURCE_ICORE_CT_DIT = "ICORE3.0CT_DIT";
+	//本地CBS稽核数据库
+	public static final String DATASOURCE_LOCAL_CBS = "LOCALCBS";
 	
 	//c3p0初始线程数
 	public static final int INITIAL_POOL_SIZE = 20;
@@ -48,7 +52,10 @@ public class ApiConst {
 	public static final int CALLABLE_ERROR_RETURN = 9999;
 	//全量脚本主目录名
 	public static final String FULLSQL_MAINDIR_NAME = "ln_dbscripts";
-	
+	//字典文件名后缀
+	public static final String DICTFILE_SUFFIX = ".d_schema.xml";
+	//枚举文件名后缀
+	public static final String ENUMFILE_SUFFIX = ".e_schema.xml";
 	
 	//redis的key:项目文件
 	public static final String REDIS_PROJECT_FILE_KEY = "projectFile";
@@ -58,6 +65,8 @@ public class ApiConst {
 	public static final String REDIS_PROJECT_ENUM_KEY = "projectEnum";
 	//redis的key:基础引用类型
 	public static final String REDIS_PROJECT_BASETYPE_KEY = "projectBaseType";
+	//redis的key:内管枚举
+	public static final String REDIS_CT_DICT_KEY = "ctDict";
 	//redis默认过期时间(一天)
 	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24;
 }
