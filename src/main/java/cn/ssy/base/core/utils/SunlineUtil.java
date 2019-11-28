@@ -14,8 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -37,10 +35,8 @@ import cn.ssy.base.entity.sunline.EnumType;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
-import cn.ssy.base.enums.E_PACKAGETYPE;
 import cn.ssy.base.exception.ConfigSettingException;
 import cn.ssy.base.exception.NullParmException;
-import cn.ssy.base.thread.DownLoadThread;
 
 /**
  * <p>
@@ -76,8 +72,6 @@ public class SunlineUtil {
 	public static Map<String, String> ctEnumMap = new LinkedHashMap<String, String>();
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SunlineUtil.class);
-	//线程池
-	private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 	//redis操作工具
 	private static final RedisOperateUtil redisOperateUtil = new RedisOperateUtil();
 	
@@ -123,7 +117,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(dictMap)){
 			//初始化项目字典
 			dictMap = (Map<String, Dict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_DICT_KEY);
-			if(!redisFirst || CommonUtil.isNull(dictMap)){
+			if(!redisFirst){
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -132,7 +126,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(enumMap)){
 			//初始化项目枚举
 			enumMap = (Map<String, EnumType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_ENUM_KEY);
-			if(!redisFirst || CommonUtil.isNull(enumMap)){
+			if(!redisFirst){
 				loadProjectEnum();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -141,7 +135,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(baseTypeMap)){
 			//初始化基础类型
 			baseTypeMap = (Map<String, BaseType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_BASETYPE_KEY);
-			if(!redisFirst || CommonUtil.isNull(baseTypeMap)){
+			if(!redisFirst){
 				loanProjectBaseType();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -150,7 +144,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(ctEnumMap)){
 			//初始化内管枚举
 			ctEnumMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_CT_DICT_KEY);
-			if(!redisFirst || CommonUtil.isNull(ctEnumMap)){
+			if(!redisFirst){
 				loanCtDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -288,7 +282,8 @@ public class SunlineUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	private static void loadProjectEnum(){
-		if(CommonUtil.isNull(enumMap) && CommonUtil.isNotNull(projectFileMap)){
+		if(CommonUtil.isNotNull(projectFileMap)){
+			enumMap.clear();
 			Map<String, String> priorityMap = CommonUtil.nvl(enumPriorityMap, getDefaultEnumPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从枚举中解析
@@ -315,8 +310,10 @@ public class SunlineUtil {
 							//设置枚举元素信息
 							List<Element> enumerationList = restrictionType.elements();
 							for(Element enumeration : enumerationList){
-								EnumElement enumElement = new EnumElement(enumeration.attributeValue("id"), enumeration.attributeValue("value"), enumeration.attributeValue("longname"));
-								curEnumType.addEnumElement(enumElement);
+								if("enumeration".equals(enumeration.getName())){
+									EnumElement enumElement = new EnumElement(enumeration.attributeValue("id"), enumeration.attributeValue("value"), enumeration.attributeValue("longname"));
+									curEnumType.addEnumElement(enumElement);
+								}
 							}
 							
 							//枚举重复性校验
@@ -401,7 +398,8 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void loadProjectDict(){
-		if(CommonUtil.isNull(dictMap) && CommonUtil.isNotNull(projectFileMap)){
+		if(CommonUtil.isNotNull(projectFileMap)){
+			dictMap.clear();
 			Map<String, String> priorityMap = CommonUtil.nvl(dictPriorityMap, getDefaultDictPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从字典中解析
@@ -1165,113 +1163,6 @@ public class SunlineUtil {
 		}
 		return false;
 	}
-
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月7日-下午5:30:37</li>
-	 *         <li>功能说明：icore3.0打包部署</li>
-	 *         </p>
-	 * @param module	模块
-	 * @param packageType	打包模式
-	 * @param version	版本号
-	 * @param outputPath	输出路径
-	 * @param isToZip	是否压缩打包为zip
-	 */
-	public static void sunlinePackageServiceJar(E_ICOREMODULE module,E_PACKAGETYPE packageType,String version,final String outputPath,boolean isToZip){
-		if(CommonUtil.isNull(module) || CommonUtil.isNull(packageType) || CommonUtil.isNull(version) || CommonUtil.isNull(outputPath)){
-			return;
-		}else{
-			File outputDir = new File(outputPath);
-			if(!outputDir.exists()){
-				logger.info("目录["+outputPath+"]不存在,创建目录");
-				outputDir.mkdirs();
-				logger.info("目录创建完成");
-			}else if(!outputDir.isDirectory()){
-				logger.error("["+outputDir.getPath() + "]必须是目录");
-				return;
-			}
-		}
-		
-		String moduleId = module.getId();
-		List<String> subModuleList = new ArrayList<String>();
-		
-		//根据打包类型定义子模块数组列表
-		if(packageType == E_PACKAGETYPE.BASE){
-			subModuleList.add(moduleId + "-base");
-			subModuleList.add(moduleId + "-sys");
-		}else if(packageType == E_PACKAGETYPE.IOBUS){
-			subModuleList.add(moduleId + "-iobus");
-		}else if(packageType == E_PACKAGETYPE.SERV){
-			subModuleList.add(moduleId + "-serv");
-			subModuleList.add(moduleId + "-batch");
-			subModuleList.add(moduleId + "-tran");
-		}else if(packageType == E_PACKAGETYPE.ALL){
-			subModuleList.add(moduleId + "-serv");
-			subModuleList.add(moduleId + "-batch");
-			subModuleList.add(moduleId + "-tran");
-			subModuleList.add(moduleId + "-base");
-			subModuleList.add(moduleId + "-sys");
-			subModuleList.add(moduleId + "-iobus");
-			subModuleList.add(moduleId + "-iobus");
-		}
-		
-		for(String subModule : subModuleList){
-			String mavenMetaDataUrl = "http://10.22.10.10:8081/repository/maven-public/cn/sunline/icore/"+moduleId+"/"+subModule+"/"+version+"/maven-metadata.xml";
-			//解析maven-metadata.xml
-			Element root = CommonUtil.getUrlRootElement(mavenMetaDataUrl);
-			if(CommonUtil.isNull(root)){
-				logger.error("解析["+subModule+"]maven-metadata.xml失败");
-			}else{
-				//获取最新的版本号
-				Element value = CommonUtil.searchXmlElement(root, "value");
-				if(CommonUtil.isNull(value)){
-					logger.error("获取["+subModule+"]的最新版本号失败");
-				}else{
-					String lastVersion = value.getText();
-					final String nexusJarName = subModule + "-" + lastVersion + ".jar";
-					final String downloadUrl = "http://10.22.10.10:8081/repository/maven-public/cn/sunline/icore/"+moduleId+"/"+subModule+"/"+version+"/"+nexusJarName;
-					final String deployJarName = subModule + "-" + version + ".jar";
-					//下载部署包
-					cachedThreadPool.submit(new DownLoadThread(downloadUrl, outputPath + File.separator + deployJarName));
-				}
-			}
-		}
-		
-		//如果含有附属模块,则对附属模块也进行打包
-		E_ICOREMODULE[] attachModuleArray = module.getAttachModule();
-		if(CommonUtil.isNotNull(attachModuleArray)){
-			for(int i = 0;i < attachModuleArray.length;i++){
-				E_ICOREMODULE attachModule = attachModuleArray[i];
-				logger.info("["+module.getModuleName()+"]模块包含["+attachModule.getModuleName()+"],获取["+attachModule.getModuleName()+"]模块的包");
-				
-				if(i != attachModuleArray.length - 1){
-					sunlinePackageServiceJar(attachModule, attachModule.getPackageType(), version, outputPath, false);
-				}else{
-					sunlinePackageServiceJar(attachModule, attachModule.getPackageType(), version, outputPath, isToZip);
-				}
-			}
-			return;
-		}
-		
-		//压缩为zip
-		if(isToZip){
-			if(module == E_ICOREMODULE.CO){
-				moduleId = E_ICOREMODULE.LN.getId();
-			}
-			String zipFilePath = outputPath + File.separator + moduleId + "-" + version + ".zip";
-			
-			cachedThreadPool.shutdown();
-			while(!cachedThreadPool.isTerminated()){
-				CommonUtil.systemPause(5);
-			}
-			logger.info("压缩打包:" + zipFilePath);
-			CommonUtil.toZip(outputPath,zipFilePath , true);
-		}
-	}
-	
-	
 	
 	/**
 	 * @Author sunshaoyu
@@ -1453,9 +1344,9 @@ public class SunlineUtil {
 				ruleList.add(ruleMap);
 				
 				fieldValueMap.put("rules", ruleList);
-				if(ruleMap.get("required").equals(true)){
+				/*if(ruleMap.get("required").equals(true)){
 					ruleMap.put("message", "请输入" + desc);
-				}
+				}*/
 				fieldValueMap.put("width", "220px");
 				
 				//枚举处理
@@ -1743,7 +1634,7 @@ public class SunlineUtil {
 		}
 		String apiTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/api_tamplate.xlsx").getPath();
 		List<Map<String, String>> dataList = new ArrayList<>();
-		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in where out_service_code like concat(?,'%')", new String[]{String.valueOf(module.getSrvSign())}, dataSource));
+		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in", dataSource));
 		for(Map<String, Object> map : result){
 			Map<String, String> dataMap = new HashMap<>();
 			dataMap.put("api", String.valueOf(map.get("out_service_code")));
@@ -2109,5 +2000,120 @@ public class SunlineUtil {
 			}
 		}
 		CommonUtil.writeFileContent(buffer.toString(), outputPath + File.separator + "unusedErrorCode.txt");
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月22日-下午1:48:36</li>
+	 *         <li>功能说明：根据请求报文构建set语句</li>
+	 *         </p>
+	 * @param request
+	 * @throws SQLException 
+	 */
+	public static String sunlineBuildSetFromRequest(String dataSource) throws SQLException{
+		if(CommonUtil.isNull(dataSource)){
+			throw new NullParmException("请求报文","数据源ID");
+		}else{
+			String request = CommonUtil.readFileContent(SunlineUtil.class.getResource("/json/request.json").getPath());
+			JSONObject json = JSONObject.fromObject(request);
+			//获取服务码
+			String serviceCode = json.getJSONObject("sys").getString("servicecode");
+			List<Map<String, Object>> mspTransactionList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from msp_transaction where trxn_code like ?",new String[]{"%" + serviceCode.substring(serviceCode.length() - 4)}, dataSource));
+			String trxnCode = String.valueOf(mspTransactionList.get(0).get("trxn_code"));
+			//获取flowtran
+			Element flowtranRoot = CommonUtil.getXmlRootElement(projectFileMap.get(trxnCode + ".flowtrans.xml"));
+			Element serviceElement = CommonUtil.searchXmlElement(flowtranRoot, "service");
+			String[] serviceType = serviceElement.attributeValue("id").split("\\.");
+			//获取服务
+			Element serviceRoot = CommonUtil.getXmlRootElement(projectFileMap.get(serviceType[0] + ".serviceType.xml"));
+			Element serviceInterface = CommonUtil.searchXmlElement(serviceRoot, "service", "id", serviceType[1]).element("interface");
+			Element inputField = CommonUtil.searchXmlElement(serviceInterface, "input").element("field");
+			String inputName = inputField.attributeValue("id");
+			String complexType = inputField.attributeValue("type").split("\\.")[1];
+			//构建输入语句
+			StringBuffer buffer = new StringBuffer();
+			buffer.append(complexType + " " + inputName + " = " + "BizUtil.getInstance("+complexType+".class);\r\n");
+			JSONObject input = json.getJSONObject("input");
+			for(Object key : input.keySet()){
+				Object value = input.get(key);
+				Dict dictInfo = dictMap.get(key);
+				String baseStatement = inputName + ".set" + key.toString().substring(0,1).toUpperCase() + key.toString().substring(1);
+				
+				if(CommonUtil.isNull(dictInfo)){
+					continue;
+				}else if(CommonUtil.isNull(value)){
+					buffer.append(baseStatement + "(null);\r\n");
+				}else if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
+					//如果字段是基础引用类型
+					if("decimal".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
+						buffer.append(baseStatement + "(new BigDecimal("+value+"));\r\n");
+					}else{
+						buffer.append(baseStatement + "(\""+value+"\");\r\n");
+					}
+				}else{
+					//如果字段是枚举
+					EnumType enumType = enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()));
+					if(CommonUtil.isNull(enumType)){
+						buffer.append(baseStatement + "(\""+value+"\");\r\n");
+					}else{
+						buffer.append(baseStatement + "("+enumType.getEnumId()+"."+enumType.getEnumElementMap().get(value).getId()+");\r\n");
+					}
+				}
+			}
+			return buffer.toString();
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月22日-下午3:46:54</li>
+	 *         <li>功能说明：构建"字段不为空"代码</li>
+	 *         </p>
+	 * @param fieldId	字段id列表
+	 * @return
+	 */
+	public static String sunlineBuildFieldNotNull(String...fieldId){
+		StringBuffer buffer = new StringBuffer();
+		if(CommonUtil.isNull(fieldId)){
+			throw new NullParmException("字段id列表");
+		}else{
+			for(String id : fieldId){
+				Dict dictInfo = dictMap.get(id);
+				if(CommonUtil.isNotNull(dictInfo)){
+					buffer.append("BizUtil.fieldNotNull(input.get" + id.substring(0,1).toUpperCase() + id.substring(1) + "(), " + dictInfo.getDictType() + ".A." + id + ".getId(), " + dictInfo.getDictType() + ".A." + id + ".getLongName());\r\n");
+				}
+			}
+		}
+		return buffer.toString();
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年11月13日-下午1:12:47</li>
+	 *         <li>功能说明：执行全量SQL</li>
+	 *         </p>
+	 * @param file
+	 * @throws SQLException 
+	 */
+	public static void sunlineExecuteFullSql(File file, String dataSource) throws SQLException {
+		if (file != null) {
+			if (file.isDirectory()) {
+				// 列举此目录下所有文件及文件夹
+				File[] list = file.listFiles();
+				for (int i = 0; i < list.length; i++) {
+					sunlineExecuteFullSql(list[i], dataSource);
+				}
+			} else {
+				String sql = CommonUtil.readFileContent(file.getPath());
+				logger.info("执行[" + file.getName() + "]\r\n" + sql);
+				logger.info("生效记录条数:" + JDBCUtils.executeUpdate(Arrays.asList(sql.split("\n")), dataSource));
+			}
+		}
 	}
 }

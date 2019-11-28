@@ -481,14 +481,14 @@ public class ExcelReader {
 				BaseType baseType = SunlineUtil.baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(key).getRefType()));
 				String baseMaxLength = null;
 				
-				List<EnumElement> enumElementList = null;
+				Map<String, EnumElement> enumElementMap = null;
 				String enumId = null;
 				if(CommonUtil.isNull(baseType)){
 					String refType = SunlineUtil.dictMap.get(key).getRefType();
 					EnumType enumType = SunlineUtil.enumMap.get(CommonUtil.getRealType(refType));
 					if(CommonUtil.isNotNull(enumType)){
 						baseMaxLength = enumType.getMaxLength();
-						enumElementList = enumType.getElementList();
+						enumElementMap = enumType.getEnumElementMap();
 						enumId = enumType.getEnumId();
 					}else{
 						baseMaxLength = "20";
@@ -505,14 +505,12 @@ public class ExcelReader {
 				curRow.createCell(5).setCellValue(baseFractionDigits);
 				if(io == E_IO.INPUT){
 					curRow.createCell(6).setCellValue("O");
-					if(CommonUtil.isNotNull(enumElementList)){
+					if(CommonUtil.isNotNull(enumElementMap)){
 						StringBuffer buffer = new StringBuffer();
-						for(EnumElement e : enumElementList){
-							if(CommonUtil.isNotNull(e.getValue())){
-								//获取枚举值的中文
-								String longnameCN = SunlineUtil.ctEnumMap.get(enumId + "." + e.getValue());
-								buffer.append(e.getValue()).append(":").append(CommonUtil.nvl(longnameCN, e.getLongname())).append(";\r\n");
-							}
+						for(String v : enumElementMap.keySet()){
+							//获取枚举值的中文
+							String longnameCN = SunlineUtil.ctEnumMap.get(enumId + "." + v);
+							buffer.append(v).append(":").append(CommonUtil.nvl(longnameCN, enumElementMap.get(v).getLongname())).append(";\r\n");
 						}
 						Cell cell = curRow.createCell(7);
 						cell.setCellStyle(cellStyle);

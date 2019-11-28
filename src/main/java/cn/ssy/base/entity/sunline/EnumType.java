@@ -1,8 +1,8 @@
 package cn.ssy.base.entity.sunline;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 //枚举实体类
 public class EnumType implements Serializable{
@@ -21,7 +21,7 @@ public class EnumType implements Serializable{
 	
 	private String fullName;
 	
-	private List<EnumElement> elementList = new ArrayList<EnumElement>();
+	private Map<String, EnumElement> enumElementMap = new LinkedHashMap<String, EnumElement>();
 
 	public String getEnumId() {
 		return enumId;
@@ -55,12 +55,12 @@ public class EnumType implements Serializable{
 		this.maxLength = maxLength;
 	}
 
-	public List<EnumElement> getElementList() {
-		return elementList;
+	public Map<String, EnumElement> getEnumElementMap() {
+		return enumElementMap;
 	}
 
-	public void setElementList(List<EnumElement> elementList) {
-		this.elementList = elementList;
+	public void setEnumElementMap(Map<String, EnumElement> enumElementMap) {
+		this.enumElementMap = enumElementMap;
 	}
 
 	public String getEnumLocation() {
@@ -72,7 +72,7 @@ public class EnumType implements Serializable{
 	}
 	
 	public void addEnumElement(EnumElement enumElement) {
-		this.elementList.add(enumElement);
+		this.enumElementMap.put(enumElement.getValue(), enumElement);
 	}
 
 	public String getFullName() {
@@ -86,8 +86,8 @@ public class EnumType implements Serializable{
 	@Override
 	public String toString() {
 		String str = "\r\n[枚举]id:" + enumId + ",枚举类型:" + EnumLocation + ",描述:" + longname + ",类型:" + base + ",全名:" + fullName + ",最大长度:" + maxLength;
-		for(EnumElement e : elementList){
-			str += e.toString();
+		for(String key : enumElementMap.keySet()){
+			str += enumElementMap.get(key).toString();
 		}
 		return str;
 	}

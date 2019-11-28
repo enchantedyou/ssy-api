@@ -4,15 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.StringTokenizer;
-
-import net.sf.json.JSONObject;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -27,7 +21,6 @@ import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_PACKAGETYPE;
-import cn.ssy.base.exception.NullParmException;
 
 public class SimpleTest{
 	
@@ -67,25 +60,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("loan_no");
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月8日-上午10:47:15</li>
-	 *         <li>功能说明：部署打包</li>
-	 *         </p>
-	 */
-	@Test
-	public void test2(){
-		String dir = "C:/Users/36045/Desktop/ln/";
-		File[] fileArr = new File(dir).listFiles();
-		for(File file : fileArr){
-			file.delete();
-		}
-		SunlineUtil.sunlinePackageServiceJar(E_ICOREMODULE.LN, E_PACKAGETYPE.ALL, "3.1.0.0-SNAPSHOT", dir,true);
+		SunlineUtil.sunlineSearchDict("start_date");
 	}
 	
 	
@@ -191,7 +166,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnAccrualInfo"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnRepaymentBookListOut"));
 	}
 	
 	
@@ -340,7 +315,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326159");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"101000");
 	}
 	
 	
@@ -371,7 +346,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6014", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6310", outputPath);
 	}
 	
 	
@@ -384,7 +359,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6074", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6310", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
 	}
 	
 	
@@ -495,85 +470,41 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test31() throws Exception{
-		File file = new File("C:/Users/36045/Desktop/ln_dbscripts");
-		executeFullSql(file);
+		File file = new File("C:/Users/36045/Desktop/" + ApiConst.FULLSQL_MAINDIR_NAME);
+		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_ICORE_LN_DIT);
 	}
 	
 	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年10月31日-下午6:29:46</li>
-	 *         <li>功能说明：请求报文转换</li>
+	 *         <li>2019年11月22日-下午2:00:43</li>
+	 *         <li>功能说明：根据请求报文生产set语句</li>
 	 *         </p>
-	 * @param param
-	 * @return
+	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
-	public String requestMsgTransform(String param){
-		if(CommonUtil.isNull(param)){
-			throw new NullParmException("请求数据");
-		}
-		Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
-		StringTokenizer tokenizer = new StringTokenizer(param,"&");
-		
-		while(tokenizer.hasMoreTokens()){
-			String token = tokenizer.nextToken();
-			if(token.contains("=")){
-				String[] tokenArray = token.split("=");
-				String key = tokenArray[0];
-				String value = tokenArray[1];
-				
-				if(resultMap.keySet().contains(key)){
-					List<String> list = new ArrayList<String>();
-					if(resultMap.get(key) instanceof String){
-						list.add(String.valueOf(resultMap.get(key)));
-						list.add(value);
-					}else if(resultMap.get(key) instanceof List<?>){
-						list = (List<String>) resultMap.get(key);
-						list.add(value);
-					}
-					resultMap.put(key, list);
-				}else{
-					if(value.contains(",")){
-						List<String> list = new ArrayList<String>();
-						String[] valueArray = value.split(",");
-						for(String v : valueArray){
-							list.add(v);
-						}
-						resultMap.put(key, list);
-					}else{
-						resultMap.put(key, value);
-					}
-				}
-			}
-		}
-		return JSONObject.fromObject(resultMap).toString();
+	@Test
+	public void test32() throws Exception{
+		System.out.println(SunlineUtil.sunlineBuildSetFromRequest(ApiConst.DATASOURCE_ICORE_LN));
 	}
 	
 	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年11月13日-下午1:12:47</li>
-	 *         <li>功能说明：执行全量SQL</li>
+	 *         <li>2019年11月22日-下午3:51:10</li>
+	 *         <li>功能说明：构建字段不为空代码</li>
 	 *         </p>
-	 * @param file
-	 * @throws SQLException 
+	 * @throws Exception
 	 */
-	public static void executeFullSql(File file) throws SQLException {
-		if (file != null) {
-			if (file.isDirectory()) {
-				// 列举此目录下所有文件及文件夹
-				File[] list = file.listFiles();
-				for (int i = 0; i < list.length; i++) {
-					executeFullSql(list[i]);
-				}
-			} else {
-				String sql = CommonUtil.readFileContent(file.getPath());
-				logger.info("执行[" + file.getName() + "]\r\n" + sql);
-				logger.info("生效记录条数:" + JDBCUtils.executeUpdate(Arrays.asList(sql.split("\n")), ApiConst.DATASOURCE_ICORE_LN_DIT));
-			}
-		}
+	@Test
+	public void test33() throws Exception{
+		System.out.println(SunlineUtil.sunlineBuildFieldNotNull("financial_prod_ccy_code","financial_prod_trxn_amt","financial_prod_branch_id"));
+	}
+	
+	
+	@Test
+	public void test34() throws Exception{
+		System.out.println(CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from msp_parameter", ApiConst.DATASOURCE_ICORE_LN_FAT)));
 	}
 }

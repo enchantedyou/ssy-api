@@ -32,6 +32,8 @@ public class ApiConst {
 	public static final String DATASOURCE_BATCORE = "BATCORE";
 	//贷款研发测试环境
 	public static final String DATASOURCE_ICORE_LN_DIT = "ICORE3.0LN_DIT";
+	//贷款研发FAT环境
+	public static final String DATASOURCE_ICORE_LN_FAT = "ICORE3.0LN_FAT";
 	//内管研发测试环境
 	public static final String DATASOURCE_ICORE_CT_DIT = "ICORE3.0CT_DIT";
 	//本地CBS稽核数据库
@@ -51,7 +53,7 @@ public class ApiConst {
 	//回调线程默认失败返回
 	public static final int CALLABLE_ERROR_RETURN = 9999;
 	//全量脚本主目录名
-	public static final String FULLSQL_MAINDIR_NAME = "ln_dbscripts";
+	public static final String FULLSQL_MAINDIR_NAME = "ln-dbscripts";
 	//字典文件名后缀
 	public static final String DICTFILE_SUFFIX = ".d_schema.xml";
 	//枚举文件名后缀

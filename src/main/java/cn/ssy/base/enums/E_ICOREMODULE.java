@@ -19,23 +19,19 @@ package cn.ssy.base.enums;
  */
 public enum E_ICOREMODULE {
 	
-	DP("dp","Dp",31,"存款","Deposit",false,null,E_PACKAGETYPE.ALL,"100","1001"),
+	DP("dp","Dp",31,"存款","Deposit","100","1001"),
 	
-	CO("co","Co",33,"押品","Collateral",false,null,E_PACKAGETYPE.SERV,"102","1021"),
+	CO("co","Co",33,"押品","Collateral","102","1021"),
 	
-	LN("ln","Ln",32,"贷款","Loan",true,new E_ICOREMODULE[]{E_ICOREMODULE.CO},E_PACKAGETYPE.ALL,"102","1021"),
+	LN("ln","Ln",32,"贷款","Loan","102","1021"),
 	
-	CC("cc","Cc",34,"类信用卡","Credit Card",false,null,E_PACKAGETYPE.ALL,"105","1051"),
+	CC("cc","Cc",34,"类信用卡","Credit Card","105","1051"),
 	
-	CM("cm","Cm",35,"公共","Common",false,null,E_PACKAGETYPE.ALL,"103","1031"),
+	CM("cm","Cm",35,"公共","Common","103","1031"),
 	
-	CB("cb","Cb",36,"临柜","Cabinet",false,null,E_PACKAGETYPE.ALL,"",""),
+	GL("gl","Gl",38,"总账","General ledger","104","1041"),
 	
-	AC("ac","Ac",37,"核算","Accounting",false,null,E_PACKAGETYPE.ALL,"",""),
-	
-	GL("gl","Gl",38,"总账","General ledger",false,null,E_PACKAGETYPE.ALL,"104","1041"),
-	
-	MK("mk","MK",50,"营销","Marketing",false,null,E_PACKAGETYPE.ALL,"203","2031");
+	MK("mk","MK",50,"营销","Marketing","203","2031");
 	
 	private String id;
 	
@@ -47,28 +43,17 @@ public enum E_ICOREMODULE {
 	
 	private String moduleDesc;
 	
-	private boolean isMultiModule;
-	
-	private E_ICOREMODULE[] attachModule;
-	
-	private E_PACKAGETYPE packageType;
-	
 	private String sysCode;
 	
 	private String subSysCode;
 
-	E_ICOREMODULE(String id, String upperId, Integer srvSign, String moduleName, String moduleDesc,
-		boolean isMultiModule,E_ICOREMODULE[] attachModule,E_PACKAGETYPE packageType,String sysCode,String subSysCode) {
+	E_ICOREMODULE(String id, String upperId, Integer srvSign, String moduleName, String moduleDesc,String sysCode,String subSysCode) {
 		this.id = id;
 		this.upperId = upperId;
 		this.srvSign = srvSign;
 		this.moduleName = moduleName;
 		
 		this.moduleDesc = moduleDesc;
-		this.isMultiModule = isMultiModule;
-		this.attachModule = attachModule;
-		this.packageType = packageType;
-		
 		this.sysCode = sysCode;
 		this.subSysCode = subSysCode;
 	}
@@ -111,30 +96,6 @@ public enum E_ICOREMODULE {
 
 	public void setUpperId(String upperId) {
 		this.upperId = upperId;
-	}
-
-	public boolean isMultiModule() {
-		return isMultiModule;
-	}
-
-	public void setMultiModule(boolean isMultiModule) {
-		this.isMultiModule = isMultiModule;
-	}
-
-	public E_ICOREMODULE[] getAttachModule() {
-		return attachModule;
-	}
-
-	public void setAttachModule(E_ICOREMODULE[] attachModule) {
-		this.attachModule = attachModule;
-	}
-
-	public E_PACKAGETYPE getPackageType() {
-		return packageType;
-	}
-
-	public void setPackageType(E_PACKAGETYPE packageType) {
-		this.packageType = packageType;
 	}
 
 	public String getSysCode() {

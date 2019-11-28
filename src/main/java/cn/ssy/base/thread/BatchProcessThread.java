@@ -68,7 +68,6 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), ++totalTaskNum));
 				}else{
 					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), -1));
-					
 				}
 			}
 		}
