@@ -11,9 +11,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -24,6 +27,8 @@ import org.apache.log4j.Logger;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
 
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.entity.consts.ApiConst;
@@ -35,6 +40,7 @@ import cn.ssy.base.entity.sunline.EnumType;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
+import cn.ssy.base.enums.E_STRUCTMODULE;
 import cn.ssy.base.exception.ConfigSettingException;
 import cn.ssy.base.exception.NullParmException;
 
@@ -74,6 +80,8 @@ public class SunlineUtil {
 	private static final Logger logger = Logger.getLogger(SunlineUtil.class);
 	//redis操作工具
 	private static final RedisOperateUtil redisOperateUtil = new RedisOperateUtil();
+	//字段引用字典校验缓存
+	private static final StringBuffer fieldRefReportBuffer = new StringBuffer();
 	
 	
 	
@@ -89,6 +97,14 @@ public class SunlineUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void sunlineInitializer(String projectPath,boolean redisFirst) throws SQLException{
+		if(!redisFirst){
+			redisOperateUtil.delete(ApiConst.REDIS_PROJECT_FILE_KEY);
+			redisOperateUtil.delete(ApiConst.REDIS_PROJECT_DICT_KEY);
+			redisOperateUtil.delete(ApiConst.REDIS_PROJECT_ENUM_KEY);
+			redisOperateUtil.delete(ApiConst.REDIS_PROJECT_BASETYPE_KEY);
+			redisOperateUtil.delete(ApiConst.REDIS_CT_DICT_KEY);
+		}
+		
 		//重新加载字典和枚举标志
 		if(CommonUtil.isNotNull(projectPath) && CommonUtil.isNull(projectFileMap)){
 			//初始化项目文件
@@ -117,7 +133,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(dictMap)){
 			//初始化项目字典
 			dictMap = (Map<String, Dict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_DICT_KEY);
-			if(!redisFirst){
+			if(!redisFirst || CommonUtil.isNull(dictMap)){
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -126,7 +142,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(enumMap)){
 			//初始化项目枚举
 			enumMap = (Map<String, EnumType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_ENUM_KEY);
-			if(!redisFirst){
+			if(!redisFirst || CommonUtil.isNull(enumMap)){
 				loadProjectEnum();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -135,7 +151,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(baseTypeMap)){
 			//初始化基础类型
 			baseTypeMap = (Map<String, BaseType>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_BASETYPE_KEY);
-			if(!redisFirst){
+			if(!redisFirst || CommonUtil.isNull(baseTypeMap)){
 				loanProjectBaseType();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -144,11 +160,23 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(ctEnumMap)){
 			//初始化内管枚举
 			ctEnumMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_CT_DICT_KEY);
-			if(!redisFirst){
+			if(!redisFirst || CommonUtil.isNull(ctEnumMap)){
 				loanCtDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
 			logger.info("初始化内管枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		}
+		CommonUtil.printSplitLine(150);
+		logger.info("项目文件数量:" + projectFileMap.size());
+		logger.info("项目字典数量:" + dictMap.size());
+		logger.info("项目枚举数量:" + enumMap.size());
+		
+		logger.info("基础类型数量:" + baseTypeMap.size());
+		logger.info("内管枚举数量:" + ctEnumMap.size());
+		CommonUtil.printSplitLine(150);
+		
+		if(redisFirst){
+			logger.info("Redis缓存数据占用内存:" + redisOperateUtil.getRedisInfo().get("used_memory_human"));
 		}
 		CommonUtil.printSplitLine(150);
 	}
@@ -235,10 +263,10 @@ public class SunlineUtil {
 		Map<String, String> map = new HashMap<>();
 		map.put("MsDict", "1");
 		map.put("SysDict", "2");
-		map.put("ApDict", "3");
+		/*map.put("ApDict", "3");
 		
 		map.put("ApBaseDict", "4");
-		map.put("CtBaseDict", "5");
+		map.put("CtBaseDict", "5");*/
 		map.put("LnSysDict", "6");
 		map.put("LnBaseDict", "7");
 		
@@ -346,6 +374,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(outputPath)){
 			return;
 		}else{
+			StringBuffer reportBuffer = new StringBuffer();
 			for(String fileName : projectFileMap.keySet()){
 				//从字典中解析
 				if(CommonUtil.isRegexMatches("^.*?Dict.*.xml$", fileName)){
@@ -375,17 +404,22 @@ public class SunlineUtil {
 							//字典的枚举引用类型不正确,替换
 							typeAttribute.setValue(typeAttribute.getValue().replace(curRefEnumTypeLocation, trueRefEnumType.getEnumLocation()));
 							isChanged = true;
-							System.err.println("元素["+dictId+"]的引用类型发生更替:"+curRefEnumTypeLocation+"."+realEnumValue+"->"+trueRefEnumType.getEnumLocation()+"."+realEnumValue);
+							String replaceMsg = "元素["+dictId+"]的引用类型发生更替:"+curRefEnumTypeLocation+"."+realEnumValue+"->"+trueRefEnumType.getEnumLocation()+"."+realEnumValue;
+							logger.error(replaceMsg);
+							reportBuffer.append("["+fileName+"]").append(replaceMsg).append("\r\n");
 						}
 					}
 					
 					if(isChanged){
 						//写入到文件
 						CommonUtil.writeDocumentXml(doc, outputPath + "/" + fileName);
-						CommonUtil.printSplitLine(200);
+						String line = CommonUtil.buildSplitLine(200);
+						logger.info(line);
+						reportBuffer.append(line).append("\r\n");
 					}
 				}
 			}
+			CommonUtil.writeFileContent(reportBuffer.toString(), outputPath + "/dictRefReporter.info");
 		}
 	}
 	
@@ -553,9 +587,13 @@ public class SunlineUtil {
 				if(CommonUtil.isNotNull(resMap)){
 					//写入文件
 					sunlineReplaceStrByMap(projectFileMap.get(fileName), outputPath, resMap);
-					CommonUtil.printSplitLine(200);
+					String line = CommonUtil.buildSplitLine(200);
+					logger.info(line);
+					fieldRefReportBuffer.append("<--------").append(fileName).append("校验结束-------->\r\n");
+					fieldRefReportBuffer.append(line).append("\r\n");
 				}
 			}
+			CommonUtil.writeFileContent(fieldRefReportBuffer.toString(), outputPath + "/fieldRefReporter.info");
 		}
 	}
 	
@@ -655,12 +693,16 @@ public class SunlineUtil {
 					if(!dictName.equals(CommonUtil.getFirstDotLeftStr(refAttribute.getValue()))){
 						String refValue = refAttribute.getValue();
 						refAttribute.setValue(refValue.replace(CommonUtil.getFirstDotLeftStr(refValue), dictName));
-						logger.info("元素["+id+"]的字典发生更替:"+refValue+"->"+refAttribute.getValue());
+						String msg = "元素["+id+"]的字典发生更替:"+refValue+"->"+refAttribute.getValue();
+						logger.info(msg);
+						fieldRefReportBuffer.append(msg).append("\r\n");
 					}
 					if(!enumType.equals(typeAttribute.getValue())){
 						String typeValue = typeAttribute.getValue();
 						typeAttribute.setValue(enumType);
-						logger.info("元素["+id+"]的枚举发生更替:"+typeValue+"->"+enumType);
+						String msg = "元素["+id+"]的枚举发生更替:"+typeValue+"->"+enumType;
+						logger.info(msg);
+						fieldRefReportBuffer.append(msg).append("\r\n");
 					}
 					if(!beforeElement.asXML().equals(element.asXML())){
 						resMap.put(beforeElement.asXML(), element.asXML());
@@ -819,6 +861,34 @@ public class SunlineUtil {
 				if(CommonUtil.isRegexMatches("^Com.*?.xml$", fileName)){
 					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
 					Element target = CommonUtil.searchXmlElement(root, "complexType", "id", className);
+					if(CommonUtil.isNotNull(target)){
+						return target;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月2日-下午1:40:49</li>
+	 *         <li>功能说明：根据表名获取表的属性配置元素</li>
+	 *         </p>
+	 * @param tableName
+	 * @return
+	 */
+	public static Element sunlineGetTableType(String tableName){
+		if(CommonUtil.isNull(tableName)){
+			return null;
+		}else{
+			for(String fileName : projectFileMap.keySet()){
+				//从表类型中解析
+				if(CommonUtil.isRegexMatches("^Tab.*?.tables.xml$", fileName)){
+					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
+					Element target = CommonUtil.searchXmlElement(root, "table", "id", tableName);
 					if(CommonUtil.isNotNull(target)){
 						return target;
 					}
@@ -1336,7 +1406,7 @@ public class SunlineUtil {
 				//设置公共字段信息
 				Map<String, Object> fieldValueMap = new LinkedHashMap<>();
 				fieldValueMap.put("label", desc);
-				fieldValueMap.put("disabled", true);
+				fieldValueMap.put("disabled", false);
 				//添加规则
 				List<Map<String, Object>> ruleList = new ArrayList<>();
 				Map<String, Object> ruleMap = new LinkedHashMap<>();
@@ -1347,7 +1417,7 @@ public class SunlineUtil {
 				/*if(ruleMap.get("required").equals(true)){
 					ruleMap.put("message", "请输入" + desc);
 				}*/
-				fieldValueMap.put("width", "220px");
+				//fieldValueMap.put("width", "220px");
 				
 				//枚举处理
 				if(CommonUtil.isNotNull(type) && type.contains(".E_")){
@@ -1357,13 +1427,21 @@ public class SunlineUtil {
 					dictMap.put("format", "value-label");
 					dictMap.put("dictKey", new String[]{realType});
 					fieldValueMap.put("control", "select");
-					
 					fieldValueMap.put("dict", dictMap);
 				}
 				//日期处理
 				else if("U_DATE".equals(realType)){
 					fieldValueMap.put("control", "dateTimePicker");
 					fieldValueMap.put("valueFormat", "yyyyMMdd");
+				}
+				//金额处理
+				else if("U_MONEY".equals(realType) || "U_INTERESTRATE".equals(realType)){
+					Map<String, Object> formatMap = new HashMap<>();
+					formatMap.put("decimal", 2);
+					formatMap.put("decimalPoint", ".");
+					formatMap.put("thousandsPoint", ",");
+					fieldValueMap.put("format", formatMap);
+					fieldValueMap.put("control", "currency");
 				}
 				//普通值处理
 				else{
@@ -1433,6 +1511,71 @@ public class SunlineUtil {
 				tabList.add(fieldValueMap);
 			}
 			return JSONArray.fromObject(tabList).toString();
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月12日-下午4:50:13</li>
+	 *         <li>功能说明：生成内管域后事件json</li>
+	 *         </p>
+	 * @param fieldName	该字段后的域后事件
+	 * @param disabled	是否置灰
+	 * @param required	是否必输
+	 * @param controlFields	被控制的字段列表
+	 * @return
+	 */
+	public static String sunlineBuildCtEventsJson(String fieldName,boolean disabled,boolean required,String... controlFields){
+		if(CommonUtil.isNull(fieldName)){
+			throw new NullParmException("域后事件字段名");
+		}else{
+			Dict dictInfo = dictMap.get(fieldName);
+			if(CommonUtil.isNotNull(dictInfo)){
+				if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
+					return null;
+				}else{
+					Map<String, Object> eventsMap = new LinkedHashMap<>();
+					EnumType enumType = enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()));
+					Map<String, EnumElement> enumElementMap = enumType.getEnumElementMap();
+					Map<String, Object> conditionSubMap = new LinkedHashMap<>();
+					
+					for(String v : enumElementMap.keySet()){
+						//从内管获取枚举中文
+						/*String longnameCN = SunlineUtil.ctEnumMap.get(enumType.getEnumId() + "." + v);
+						if(CommonUtil.isNull(longnameCN)){
+							continue;
+						}*/
+						
+						Map<String, Object> controlMap = new LinkedHashMap<>();
+						for(String controlField : controlFields){
+							Map<String, Object> controlSubMap = new LinkedHashMap<>();
+							//置灰选项
+							controlSubMap.put("disabled", disabled);
+							//添加规则
+							List<Map<String, Object>> ruleList = new ArrayList<>();
+							Map<String, Object> ruleMap = new LinkedHashMap<>();
+							ruleMap.put("required", required);
+							ruleList.add(ruleMap);
+							
+							if(disabled){
+								controlSubMap.put("value", "");
+							}
+							controlSubMap.put("rules", ruleList);
+							controlMap.put(controlField, controlSubMap);
+						}
+						Map<String, Object> controlParentMap = new LinkedHashMap<>();
+						controlParentMap.put("control", controlMap);
+						conditionSubMap.put(v, controlParentMap);
+					}
+					Map<String, Object> conditionMap = new LinkedHashMap<>();
+					conditionMap.put("condition", conditionSubMap);
+					eventsMap.put("events", conditionMap);
+					return JSONObject.fromObject(eventsMap).toString();
+				}
+			}
 		}
 		return null;
 	}
@@ -1985,7 +2128,7 @@ public class SunlineUtil {
 					boolean isUsed = false;
 					String checkStr = CommonUtil.getFirstDotLeftStr(fileName) + "." + fileName.split("Error")[0] + ".";
 					for(String javaFile : projectFileMap.keySet()){
-						if(CommonUtil.isRegexMatches("^Ln.*?.java$", javaFile)){
+						if(CommonUtil.isRegexMatches("^Ln.*?.java$", javaFile) || CommonUtil.isRegexMatches("^Co.*?.java$", javaFile)){
 							if(CommonUtil.readFileContent(projectFileMap.get(javaFile)).contains(checkStr + error.attributeValue("id") + "(")){
 								logger.info(fileName + "->错误码["+error.attributeValue("id")+"]被["+javaFile+"]使用");
 								isUsed = true;
@@ -2049,6 +2192,8 @@ public class SunlineUtil {
 					//如果字段是基础引用类型
 					if("decimal".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
 						buffer.append(baseStatement + "(new BigDecimal("+value+"));\r\n");
+					}else if("long".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
+						buffer.append(baseStatement + "("+value+"L);\r\n");
 					}else{
 						buffer.append(baseStatement + "(\""+value+"\");\r\n");
 					}
@@ -2113,6 +2258,56 @@ public class SunlineUtil {
 				String sql = CommonUtil.readFileContent(file.getPath());
 				logger.info("执行[" + file.getName() + "]\r\n" + sql);
 				logger.info("生效记录条数:" + JDBCUtils.executeUpdate(Arrays.asList(sql.split("\n")), dataSource));
+			}
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月19日-上午10:28:18</li>
+	 *         <li>功能说明：获取合并代码时提交的文件列表</li>
+	 *         </p>
+	 * @param structModule	结构模块
+	 * @param moduleFullName	子模块全名
+	 * @param mergeNo	合并编号
+	 * @return
+	 * @throws IOException 
+	 * @throws IllegalStateException 
+	 */
+	public static List<String> sunlineGetMergedFiles(E_STRUCTMODULE structModule, String moduleFullName,String... mergeNoArr) throws IllegalStateException, IOException{
+		List<String> filePathList = new LinkedList<String>();
+		if(CommonUtil.isNotNull(mergeNoArr)){
+			for(String mergeNo : mergeNoArr){
+				String url = "http://e-git.yfb.sunline.cn/icore3.0/"+structModule.getId()+"/"+moduleFullName+"/merge_requests/"+mergeNo+"/diffs.json";
+				Map<String, String> headers = new HashMap<String,String>();
+				headers.put("Cookie", "remember_user_token=W1sxODBdLCIkMmEkMTAkVnNxWk5zNnVtZlNJYXEzLk1HalhYdSIsIjE1NzY1NTE3MDQuNzU0NzMyIl0%3D--403841547402c2e7f6a41dd47de1ab212ea565fd; _gitlab_session=a05d4b3ae546edc7160ad2691ff3b7d9");
+				HttpResponse httpResponse = NetworkApi.doGet(url, "", headers, new HashMap<String,String>());
+				if(CommonUtil.isNotNull(httpResponse)){
+					HttpEntity httpEntity = httpResponse.getEntity();
+					String responseContent = CommonUtil.convertStreamToJson(httpEntity.getContent());
+					String html = JSONObject.fromObject(responseContent).getString("html");
+					org.jsoup.nodes.Document doc = Jsoup.parse(html);
+					
+					String reg = "\\</i> (?<scope>.*?)\\ </a>";
+					Pattern pattern = Pattern.compile(reg);
+					parseMergeFilesHtml(filePathList, doc, pattern, "edit-file");
+					parseMergeFilesHtml(filePathList, doc, pattern, "renamed-file");
+					parseMergeFilesHtml(filePathList, doc, pattern, "new-file");
+				}
+			}
+		}
+		return filePathList;
+	}
+
+	
+	private static void parseMergeFilesHtml(List<String> filePathList, org.jsoup.nodes.Document doc, Pattern pattern, String elementClass) {
+		Elements liList = doc.getElementsByClass(elementClass);
+		for(org.jsoup.nodes.Element e : liList){
+			Matcher matcher = pattern.matcher(e.html());
+			if(matcher.find()){
+				filePathList.add(matcher.group("scope"));
 			}
 		}
 	}

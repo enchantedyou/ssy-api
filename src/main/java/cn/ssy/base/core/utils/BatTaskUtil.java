@@ -154,7 +154,13 @@ public class BatTaskUtil {
 		}
 		try{
 			Map<String, Object> resMap = listenerThreadTask.get();
-			logger.info("交易日期:"+resMap.get("tranDate")+",批量执行结果:" + resMap.get("taskState"));
+			//查询新的交易日期
+			ResultSet resultSet = JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource"));
+			Object appDate = resMap.get("tranDate");
+			if(resultSet.next()){
+				appDate = resultSet.getString("trxn_date");
+			}
+			logger.info("交易日期:"+appDate+",批量执行结果:" + resMap.get("taskState"));
 			if(FAILURE_STATE.equals(resMap.get("taskState"))){
 				logger.info("错误信息:" + resMap.get("errorMsg"));
 				logger.info("错误堆栈:" + resMap.get("errorStack"));

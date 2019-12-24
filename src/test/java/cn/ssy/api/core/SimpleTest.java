@@ -1,14 +1,20 @@
 package cn.ssy.api.core;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.Element;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,18 +26,18 @@ import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
-import cn.ssy.base.enums.E_PACKAGETYPE;
+import cn.ssy.base.enums.E_STRUCTMODULE;
 
 public class SimpleTest{
 	
-	public String outputPath = "C:/Users/36045/Desktop/";
+	public String outputPath = "C:/Users/DELL/Desktop/";
 	
 	//log4j日志
-	private static final Logger logger = Logger.getLogger(SimpleTest.class);
+	//private static final Logger logger = Logger.getLogger(SimpleTest.class);
 	
 	@Before
 	public void before() throws SQLException{
-		SunlineUtil.sunlineInitializer("C:/sunline/sunlineWorkspace/icore3.0/",true);
+		SunlineUtil.sunlineInitializer("D:/Sunline/sunlineWorkspace/icore3.0/",true);
 	}
 	
 	/**
@@ -45,7 +51,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test1() throws SQLException, IOException{
-		SunlineUtil.sunlineBuildTspServiceInSql(E_ICOREMODULE.LN, "C:/sunline/sunlineDeveloper/文档/icore3.0研发/1#贷款接口清单.xlsx", "102", "1021","C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineBuildTspServiceInSql(E_ICOREMODULE.LN, "C:/sunline/sunlineDeveloper/文档/icore3.0研发/1#贷款接口清单.xlsx", "102", "1021","C:/Users/DELL/Desktop/");
 	}
 	
 	
@@ -60,7 +66,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("start_date");
+		SunlineUtil.sunlineSearchDict("dwdn_fund_source");
 	}
 	
 	
@@ -145,9 +151,27 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test8(){
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnRepaymentInfo"));
+		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
+		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
+		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanRepayOut"));
 	}
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月12日-下午4:51:30</li>
+	 *         <li>功能说明：构建内管域后事件json</li>
+	 *         </p>
+	 */
+	@Test
+	public void test37(){
+		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("rpym_type", true, false,"overpayment_amt","loan_rpym_amt","rpym_amt"));
+	}
+	
+	/**
+	 * limit_ind
+	 */
 	
 	/**
 	 * @Author sunshaoyu
@@ -166,7 +190,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnRepaymentBookListOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("IoLnJointIn"));
 	}
 	
 	
@@ -208,7 +232,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test15() throws Exception{
-		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest("326020", CommonUtil.readFileContent("C:/Users/36045/Desktop/ln/body_dev.json")));
+		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest("326020", CommonUtil.readFileContent("C:/Users/DELL/Desktop/ln/body_dev.json")));
 	}
 	
 	
@@ -315,7 +339,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"101000");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"329999");
 	}
 	
 	
@@ -346,7 +370,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6310", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6153", outputPath);
 	}
 	
 	
@@ -359,7 +383,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6310", "C:/sunline/sunlineDocument/document/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/36045/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6021", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/DELL/Desktop/");
 	}
 	
 	
@@ -387,7 +411,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test26() throws IOException, SQLException{
-		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN_DIT, "L000000a");
+		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN, "L0000002-G");
 	}
 	
 	
@@ -401,7 +425,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test27() throws Exception{
-		SunlineUtil.sunlineLnProductSync(ApiConst.DATASOURCE_ICORE_LN, ApiConst.DATASOURCE_ICORE_LN_DIT, false);
+		SunlineUtil.sunlineLnProductSync(ApiConst.DATASOURCE_ICORE_LN, ApiConst.DATASOURCE_ICORE_LN_DIT, false,"L0000003-A");
 	}
 	
 	
@@ -443,7 +467,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test30() throws Exception{
-		//SunlineUtil.sunlineCheckUnusedErrorCode(outputPath);
+		SunlineUtil.sunlineCheckUnusedErrorCode(outputPath);
 	}
 	
 	/**
@@ -470,8 +494,8 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test31() throws Exception{
-		File file = new File("C:/Users/36045/Desktop/" + ApiConst.FULLSQL_MAINDIR_NAME);
-		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_ICORE_LN_DIT);
+		File file = new File("C:/Users/DELL/Desktop/" + ApiConst.FULLSQL_MAINDIR_NAME);
+		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_LOCAL_CHECK);
 	}
 	
 	
@@ -503,8 +527,104 @@ public class SimpleTest{
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月2日-下午1:37:19</li>
+	 *         <li>功能说明：生成冲正服务的控制表信息</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test34() throws Exception{
-		System.out.println(CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from msp_parameter", ApiConst.DATASOURCE_ICORE_LN_FAT)));
+		String[] flowtranArray = new String[]{"6172","6040","6020","6047","6038","6051","6050","6041","6044","6045","6046","6149","6153","6075"};
+		String deleteSql = "delete from tsp_service_control where inner_service_code in (";
+		List<String> serviceList = new ArrayList<String>();
+		List<String> insertSqlList = new ArrayList<>();
+		
+		for(String flowtranId : flowtranArray){
+			Document flowtran = SunlineUtil.sunlineSearchFlowtran(E_ICOREMODULE.LN, flowtranId);
+			List<Element> list = CommonUtil.searchTargetAllXmlElement(flowtran.getRootElement(), "service");
+			for(Element e : list){
+				ResultSet resultSet = JDBCUtils.executeQuery("select * from tsp_service_in where inner_service_code = ?", new String[]{e.attributeValue("serviceName")}, ApiConst.DATASOURCE_ICORE_LN);
+				while(resultSet.next()){
+					if(!serviceList.contains(e.attributeValue("serviceName"))){
+						insertSqlList.add("INSERT INTO tsp_service_control (`system_code`, `sub_system_code`, `service_invoke_id`, `inner_service_code`, `inner_service_impl_code`, `description`, `route_keys`, `cancel_service`, `confirm_service`, `service_transaction_mode`, `service_type`, `regist_call_log`, `service_executor_type`) VALUES ('102', '1021', '*', '"+e.attributeValue("serviceName")+"', '"+resultSet.getString("inner_service_impl_code")+"', '"+resultSet.getString("description")+"', '', '', '', 'Supports', 'try', '1', 'L');");
+						serviceList.add(e.attributeValue("serviceName"));
+						deleteSql += "'"+e.attributeValue("serviceName")+"',";
+					}
+				}
+			}
+		}
+		deleteSql = deleteSql.substring(0,deleteSql.length() - 1) + ");";
+		System.out.println(deleteSql);
+		for(String sql : insertSqlList){
+			System.out.println(sql);
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月2日-下午1:37:48</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test35() throws Exception{
+		Element table = SunlineUtil.sunlineGetTableType("lnf_fee");
+		List<Element> tableFieldList = CommonUtil.searchTargetAllXmlElement(table, "field");
+		for(Element e : tableFieldList){
+			System.out.println("<element id=\""+e.attributeValue("id")+"\" longname=\""+e.attributeValue("longname")+"\" type=\""+e.attributeValue("type")+"\" ref=\""+e.attributeValue("ref")+"\" required=\"false\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>");
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月19日-上午10:50:38</li>
+	 *         <li>功能说明：获取合并请求文件</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test36() throws Exception{
+		List<String> filePathList = SunlineUtil.sunlineGetMergedFiles(E_STRUCTMODULE.BUSI, "sump-vue", "1123");
+		for(String filePath : filePathList){
+			System.out.println(filePath);
+		}
+		System.out.println("请求合并文件数量:" + filePathList.size());
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月20日-上午10:51:16</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test38() throws Exception{
+		for(String fileName : SunlineUtil.projectFileMap.keySet()){
+			String filePath = SunlineUtil.projectFileMap.get(fileName);
+			if(filePath.contains("ln-serv")){
+				filePath = "D:/Sunline/sunlineWorkspace/icore3.0/ln-busi/ln-serv/src/main/java/cn/sunline/icore/ln/serv/drawdown/LnLoanOpenStandardCheck.java";
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filePath))));
+				String line = "";
+				int lineCount = 0;
+				while((line = reader.readLine()) != null){
+					System.out.println(line);
+					lineCount++;
+				}
+				System.out.println(lineCount);
+				reader.close();
+				break;
+			}
+		}
 	}
 }

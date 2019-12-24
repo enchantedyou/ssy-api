@@ -1,37 +1,34 @@
 package cn.ssy.base.enums;
 
-
 /**
  * <p>
  * 文件功能说明：
- *       	语言种类枚举		
+ *       	结构模块枚举		
  * </p>
  * 
  * @Author sunshaoyu
  *         <p>
- *         <li>2019年9月9日-上午10:51:37</li>
+ *         <li>2019年12月19日-上午10:32:31</li>
  *         <li>修改记录</li>
  *         <li>-----------------------------------------------------------</li>
  *         <li>标记：修订内容</li>
- *         <li>2019年9月9日-sunshaoyu：创建注释模板</li>
+ *         <li>2019年12月19日-sunshaoyu：创建注释模板</li>
  *         <li>-----------------------------------------------------------</li>
  *         </p>
  */
-public enum E_LANGUAGE {
+public enum E_STRUCTMODULE {
 	
-	ZHCN("zh-CN","中文简体"),
+	BASE("base","基础层"),
 	
-	ZHTW("zh-TW","中文繁体"),
+	IOBUS("iobus","服务总线层"),
 	
-	JAPEN("ja","日语"),
-	
-	EN("en","英语");
+	BUSI("busi","业务层");
 	
 	private String id;
 	
 	private String desc;
 	
-	private E_LANGUAGE(String id, String desc) {
+	private E_STRUCTMODULE(String id, String desc) {
 		this.id = id;
 		this.desc = desc;
 	}

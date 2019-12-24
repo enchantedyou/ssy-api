@@ -4,13 +4,17 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import net.sf.json.JSONArray;
 
 import org.apache.log4j.Logger;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
@@ -514,5 +518,24 @@ public class RedisOperateUtil {
 	 */
 	public boolean hasKey(Serializable key){
 		return redisTemplate.hasKey(key);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2019年12月20日-下午1:08:34</li>
+	 *         <li>功能说明：获取redis信息</li>
+	 *         </p>
+	 * @return
+	 */
+	public Properties getRedisInfo(){
+		return redisTemplate.execute(
+			new RedisCallback<Properties>() {
+			@Override
+			public Properties doInRedis(RedisConnection redisConnection) throws DataAccessException {
+				return redisConnection.info();
+			}
+		});
 	}
 }

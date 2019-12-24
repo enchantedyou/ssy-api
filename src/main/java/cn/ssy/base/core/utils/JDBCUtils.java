@@ -109,7 +109,7 @@ public class JDBCUtils {
 	 * @return
 	 * @throws SQLException 
 	 */
-	private static synchronized Connection getConnection(String datasourceId) throws SQLException {
+	private static Connection getConnection(String datasourceId) throws SQLException {
 		if(CommonUtil.compare(datasourceId, DynamicDataSource.getBeforeDatasource()) != 0){
 			DynamicDataSource.setDataSourceKey(datasourceId);
 			String curDatasource = DynamicDataSource.getDataSource();
@@ -132,7 +132,7 @@ public class JDBCUtils {
 	 * @return 返回查询到的结果集
 	 * @throws SQLException 
 	 */
-	public static synchronized ResultSet executeQuery(String sql,String datasourceId) throws SQLException {
+	public static ResultSet executeQuery(String sql,String datasourceId) throws SQLException {
 		ct = getConnection(datasourceId);
 		if(ct != null){
 			ps = ct.prepareStatement(sql);
@@ -149,7 +149,7 @@ public class JDBCUtils {
 	 * @return 返回查询到的结果集
 	 * @throws SQLException 
 	 */
-	public static synchronized ResultSet executeQuery(String sql, String[] parameter,String datasourceId) throws SQLException {
+	public static ResultSet executeQuery(String sql, String[] parameter,String datasourceId) throws SQLException {
 		ct = getConnection(datasourceId);
 		if(ct != null){
 			ps = ct.prepareStatement(sql);
@@ -171,7 +171,7 @@ public class JDBCUtils {
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String sql, String[] parameter,String datasourceId) throws SQLException {
+	public static int executeUpdate(String sql, String[] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -207,7 +207,7 @@ public class JDBCUtils {
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(List<String> sqlList, String[] parameter,String datasourceId) throws SQLException {
+	public static int executeUpdate(List<String> sqlList, String[] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null && sqlList != null){
@@ -244,7 +244,7 @@ public class JDBCUtils {
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(List<String> sqlList,String datasourceId) throws SQLException {
+	public static int executeUpdate(List<String> sqlList,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null && sqlList != null){
@@ -276,7 +276,7 @@ public class JDBCUtils {
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String sql, String datasourceId) throws SQLException {
+	public static int executeUpdate(String sql, String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -306,7 +306,7 @@ public class JDBCUtils {
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 
 	 */
-	public static synchronized int executeUpdate(String[] sql, String[][] parameter,String datasourceId) throws SQLException {
+	public static int executeUpdate(String[] sql, String[][] parameter,String datasourceId) throws SQLException {
 		try {
 			ct = getConnection(datasourceId);
 			if(ct != null){
@@ -342,7 +342,7 @@ public class JDBCUtils {
 	 *         <li>功能说明：关闭资源</li>
 	 *         </p>
 	 */
-	public static synchronized void close(){
+	public static void close(){
 		close(res, ps, ct);
 	}
 
@@ -354,7 +354,7 @@ public class JDBCUtils {
 	 * @param ps
 	 * @param ct
 	 */
-	public static synchronized void close(ResultSet res, PreparedStatement ps,
+	public static void close(ResultSet res, PreparedStatement ps,
 			Connection ct) {
 		if (res != null) {
 			try {
@@ -387,7 +387,7 @@ public class JDBCUtils {
 	 * 
 	 * @param res
 	 */
-	public static synchronized void close(ResultSet res) {
+	public static void close(ResultSet res) {
 		if (res != null) {
 			try {
 				res.close();
