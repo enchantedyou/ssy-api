@@ -15,6 +15,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1041,7 +1043,7 @@ public class SunlineUtil {
 	 *         <li>功能说明：构建icore3.0服务注册表插入SQL语句</li>
 	 *         </p>
 	 * @param module	模块
-	 * @param intfExcelPath	接口清单Exce文件目录
+	 * @param intfExcelPath	接口清单Excel文件目录
 	 * @param sysCode	系统编号
 	 * @param subSysCode	子系统编号
 	 * @param ouputPath	输出路径
@@ -1288,6 +1290,7 @@ public class SunlineUtil {
 	 * @return
 	 * @throws SQLException 
 	 */
+	
 	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode) throws SQLException{
 		return sunlineGetYfditSuccessReq(trxnCode, null);
 	}
@@ -1589,10 +1592,9 @@ public class SunlineUtil {
 	 *         <li>功能说明：杀死锁进程</li>
 	 *         </p>
 	 */
-	public static void sunlineKillProcess(String dataSourceId) throws SQLException{
+	public static void sunlineKillProcess(final String dataSourceId) throws SQLException{
 		ResultSet resultSet = JDBCUtils.executeQuery("show full PROCESSLIST", dataSourceId);
 		Map<String, String> processMap = new HashMap<String, String>();
-		int killNum = 0;
 		while(resultSet.next()){
 			String command = resultSet.getString("command");
 			String id = resultSet.getString("id");
@@ -1603,17 +1605,24 @@ public class SunlineUtil {
 			}
 		}
 		
-		for(String id : processMap.keySet()){
-			try{
-				JDBCUtils.executeUpdate("kill " + id, dataSourceId);
-				killNum++;
-				logger.info("关闭进程" + id + "成功");
-			}catch(SQLException e){
-				logger.error("关闭进程" + id + "失败");
-			}
+		ExecutorService threadPool = Executors.newFixedThreadPool(10);
+		for(final String id : processMap.keySet()){
+			threadPool.submit(new Runnable() {
+				
+				@Override
+				public void run() {
+					try{
+						JDBCUtils.executeUpdate("kill " + id, dataSourceId);
+						logger.info("关闭进程" + id + "成功");
+					}catch(SQLException e){
+						logger.error("关闭进程" + id + "失败\t" + e.getMessage());
+					}
+				}
+			});
 		}
+		threadPool.shutdown();
+		while(!threadPool.isTerminated());
 		CommonUtil.printSplitLine(120);
-		logger.info("成功关闭的进程数量:" + killNum);
 	}
 	
 	
@@ -2155,6 +2164,7 @@ public class SunlineUtil {
 	 * @param request
 	 * @throws SQLException 
 	 */
+	@SuppressWarnings("unchecked")
 	public static String sunlineBuildSetFromRequest(String dataSource) throws SQLException{
 		if(CommonUtil.isNull(dataSource)){
 			throw new NullParmException("请求报文","数据源ID");
@@ -2174,7 +2184,9 @@ public class SunlineUtil {
 			Element serviceInterface = CommonUtil.searchXmlElement(serviceRoot, "service", "id", serviceType[1]).element("interface");
 			Element inputField = CommonUtil.searchXmlElement(serviceInterface, "input").element("field");
 			String inputName = inputField.attributeValue("id");
+			
 			String complexType = inputField.attributeValue("type").split("\\.")[1];
+			List<Element> complexElementList = sunlineGetComplexType(complexType).elements();
 			//构建输入语句
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(complexType + " " + inputName + " = " + "BizUtil.getInstance("+complexType+".class);\r\n");
@@ -2185,29 +2197,64 @@ public class SunlineUtil {
 				String baseStatement = inputName + ".set" + key.toString().substring(0,1).toUpperCase() + key.toString().substring(1);
 				
 				if(CommonUtil.isNull(dictInfo)){
-					continue;
-				}else if(CommonUtil.isNull(value)){
-					buffer.append(baseStatement + "(null);\r\n");
-				}else if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
-					//如果字段是基础引用类型
-					if("decimal".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
-						buffer.append(baseStatement + "(new BigDecimal("+value+"));\r\n");
-					}else if("long".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
-						buffer.append(baseStatement + "("+value+"L);\r\n");
+					boolean isList = false;
+					String listSubType = null;
+					for(Element e : complexElementList){
+						if(e.getName().equals("element") && key.equals(e.attributeValue("id")) && e.attributeValue("multi").equals("true")){
+							isList = true;
+							listSubType = e.attributeValue("type").split("\\.")[1];
+							break;
+						}
+					}
+					if(isList){
+						/**
+						 * 解析输入的列表
+						 */
+						//实例化Options
+						buffer.append("\r\nOptions<"+listSubType+"> "+listSubType+"Options = new DefaultOptions<"+listSubType+">();\r\n");
+						JSONArray jsonArray = input.getJSONArray(String.valueOf(key));
+						for(int i = 0;i < jsonArray.size();i++){
+							JSONObject subJsonObj = jsonArray.getJSONObject(i);
+							//实例化子类
+							String subVarName = listSubType+"SubInstance"+(i+1);
+							buffer.append(listSubType + " "+subVarName+" = BizUtil.getInstance("+listSubType+".class);\r\n");
+							for(Object subKey : subJsonObj.keySet()){
+								generateSetStatement(buffer, subJsonObj.get(subKey), dictMap.get(subKey), subVarName + ".set" + subKey.toString().substring(0,1).toUpperCase() + subKey.toString().substring(1));
+							}
+							buffer.append(listSubType+"Options"+".add("+subVarName+");\r\n");
+						}
+						buffer.append(baseStatement + "("+listSubType+"Options"+");\r\n");
 					}else{
-						buffer.append(baseStatement + "(\""+value+"\");\r\n");
+						continue;
 					}
 				}else{
-					//如果字段是枚举
-					EnumType enumType = enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()));
-					if(CommonUtil.isNull(enumType)){
-						buffer.append(baseStatement + "(\""+value+"\");\r\n");
-					}else{
-						buffer.append(baseStatement + "("+enumType.getEnumId()+"."+enumType.getEnumElementMap().get(value).getId()+");\r\n");
-					}
+					generateSetStatement(buffer, value, dictInfo, baseStatement);
 				}
 			}
 			return buffer.toString();
+		}
+	}
+
+	private static void generateSetStatement(StringBuffer buffer, Object value, Dict dictInfo, String baseStatement) {
+		if(CommonUtil.isNull(value)){
+			buffer.append(baseStatement + "(null);\r\n");
+		}else if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
+			//如果字段是基础引用类型
+			if("decimal".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
+				buffer.append(baseStatement + "(new BigDecimal("+value+"));\r\n");
+			}else if("long".equals(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType())).getBase())){
+				buffer.append(baseStatement + "("+value+"L);\r\n");
+			}else{
+				buffer.append(baseStatement + "(\""+value+"\");\r\n");
+			}
+		}else{
+			//如果字段是枚举
+			EnumType enumType = enumMap.get(CommonUtil.getRealType(dictInfo.getRefType()));
+			if(CommonUtil.isNull(enumType)){
+				buffer.append(baseStatement + "(\""+value+"\");\r\n");
+			}else{
+				buffer.append(baseStatement + "("+enumType.getEnumId()+"."+enumType.getEnumElementMap().get(value).getId()+");\r\n");
+			}
 		}
 	}
 	

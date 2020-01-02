@@ -44,6 +44,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -60,6 +63,8 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.plugins.Params;
@@ -81,9 +86,74 @@ import cn.ssy.base.exception.NullParmException;
  *         <li>-----------------------------------------------------------</li>
  *         </p>
  */
+@SuppressWarnings("restriction")
 public class CommonUtil {
 	
 	private static final Logger logger = Logger.getLogger(CommonUtil.class);
+
+	/**
+	 * <p>
+	 * 文件功能说明：
+	 *       	AES加解密		
+	 * </p>
+	 * 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年1月2日-下午1:36:42</li>
+	 *         <li>修改记录</li>
+	 *         <li>-----------------------------------------------------------</li>
+	 *         <li>标记：修订内容</li>
+	 *         <li>2020年1月2日-sunshaoyu：创建注释模板</li>
+	 *         <li>-----------------------------------------------------------</li>
+	 *         </p>
+	 */
+	public static class AES{
+		
+		/**
+		 * @Author sunshaoyu
+		 *         <p>
+		 *         <li>2020年1月2日-下午1:10:08</li>
+		 *         <li>功能说明：aes加密</li>
+		 *         </p>
+		 * @param content	待加密的内容
+		 * @param key	秘钥
+		 * @return
+		 * @throws Exception
+		 */
+		public static String encrypt(String content, String key) throws Exception {
+	        byte[] raw = key.getBytes();
+	        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+	        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");//"算法/模式/补码方式"
+	        IvParameterSpec iv = new IvParameterSpec("0102030405060708".getBytes());//使用CBC模式，需要一个向量iv，可增加加密算法的强度
+	        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+	        byte[] encrypted = cipher.doFinal(content.getBytes());
+	        return new BASE64Encoder().encode(encrypted);//此处使用BASE64做转码功能，同时能起到2次加密的作用。
+	    }
+		
+		
+		/**
+		 * @Author sunshaoyu
+		 *         <p>
+		 *         <li>2020年1月2日-下午1:10:28</li>
+		 *         <li>功能说明：aes解密</li>
+		 *         </p>
+		 * @param encrypted	加密后的内容
+		 * @param key	秘钥
+		 * @return
+		 * @throws Exception
+		 */
+		public static String decrypt(String encrypted, String key) throws Exception {
+		    byte[] raw = key.getBytes("UTF-8");
+		    SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+		    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		    IvParameterSpec iv = new IvParameterSpec("0102030405060708".getBytes());
+		    cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+		    byte[] encrypted1 = new BASE64Decoder().decodeBuffer(encrypted);//先用base64解密
+		    byte[] original = cipher.doFinal(encrypted1);
+		    String originalString = new String(original,"UTF-8");
+		    return originalString;
+	    }
+	}
 
 	/**
 	 * @Author sunshaoyu
@@ -1072,7 +1142,7 @@ public class CommonUtil {
 				}
 			}
 		}
-		return null;
+		return new String();
 	}
 	
 	

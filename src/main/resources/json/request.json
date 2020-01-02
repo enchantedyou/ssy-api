@@ -1,99 +1,47 @@
 {
-    "input":{
-        "deleteList":[
-
-        ],
-        "loan_holiday_rule":"A",
-        "trxn_branch":"0700",
-        "final_period_ind":"",
-        "balloon_periods":"",
-        "user_name":"超级用户",
-        "trxn_teller":"superman",
-        "rpym_method":"USER_DEFINED",
-        "maturity_date":"20201201",
-        "final_method":"",
-        "accrual_rule":"DAY",
-        "calm_amortization_method":"",
-        "due_date_align_date":"20191201",
-        "phase_no":"2",
-        "ccy_code":"IDR",
-        "calm_end_period":"",
-        "first_method":"",
-        "cust_type":"1",
-        "first_period_ind":"",
-        "normal_interest_rate":"5",
-        "start_period_no":"",
-        "rpym_cycle":"1M",
-        "lstPhase":[
+    "input": {
+        "effect_date": "20191207",
+        "due_date_align": "I",
+        "loan_holiday_rule": "N",
+        "loan_no": "025IDR0201911070659",
+        "data_operate_type": "A",
+        "rpym_method": "USER_DEFINED",
+        "maturity_date": "20201107",
+        "accrual_rule": "PERIOD",
+        "period_no": "2",
+        "rpym_cycle": "1M",
+        "handling_status": "0",
+        "lstUserDefinePhase": [
             {
-                "end_date":"20200501",
-                "edit_original_data":{
-                    "edit_type":"add",
-                    "row_id":0,
-                    "editorState":true
-                },
-                "phase_rpym_method":"NONE",
-                "prcp_cycle":"1M",
-                "edit_type":"add",
-                "rpym_cycle":"1M",
-                "row_id":0,
-                "editorState":false,
-                "specify_amt":"2000",
-                "start_date":"20191201",
-                "undefined":""
-            },
-            {
-                "end_date":"20201201",
-                "edit_original_data":{
-                    "edit_type":"add",
-                    "row_id":1,
-                    "editorState":true
-                },
-                "phase_rpym_method":"SPECIAL_INSTALLMENT",
-                "prcp_cycle":"1M",
-                "edit_type":"add",
-                "rpym_cycle":"1M",
-                "row_id":1,
-                "editorState":false,
-                "specify_amt":"3000",
-                "start_date":"20200501",
-                "undefined":""
+                "phase_no": "1",
+                "end_date": "20201107",
+                "prcp_cycle": "1M",
+                "phase_rpym_method": "SPECIAL_INSTALLMENT",
+                "rpym_cycle": "1M",
+                "start_date": "20191207"
             }
-        ],
-        "updateList":[
-
-        ],
-        "accrual_base_day":"ACT",
-        "start_inst_date":"20191201",
-        "prcp_cycle":"",
-        "loan_amt":100000,
-        "busi_org_id":"025",
-        "grace_period":"",
-        "specify_amt":"",
-        "calm_start_period":"",
-        "servicecode":"326110",
-        "user_id":"superman",
-        "cross_threshold":"",
-        "calm_ind":"N",
-        "end_period_no":"",
-        "last_period_no":""
+        ]
     },
-    "sys":{
-        "prcscd":"326110",
-        "servicecode":"326110"
+    "sys": {
+        "servicecode": "326009"
     },
-    "comm_req":{
-        "initiator_system":"301",
-        "initiator_date":"20191211",
-        "trxn_branch":"0700",
-        "initiator_seq":"YW15760461096915579873378H",
-        "page_start":1,
-        "trxn_teller":"superman",
-        "recon_code":"326110",
-        "sponsor_system":"301",
-        "busi_org_id":"025",
-        "sub_system_id":"3011",
-        "channel_id":"CAB",
-        "page_size":10
+    "comm_req": {
+        "initiator_date": "20190414",
+        "initiator_system": "102",
+        "trxn_branch": "1234",
+        "total_count": "10",
+        "trxn_teller": "88881234",
+        "sponsor_system": "100",
+        "busi_org_id": "025",
+        "auth_user_id": "88881234",
+        "trxn_desc": "",
+        "busiseqno": "YW409072529748",
+        "initiator_seq": "YW251689462999",
+        "busi_seq": "YW741247155999",
+        "page_start": "0",
+        "callseqno": "YW360454054999",
+        "trxn_seq": "YW9266265201493",
+        "channel_id": "APP",
+        "page_size": "10"
     }
 }

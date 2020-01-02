@@ -1,10 +1,7 @@
 package cn.ssy.api.core;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -66,7 +63,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("dwdn_fund_source");
+		SunlineUtil.sunlineSearchDict("rpym_method");
 	}
 	
 	
@@ -370,7 +367,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6153", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6049", outputPath);
 	}
 	
 	
@@ -383,7 +380,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6021", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/DELL/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6049", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/DELL/Desktop/");
 	}
 	
 	
@@ -503,7 +500,7 @@ public class SimpleTest{
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年11月22日-下午2:00:43</li>
-	 *         <li>功能说明：根据请求报文生产set语句</li>
+	 *         <li>功能说明：根据请求报文生成单元测试代码</li>
 	 *         </p>
 	 * @throws Exception
 	 */
@@ -592,7 +589,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test36() throws Exception{
-		List<String> filePathList = SunlineUtil.sunlineGetMergedFiles(E_STRUCTMODULE.BUSI, "sump-vue", "1123");
+		List<String> filePathList = SunlineUtil.sunlineGetMergedFiles(E_STRUCTMODULE.BUSI, "ln-busi", "415");
 		for(String filePath : filePathList){
 			System.out.println(filePath);
 		}
@@ -610,21 +607,6 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test38() throws Exception{
-		for(String fileName : SunlineUtil.projectFileMap.keySet()){
-			String filePath = SunlineUtil.projectFileMap.get(fileName);
-			if(filePath.contains("ln-serv")){
-				filePath = "D:/Sunline/sunlineWorkspace/icore3.0/ln-busi/ln-serv/src/main/java/cn/sunline/icore/ln/serv/drawdown/LnLoanOpenStandardCheck.java";
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filePath))));
-				String line = "";
-				int lineCount = 0;
-				while((line = reader.readLine()) != null){
-					System.out.println(line);
-					lineCount++;
-				}
-				System.out.println(lineCount);
-				reader.close();
-				break;
-			}
-		}
+		System.out.println(CommonUtil.AES.encrypt("你好世界", CommonUtil.randStr(16)));
 	}
 }
