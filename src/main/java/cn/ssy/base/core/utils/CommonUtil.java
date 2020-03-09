@@ -25,12 +25,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -56,6 +59,7 @@ import net.sf.json.JSONObject;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.ibatis.exceptions.TooManyResultsException;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -173,8 +177,8 @@ public class CommonUtil {
 			obj = String.valueOf(obj);
 			return ((String) obj).length() == 0 || ((String) obj).equals("null");
 		} else if (obj instanceof Map) {
-			obj = HashMap.class.cast(obj);
-			HashMap<?, ?> tmpObj = (HashMap<?, ?>) obj;
+			obj = Map.class.cast(obj);
+			Map<?, ?> tmpObj = (Map<?, ?>) obj;
 			return tmpObj.isEmpty();
 		} else if (obj instanceof Collection<?>) {
 			obj = Collection.class.cast(obj);
@@ -239,22 +243,22 @@ public class CommonUtil {
 		int start = -1, end = -1;
 
 		switch (model) {
-		case 1:
-			start = 52;
-			end = 61;
-			break;
-		case 2:
-			start = 26;
-			end = 52;
-			break;
-		case 3:
-			start = 0;
-			end = 26;
-			break;
-		default:
-			start = 0;
-			end = 61;
-			break;
+			case 1:
+				start = 52;
+				end = 61;
+				break;
+			case 2:
+				start = 26;
+				end = 52;
+				break;
+			case 3:
+				start = 0;
+				end = 26;
+				break;
+			default:
+				start = 0;
+				end = 61;
+				break;
 		}
 
 		for (int i = 0; i < len; i++) {
@@ -444,18 +448,16 @@ public class CommonUtil {
 	 * @return
 	 */
 	public static boolean isContainChinese(String str) {
-		boolean flag = false;
-		if (str == null) {
-			return flag;
+		if (isNull(str)) {
+			return false;
 		}
 		char[] c = str.toCharArray();
 		for (int i = 0; i < c.length; i++) {
 			if (c[i] >= 0x4E00 && c[i] <= 0x29FA5) {
-				flag = true;
-				return flag;
+				return true;
 			}
 		}
-		return flag;
+		return false;
 	}
 	
 	
@@ -530,13 +532,14 @@ public class CommonUtil {
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年4月8日-下午3:54:56</li>
-	 *         <li>功能说明：生成交易流水，长度为28</li>
+	 *         <li>功能说明：生成交易流水</li>
 	 *         </p>
 	 * @return	返回交易流水
 	 */
-	public static String buildTrxnSeq(){
+	public static String buildTrxnSeq(int len){
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-		return sdf.format(new Date()) + randStr(11,1);
+		len = len - 17 >= 0 ? len - 17 : 0;
+		return sdf.format(new Date()) + randStr(len,1);
 	}
 	
 	
@@ -1685,51 +1688,103 @@ public class CommonUtil {
 		return 0;
 	}
 	
-	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年8月17日-下午12:36:49</li>
-	 *         <li>功能说明：映射sql结果集</li>
+	 *         <li>2020年3月4日-下午8:47:41</li>
+	 *         <li>功能说明：映射ResultSet结果到单个实体类</li>
 	 *         </p>
 	 * @param resultSet
-	 * @param obj
+	 * @param objClass
 	 * @return
 	 */
-	public static Object mappingResultSet(ResultSet resultSet,Class<?> objClass){
+	public static <T> T mappingResultSetSingle(ResultSet resultSet,Class<T> objClass){
 		if(isNull(resultSet) || isNull(objClass)){
 			throw new NullParmException("ResultSet对象","待映射的对象类");
+		}else if(getResultSetRecordNum(resultSet) > 1){
+			throw new TooManyResultsException("The query returned too many results, it must be one");
 		}
 		
 		try {
-			List<Object> resList = new ArrayList<Object>();
-			Object obj = null;
+			T obj = null;
 			Map<String, Class<?>> fieldMap = getClassFieldMap(objClass);
 			List<String> colList = getColumnNameList(resultSet);
 			
-			while(resultSet.next()){
-				obj = objClass.newInstance();
-				for(String col : colList){
-					String fieldName = parseHumpStr(col);
-					Class<?> fieldClazz = fieldMap.get(fieldName);
-					if(isNotNull(fieldClazz)){
-						Method setter = objClass.getMethod("set"+fieldName.substring(0,1).toUpperCase()+fieldName.substring(1), fieldClazz);
-						setter.invoke(obj, resultSet.getObject(col));
-					}
-				}
-				resList.add(obj);
+			if(resultSet.next()){
+				obj = setObjFieldMapping(resultSet, objClass, fieldMap, colList);
 			}
-			
-			if(getResultSetRecordNum(resultSet) > 1){
-				return resList;
-			}else{
-				return obj;
-			}
+			return obj;
 		}
 		catch (Exception e) {
 			printLogError(e, logger);
 		}
 		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月4日-下午8:49:31</li>
+	 *         <li>功能说明：映射ResultSet结果到列表</li>
+	 *         </p>
+	 * @param resultSet
+	 * @param objClass
+	 * @return
+	 */
+	public static <T> List<T> mappingResultSetList(ResultSet resultSet,Class<T> objClass){
+		if(isNull(resultSet) || isNull(objClass)){
+			throw new NullParmException("ResultSet对象","待映射的对象类");
+		}
+		
+		try {
+			List<T> resList = new LinkedList<T>();
+			T obj = null;
+			Map<String, Class<?>> fieldMap = getClassFieldMap(objClass);
+			List<String> colList = getColumnNameList(resultSet);
+			
+			while(resultSet.next()){
+				obj = setObjFieldMapping(resultSet, objClass, fieldMap, colList);
+				resList.add(obj);
+			}
+			return resList;
+		}
+		catch (Exception e) {
+			printLogError(e, logger);
+		}
+		return null;
+	}
+
+
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月4日-下午8:52:05</li>
+	 *         <li>功能说明：从ResultSet设置对象属性</li>
+	 *         </p>
+	 * @param resultSet
+	 * @param objClass
+	 * @param fieldMap
+	 * @param colList
+	 * @return
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws SQLException
+	 */
+	private static <T> T setObjFieldMapping(ResultSet resultSet, Class<T> objClass, Map<String, Class<?>> fieldMap, List<String> colList) throws InstantiationException,
+			IllegalAccessException, NoSuchMethodException, InvocationTargetException, SQLException {
+		T obj = objClass.newInstance();
+		for(String col : colList){
+			String fieldName = parseHumpStr(col);
+			Class<?> fieldClazz = fieldMap.get(fieldName);
+			if(isNotNull(fieldClazz)){
+				Method setter = objClass.getMethod("set"+fieldName.substring(0,1).toUpperCase()+fieldName.substring(1), fieldClazz);
+				setter.invoke(obj, resultSet.getObject(col));
+			}
+		}
+		return obj;
 	}
 	
 	
@@ -1971,10 +2026,7 @@ public class CommonUtil {
 		
 		//等待线程执行完成或超时
 		if(timeoutMillis == 0){
-			threadPool.shutdown();
-			while(!threadPool.isTerminated()){
-				systemPause(5);
-			}
+			awaitThreadPoolFinish(threadPool);
 			logger.info("并发任务["+ method.getName() +"]执行完成,作业总数:" + concurrentNum + ",成功作业数:" + successThreadReturnList.size() + ",失败作业数:" + errorThreadReturnList.size());
 		}else{
 			boolean isComplete = threadPool.awaitTermination(timeoutMillis, TimeUnit.MILLISECONDS);
@@ -2071,5 +2123,102 @@ public class CommonUtil {
 			}
 		}
 		return insertSqlList;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年1月3日-下午2:10:51</li>
+	 *         <li>功能说明：对map进行排序</li>
+	 *         </p>
+	 * @param map	map
+	 * @param comparator	比较器,通过重写比较器的compare方法决定对键或值排序
+	 * @return
+	 */
+	public static <K,V> Map<K, V> sortMap(Map<K, V> map, Comparator<Entry<K, V>> comparator) {
+		if(CommonUtil.isNull(map)){
+			return map;
+		}
+		Map<K, V> sortedMap = new LinkedHashMap<>();
+		List<Entry<K, V>> entryList = new ArrayList<>(map.entrySet());
+		Collections.sort(entryList, comparator);
+		Iterator<Entry<K, V>> iterator = entryList.iterator();
+
+		while(iterator.hasNext()){
+			Entry<K, V> entry = iterator.next();
+			sortedMap.put(entry.getKey(), entry.getValue());
+		}
+		return sortedMap;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年1月14日-下午2:05:43</li>
+	 *         <li>功能说明：等待线程池的所有线程执行完成</li>
+	 *         </p>
+	 * @param threadPool
+	 */
+	public static void awaitThreadPoolFinish(ExecutorService threadPool){
+		threadPool.shutdown();
+		while(!threadPool.isTerminated());
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月2日-上午10:56:25</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 * @param response	HttpResponse转字符串
+	 * @return
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 */
+	public static String convertResponseToStr(HttpResponse response) throws IllegalStateException, IOException{
+		HttpEntity httpEntity = response.getEntity();
+		if (httpEntity != null) {
+			InputStream instreams = httpEntity.getContent();
+			return convertStreamToJson(instreams);
+		}
+		return null;
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月6日-下午3:55:24</li>
+	 *         <li>功能说明：加载路径下的所有文件</li>
+	 *         </p>
+	 * @param path	目录路径
+	 * @return	返回以文件名为key,文件路径为value的map
+	 */
+	public static Map<String, String> loadPathAllFiles(String path){
+		Map<String, String> fileMap = new LinkedHashMap<>();
+		loadPathAllFilesSub(new File(path), fileMap);
+		return fileMap;
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月6日-下午3:57:55</li>
+	 *         <li>功能说明：加载路径下的所有文件(递归子方法)</li>
+	 *         </p>
+	 * @param file
+	 * @param fileMap
+	 */
+	private static void loadPathAllFilesSub(File file, Map<String, String> fileMap){
+		if (file.isDirectory()) {
+			File[] list = file.listFiles();
+			for (int i = 0; i < list.length; i++) {
+				loadPathAllFilesSub(list[i], fileMap);
+			}
+		} else {
+			fileMap.put(file.getName(), file.getPath());
+		}
 	}
 }

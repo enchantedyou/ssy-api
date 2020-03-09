@@ -1,0 +1,33 @@
+{
+    "input": {
+        "ccy_code": "IDR",
+        "loan_tenor": "12M",
+        "cust_no": "100000030709",
+        "drawdown_ccy_code": "IDR",
+        "drawdown_account": "0258000060033",
+        "loan_amt": "100000",
+        "prod_id": "L0000002"
+    },
+    "sys": {
+        "servicecode": "326320"
+    },
+    "comm_req": {
+        "initiator_date": "20190414",
+        "initiator_system": "102",
+        "trxn_branch": "1234",
+        "total_count": "10",
+        "trxn_teller": "88881234",
+        "sponsor_system": "100",
+        "busi_org_id": "025",
+        "auth_user_id": "88881234",
+        "trxn_desc": "",
+        "busiseqno": "YW409072529748",
+        "initiator_seq": "YW251689462999",
+        "busi_seq": "YW741247155999",
+        "page_start": "0",
+        "callseqno": "YW360454054999",
+        "trxn_seq": "YW9266265201493",
+        "channel_id": "APP",
+        "page_size": "10"
+    }
+}

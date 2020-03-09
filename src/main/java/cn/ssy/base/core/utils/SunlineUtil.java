@@ -115,7 +115,7 @@ public class SunlineUtil {
 				loadProjectFile(new File(projectPath));
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_FILE_KEY, projectFileMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目文件>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化项目文件完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		//读取字典和枚举优先级
 		Map<String, String> tmpDictPriorityMap = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/priority/dictPriority.properties").getPath());
@@ -123,12 +123,12 @@ public class SunlineUtil {
 		if(CommonUtil.isNotNull(tmpDictPriorityMap)){
 			//初始化字典优先级
 			SunlineUtil.dictPriorityMap = tmpDictPriorityMap;
-			logger.info("初始化字典优先级>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化字典优先级完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		if(CommonUtil.isNotNull(tmpEnumPriorityMap)){
 			//初始化枚举优先级
 			SunlineUtil.enumPriorityMap = tmpEnumPriorityMap;
-			logger.info("初始化枚举优先级>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化枚举优先级完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		//优先级检查
 		checkPrioritySetting();
@@ -139,7 +139,7 @@ public class SunlineUtil {
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目字典>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化项目字典完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		if(CommonUtil.isNull(enumMap)){
 			//初始化项目枚举
@@ -148,7 +148,7 @@ public class SunlineUtil {
 				loadProjectEnum();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化项目枚举完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		if(CommonUtil.isNull(baseTypeMap)){
 			//初始化基础类型
@@ -157,7 +157,7 @@ public class SunlineUtil {
 				loanProjectBaseType();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化基础类型>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化基础类型完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		if(CommonUtil.isNull(ctEnumMap)){
 			//初始化内管枚举
@@ -166,7 +166,7 @@ public class SunlineUtil {
 				loanCtDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化内管枚举>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("初始化内管枚举完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 		CommonUtil.printSplitLine(150);
 		logger.info("项目文件数量:" + projectFileMap.size());
@@ -221,7 +221,7 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void loanCtDict() throws SQLException {
-		ResultSet resultSet = JDBCUtils.executeQuery("select * from ap_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT);
+		ResultSet resultSet = JDBCUtils.executeQuery("select * from smp_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT);
 		while(resultSet.next()){
 			ctEnumMap.put(resultSet.getString("dict_type") + "." + resultSet.getString("dict_id"), resultSet.getString("dict_name"));
 		}
@@ -239,14 +239,14 @@ public class SunlineUtil {
 		//检查字典优先级设置
 		for(String dictType : dictPriorityMap.keySet()){
 			String priorityValue = dictPriorityMap.get(dictType);
-			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) && CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
 				throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
 			}
 		}
 		//检查枚举优先级设置
 		for(String enumType : enumPriorityMap.keySet()){
 			String priorityValue = enumPriorityMap.get(enumType);
-			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) && CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
 				throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
 			}
 		}
@@ -1403,7 +1403,7 @@ public class SunlineUtil {
 				//获取字段基础信息
 				String type = field.attributeValue("type");
 				String id = field.attributeValue("id");
-				String desc = field.attributeValue("desc");
+				String desc = CommonUtil.isNull(dictMap.get(id)) ? field.attributeValue("desc") : dictMap.get(id).getDesc();
 				String realType = CommonUtil.getRealType(type);
 				
 				//设置公共字段信息
@@ -1438,7 +1438,7 @@ public class SunlineUtil {
 					fieldValueMap.put("valueFormat", "yyyyMMdd");
 				}
 				//金额处理
-				else if("U_MONEY".equals(realType) || "U_INTERESTRATE".equals(realType)){
+				else if("U_MONEY".equals(realType) || "U_INTERESTRATE".equals(realType) || "U_INTEREST".equals(realType)){
 					Map<String, Object> formatMap = new HashMap<>();
 					formatMap.put("decimal", 2);
 					formatMap.put("decimalPoint", ".");
@@ -1480,7 +1480,7 @@ public class SunlineUtil {
 				//获取字段基础信息
 				String type = field.attributeValue("type");
 				String id = field.attributeValue("id");
-				String desc = field.attributeValue("desc");
+				String desc = CommonUtil.isNull(dictMap.get(id)) ? field.attributeValue("desc") : dictMap.get(id).getDesc();
 				String realType = CommonUtil.getRealType(type);
 				
 				//设置公共字段信息
@@ -1713,9 +1713,18 @@ public class SunlineUtil {
 		String path = "/gateway/";
 		
 		//封装请求头
-		Map<String, String> headers = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/ln_dev3.0.properties").getPath());
+		Map<String, String> headers = new HashMap<>();
 		headers.put("dserviceId", serviceCode);
 		headers.put("api_id", serviceCode);
+		headers.put("dapplication", "1021");
+		
+		headers.put("dgroup", "01");
+		headers.put("dversion", "1.0");
+		String trxnSeq = CommonUtil.buildTrxnSeq(25);
+		headers.put("busiseqno", trxnSeq);
+		
+		headers.put("callseqno", trxnSeq);
+		headers.put("Content-Type", "application/json");
 		//封装查询条件
 		Map<String, String> querys = new HashMap<String, String>();
 
@@ -1786,7 +1795,7 @@ public class SunlineUtil {
 		}
 		String apiTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/api_tamplate.xlsx").getPath();
 		List<Map<String, String>> dataList = new ArrayList<>();
-		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in", dataSource));
+		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in where service_category = 'T'", dataSource));
 		for(Map<String, Object> map : result){
 			Map<String, String> dataMap = new HashMap<>();
 			dataMap.put("api", String.valueOf(map.get("out_service_code")));
@@ -2357,5 +2366,59 @@ public class SunlineUtil {
 				filePathList.add(matcher.group("scope"));
 			}
 		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年2月28日-下午2:58:58</li>
+	 *         <li>功能说明：从nexus仓库获取各模块jar包的最新版本</li>
+	 *         </p>
+	 * @param subModule 子模块
+	 * @param modules	模块
+	 * @return
+	 */
+	public static Map<String, String> sunlineQueryNexusJarVersion(String subModule, String... modules){
+		Map<String, String> resultMap = new LinkedHashMap<>();
+		if(CommonUtil.isNotNull(subModule) && CommonUtil.isNotNull(modules)){
+			for(String md : modules){
+				Element root = CommonUtil.getUrlRootElement("http://nexus.odc.sunline.cn/repository/odc-pub/cn/sunline/icore/"+md+"/"+md+"-"+subModule+"/maven-metadata.xml");
+				resultMap.put(md + "-" + subModule, CommonUtil.searchXmlElement(root, "latest").getText());
+			}
+		}
+		return resultMap;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月3日-下午5:47:38</li>
+	 *         <li>功能说明：生成前端开发增量脚本</li>
+	 *         </p>
+	 * @param menuCode
+	 * @param serviceCode
+	 * @param menuUpperId
+	 * @param menuDesc
+	 * @param pageId
+	 * @param isList
+	 * @return
+	 */
+	public static List<String> sunlineGenerateMenuSql(String menuCode, String serviceCode, String menuUpperId, String menuDesc, String pageId, String... isList){
+		List<String> sqlList = new LinkedList<>();
+		sqlList.add("-- ct --");
+		sqlList.add("delete from ctp_menu where menu_code = '" + menuCode + "';");
+		sqlList.add("delete from ctp_trxn_mapping where ct_trxn_code = '" + serviceCode + "';");
+		
+		sqlList.add("INSERT INTO `ctp_menu` (`menu_code`, `menu_id`, `menu_upper_id`, `menu_group`, `menu_default_ind`, `menu_desc`, `page_id`, `page_display_scene`, `output_page_id`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+menuCode+"', '"+serviceCode+"', '"+menuUpperId+"', 'LN', 'N', '"+menuDesc+"', '"+pageId+"', NULL, NULL, 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
+		sqlList.add("INSERT INTO `ctp_trxn_mapping` (`ct_trxn_code`, `trxn_code_name`, `backend_trxn_code`, `trxn_control_ind`, `cumulative_limit_ind`, `service_executor_id`, `package_mapping_id`, `register_server_id`, `external_scene_id`, `trxn_version`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+serviceCode+"', '"+menuDesc+"', '"+serviceCode+"', 'N', NULL, 'rpc', NULL, 'ln', '01', '1.0', 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
+		sqlList.add("-- smp --");
+		sqlList.add("delete from smp_sys_trans where trans_cd = '" + serviceCode + "';");
+		
+		String outList = CommonUtil.isNull(isList) ? "NULL" : "'"+isList[0]+"'";
+		sqlList.add("INSERT INTO smp_sys_trans(`trans_cd`, `trans_name`, `service_cd`, `encap_cd`, `trans_status`, `deal_cnt`, `scene_id`, `dcn_id`, `version_id`, `app_id`, `timeout`, `group_id`, `isrecord`, `islist`, `system_id`, `is_approval`) VALUES ('"+serviceCode+"', '"+menuDesc+"', 'sunflow', '"+serviceCode+"', 'Y', '0', '01', 'adm', '1.0', '1021', '120000', 'LN', NULL, "+outList+", NULL, 'false');");
+		sqlList.add("commit;");
+		return sqlList;
 	}
 }

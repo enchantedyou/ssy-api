@@ -61,9 +61,9 @@ public class BatTaskUtil {
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, batSettingMap.get("datasource"));
 		List<TspTranController> taskList = new ArrayList<TspTranController>();
 		if(CommonUtil.getResultSetRecordNum(resultSet) > 1){
-			taskList = (List<TspTranController>) CommonUtil.mappingResultSet(resultSet, TspTranController.class);
+			taskList = CommonUtil.mappingResultSetList(resultSet, TspTranController.class);
 		}else{
-			taskList.add((TspTranController) CommonUtil.mappingResultSet(resultSet, TspTranController.class));
+			taskList.add(CommonUtil.mappingResultSetSingle(resultSet, TspTranController.class));
 		}
 		return taskList;
 	}
@@ -82,7 +82,7 @@ public class BatTaskUtil {
 	public static TspTranController getBatTaskByTranCode(Integer stepId) throws SQLException{
 		String sql = "select * from tsp_tran_controller where step_id = ? and execution_code = '1' order by step_id;";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{String.valueOf(stepId)},batSettingMap.get("datasource"));
-		return (TspTranController) CommonUtil.mappingResultSet(resultSet, TspTranController.class);
+		return CommonUtil.mappingResultSetSingle(resultSet, TspTranController.class);
 	}
 	
 	

@@ -6,15 +6,23 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import net.sf.json.JSONObject;
+
+import org.apache.http.HttpResponse;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
 import org.junit.Before;
 import org.junit.Test;
 
+import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
@@ -30,7 +38,7 @@ public class SimpleTest{
 	public String outputPath = "C:/Users/DELL/Desktop/";
 	
 	//log4j日志
-	//private static final Logger logger = Logger.getLogger(SimpleTest.class);
+	private static final Logger logger = Logger.getLogger(SimpleTest.class);
 	
 	@Before
 	public void before() throws SQLException{
@@ -63,7 +71,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("rpym_method");
+		SunlineUtil.sunlineSearchDict("Term_code");
 	}
 	
 	
@@ -151,7 +159,8 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanRepayOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanStopIndIn"));
+		//LnQueryLoanInfoOut
 	}
 	
 	/**
@@ -163,12 +172,8 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test37(){
-		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("rpym_type", true, false,"overpayment_amt","loan_rpym_amt","rpym_amt"));
+		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("new_reimburse_ind", true, false,"reimburse_no"));
 	}
-	
-	/**
-	 * limit_ind
-	 */
 	
 	/**
 	 * @Author sunshaoyu
@@ -187,7 +192,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("IoLnJointIn"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnReimburseInfoOut"));
 	}
 	
 	
@@ -201,7 +206,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN_FAT);
 	}
 
 	
@@ -283,8 +288,8 @@ public class SimpleTest{
 	
 	@Test
 	public void test18() throws Exception{
-		double crit = 0.04;
-		double sunderArmor = 0.7199;
+		double crit = 0.3212;
+		double sunderArmor = 0.3858;
 		double critEffect = 1.75;
 		double initHarm = 30000;
 		
@@ -293,11 +298,13 @@ public class SimpleTest{
 		System.out.println("会心:" + (crit * 100) + "%,破防:" + (sunderArmor * 100) + "%,会效:" + (critEffect * 100) + "%,初始伤害:" + initHarm);
 		System.out.println(CommonUtil.buildSplitLine(120));
 		
-		for(int i = 0;i < 10;i++){
+		int cn = 0;
+		for(int i = 0;i < 100;i++){
 			double curHarm = 0;
 			if(rand.nextDouble() < crit){
 				curHarm = initHarm * critEffect * (1 + sunderArmor);
 				System.err.println("驱夜断愁·会心:" + curHarm);
+				cn++;
 			}else{
 				curHarm = initHarm * (1 + sunderArmor);
 				System.out.println("驱夜断愁:" + curHarm);
@@ -307,6 +314,7 @@ public class SimpleTest{
 		CommonUtil.systemPause(5);
 		System.out.println(CommonUtil.buildSplitLine(120));
 		System.out.println("伤害总计:" + totalHarm);
+		System.out.println("会心次数:"+cn);
 	}
 	
 	
@@ -336,7 +344,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"329999");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN_FAT, E_ICOREMODULE.LN);
 	}
 	
 	
@@ -367,7 +375,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6049", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("cl6801", outputPath);
 	}
 	
 	
@@ -380,7 +388,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6049", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款", "C:/Users/DELL/Desktop/");
+		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6047", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款/传统接口/", "C:/Users/DELL/Desktop/");
 	}
 	
 	
@@ -492,7 +500,7 @@ public class SimpleTest{
 	@Test
 	public void test31() throws Exception{
 		File file = new File("C:/Users/DELL/Desktop/" + ApiConst.FULLSQL_MAINDIR_NAME);
-		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_LOCAL_CHECK);
+		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_ICORE_LN);
 	}
 	
 	
@@ -565,16 +573,16 @@ public class SimpleTest{
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年12月2日-下午1:37:48</li>
-	 *         <li>功能说明：</li>
+	 *         <li>功能说明：打印表每个字段的中文</li>
 	 *         </p>
 	 * @throws Exception
 	 */
 	@Test
 	public void test35() throws Exception{
-		Element table = SunlineUtil.sunlineGetTableType("lnf_fee");
+		Element table = SunlineUtil.sunlineGetTableType("lna_loan");
 		List<Element> tableFieldList = CommonUtil.searchTargetAllXmlElement(table, "field");
 		for(Element e : tableFieldList){
-			System.out.println("<element id=\""+e.attributeValue("id")+"\" longname=\""+e.attributeValue("longname")+"\" type=\""+e.attributeValue("type")+"\" ref=\""+e.attributeValue("ref")+"\" required=\"false\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>");
+			System.out.println(e.attributeValue("id") + ":" + SunlineUtil.dictMap.get(e.attributeValue("id")).getDesc());
 		}
 	}
 	
@@ -601,12 +609,112 @@ public class SimpleTest{
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年12月20日-上午10:51:16</li>
-	 *         <li>功能说明：</li>
+	 *         <li>功能说明：多线程开户</li>
 	 *         </p>
 	 * @throws Exception
 	 */
 	@Test
 	public void test38() throws Exception{
-		System.out.println(CommonUtil.AES.encrypt("你好世界", CommonUtil.randStr(16)));
+		String body = CommonUtil.readFileContent(SimpleTest.class.getResource("/json/6020.json").getPath());
+		final int concurrentNum = 10;
+		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 0, "326020",body);
+		for(String threadId : responseMap.keySet()){
+			JSONObject responseJson = JSONObject.fromObject(responseMap.get(threadId));
+			if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
+				System.out.println(responseJson.getJSONObject("output").getString("loan_no"));
+			}else{
+				System.err.println(threadId + ":" + responseJson.getJSONObject("sys").getString("erortx"));
+			}
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年2月28日-下午3:03:13</li>
+	 *         <li>功能说明：查询各模块包在nexus仓库的最新版本</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test39() throws Exception{
+		Map<String, String> versionMap = SunlineUtil.sunlineQueryNexusJarVersion("iobus", "cf","us","cl","cm","dp","ds","ln","pt");
+		for(String md : versionMap.keySet()){
+			System.out.println(md + "模块的最新版本为:" + versionMap.get(md));
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月2日-上午10:53:35</li>
+	 *         <li>功能说明：取稽核脚本sql文件</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test40() throws Exception{
+		String url = "http://10.22.10.53:8012/";
+		String path = "sql/cl/dml/";
+		HttpResponse response = NetworkApi.doGet(url, path, new HashMap<String, String>() , new HashMap<String, String>());
+		String html = CommonUtil.convertResponseToStr(response);
+		org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(html);
+		Elements aList = jsoupDoc.getElementsByTag("a");
+		
+		for(org.jsoup.nodes.Element a : aList){
+			if(a.attr("href").equals(a.html()) && !a.html().contains("../")){
+				logger.info("下载:" + a.html());
+				CommonUtil.downloadUrl(url + a.html(), outputPath + "ln/sqlscriptTools/" + path + a.html());
+			}
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月4日-上午9:39:21</li>
+	 *         <li>功能说明：生成前端页面开发增量脚本</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test41() throws Exception{
+		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql("5507", "326014", "3250", "贷款停息挂账", "/views/ln/business/ln_stop_accrual.json");
+		for(String sql : sqlList){
+			System.out.println(sql);
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月9日-上午10:04:46</li>
+	 *         <li>功能说明：批量替换json中的字段描述</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test42() throws Exception{
+		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
+		String key = "\"末期零头算一期\"";
+		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
+		for(String fileName : fileMap.keySet()){
+			String filePath = fileMap.get(fileName);
+			String fileContent = CommonUtil.readFileContent(filePath);
+			if(fileContent.contains(key)){
+				CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"末期是否合并\""), filePath);
+			}
+		}
+	}
+	
+	
+	@Test
+	public void test43() throws Exception{
+		System.out.println(CommonUtil.buildTrxnSeq(24));
 	}
 }
+

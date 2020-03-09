@@ -36,6 +36,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_LN_FAT = "ICORE3.0LN_FAT";
 	//内管研发测试环境
 	public static final String DATASOURCE_ICORE_CT_DIT = "ICORE3.0CT_DIT";
+	//内管研发FAT环境
+	public static final String DATASOURCE_ICORE_CT_FAT = "ICORE3.0CT_FAT";
 	//本地稽核数据库
 	public static final String DATASOURCE_LOCAL_CHECK = "LOCALCHECK";
 	
@@ -44,7 +46,7 @@ public class ApiConst {
 	//c3p0最大线程数
 	public static final int MAX_POOL_SIZE = 1000;
 	//超时毫秒
-	public static final int CHECK_TIME_OUT = 5000;
+	public static final int CHECK_TIME_OUT = 30000;
 	//线程并发数上限
 	public static final int MAX_THREAD_CONCURRENT = 1000;
 	
