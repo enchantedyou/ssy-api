@@ -67,6 +67,10 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.Feature;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 import cn.ssy.base.core.network.api.NetworkApi;
@@ -2220,5 +2224,21 @@ public class CommonUtil {
 		} else {
 			fileMap.put(file.getName(), file.getPath());
 		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月11日-下午5:14:31</li>
+	 *         <li>功能说明：fastjson美化</li>
+	 *         </p>
+	 * @param jsonString
+	 * @return
+	 */
+	public static String fastjsonFormat(String jsonString) {
+		com.alibaba.fastjson.JSONObject object= com.alibaba.fastjson.JSONObject.parseObject(jsonString, Feature.OrderedField);
+	    jsonString = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue, SerializerFeature.WriteDateUseDateFormat);
+	    return jsonString;
 	}
 }

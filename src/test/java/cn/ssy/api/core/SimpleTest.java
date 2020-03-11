@@ -7,14 +7,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.jsoup.Jsoup;
@@ -28,10 +31,14 @@ import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_STRUCTMODULE;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class SimpleTest{
 	
@@ -71,7 +78,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("Term_code");
+		SunlineUtil.sunlineSearchDict("base_period_no");
 	}
 	
 	
@@ -159,7 +166,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanStopIndIn"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanRepayIn"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -616,7 +623,7 @@ public class SimpleTest{
 	@Test
 	public void test38() throws Exception{
 		String body = CommonUtil.readFileContent(SimpleTest.class.getResource("/json/6020.json").getPath());
-		final int concurrentNum = 10;
+		final int concurrentNum = 5;
 		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 0, "326020",body);
 		for(String threadId : responseMap.keySet()){
 			JSONObject responseJson = JSONObject.fromObject(responseMap.get(threadId));
@@ -700,13 +707,17 @@ public class SimpleTest{
 	@Test
 	public void test42() throws Exception{
 		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
-		String key = "\"末期零头算一期\"";
+		String key = "\"currency\"";
 		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
 			String filePath = fileMap.get(fileName);
 			String fileContent = CommonUtil.readFileContent(filePath);
 			if(fileContent.contains(key)){
-				CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"末期是否合并\""), filePath);
+				//CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"末期是否合并\""), filePath);
+				TwoTuple<Boolean, List<String>> result = checkDefaultValForCurrency(JSONObject.fromObject(fileContent));
+				if(result.getFirst()){
+					System.err.println(fileName+"存在未默认空值的currency控件字段:"+result.getSecond().toString());
+				}
 			}
 		}
 	}
@@ -715,6 +726,76 @@ public class SimpleTest{
 	@Test
 	public void test43() throws Exception{
 		System.out.println(CommonUtil.buildTrxnSeq(24));
+	}
+	
+	
+	@Test
+	public void test44() throws Exception{
+	}
+	
+	
+	public static List<JSONObject> searchJsonAllTargetEqAttr(List<JSONObject> jsonList, JSONObject jsonObj, String attrKey, String attrValue){
+		jsonList = CommonUtil.nvl(jsonList, new LinkedList<JSONObject>());
+		for(Object jsonKey : jsonObj.keySet()){
+			try{
+				JSONObject jsonValue = jsonObj.getJSONObject(String.valueOf(jsonKey));
+				if(jsonValue.containsKey(attrKey) && jsonValue.getString(attrKey).equals(attrValue)){
+					jsonList.add(jsonValue);
+				}else{
+					jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue, attrKey, attrValue);
+				}
+			}catch(Exception e1){
+				try{
+					JSONArray jsonValue = jsonObj.getJSONArray(String.valueOf(jsonKey));
+					for(int i = 0;i < jsonValue.size();i++){
+						jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue.getJSONObject(i), attrKey, attrValue);
+					}
+				}catch(Exception e2){
+					//普通键值对
+				}
+			}
+		}
+		return jsonList;
+	}
+	
+	
+	
+	public static TwoTuple<Boolean, List<String>> checkDefaultValForCurrency(JSONObject jsonObj) throws IOException{
+		boolean isExist = false;
+		List<String> checkedFieldList = new LinkedList<>();
+		try{
+			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
+			if(form.containsKey("controlsGroup")){
+				JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
+				for(int i = 0;i < controlsGroup.size();i++){
+					JSONArray controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
+					isExist = dealFormControls(isExist, controls, checkedFieldList);
+				}
+			}else{
+				JSONArray controls = form.getJSONArray("controls");
+				isExist = dealFormControls(isExist, controls, checkedFieldList);
+			}
+		}catch(Exception e){
+		}
+		//使用jackson对json进行美化
+		return new TwoTuple<Boolean, List<String>>(isExist, checkedFieldList);
+	}
+
+	private static boolean dealFormControls(boolean isChange, JSONArray controls, List<String> checkedFieldList) {
+		for(int j = 0;j < controls.size();j++){
+			JSONObject control = controls.getJSONObject(j);
+			
+			for(Object key : control.keySet()){
+				JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
+				if((fieldJson.containsKey("control") && fieldJson.getString("control").equals("currency"))
+				&& !fieldJson.containsKey("value")){
+					fieldJson.put("value", "");
+					isChange = true;
+					checkedFieldList.add(String.valueOf(key));
+				}
+			}
+		}
+		return isChange;
 	}
 }
 

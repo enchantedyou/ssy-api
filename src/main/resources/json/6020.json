@@ -9,7 +9,7 @@
         "rpym_account_ccy": "IDR",
         "drawdown_account": "0258000060033",
         "loan_amt": "100000",
-        "principal": "0",
+        "principal": "100000",
         "prod_id": "L0000002"
     },
     "sys": {
