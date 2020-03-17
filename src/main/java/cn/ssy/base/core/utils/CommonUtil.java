@@ -67,10 +67,6 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.parser.Feature;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 import cn.ssy.base.core.network.api.NetworkApi;
@@ -78,6 +74,9 @@ import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.exception.NullParmException;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.Feature;
 
 /**
  * <p>
@@ -852,15 +851,14 @@ public class CommonUtil {
 	 * @param splitStr
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public static <T> List<T> parseStringToList(String sourceStr,String splitStr){
+	public static List<String> parseStringToList(String sourceStr,String splitStr){
 		if(isNull(sourceStr) || isNull(splitStr)){
 			throw new NullParmException("源字符串","分割字符串");
 		}
-		List<T> list = new ArrayList<>();
+		List<String> list = new ArrayList<>();
 		StringTokenizer st = new StringTokenizer(sourceStr,splitStr);
 		while(st.hasMoreTokens()){
-			list.add((T)st.nextToken());
+			list.add(st.nextToken());
 		}
 		return list;
 	}
@@ -2237,8 +2235,91 @@ public class CommonUtil {
 	 * @return
 	 */
 	public static String fastjsonFormat(String jsonString) {
-		com.alibaba.fastjson.JSONObject object= com.alibaba.fastjson.JSONObject.parseObject(jsonString, Feature.OrderedField);
-	    jsonString = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue, SerializerFeature.WriteDateUseDateFormat);
-	    return jsonString;
+		com.alibaba.fastjson.JSONObject fastjsonObj = com.alibaba.fastjson.JSONObject.parseObject(jsonString, Feature.OrderedField);
+	    return JSON.toJSONString(fastjsonObj, true);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月16日-下午3:58:08</li>
+	 *         <li>功能说明：搜索json中所有key=attrKey,value=attrValue的json对象</li>
+	 *         </p>
+	 * @param jsonList
+	 * @param jsonObj
+	 * @param attrKey
+	 * @param attrValue
+	 * @return
+	 */
+	public static List<JSONObject> searchJsonAllTargetEqAttr(List<JSONObject> jsonList, JSONObject jsonObj, String attrKey, String attrValue){
+		jsonList = CommonUtil.nvl(jsonList, new LinkedList<JSONObject>());
+		for(Object jsonKey : jsonObj.keySet()){
+			try{
+				JSONObject jsonValue = jsonObj.getJSONObject(String.valueOf(jsonKey));
+				if(jsonValue.containsKey(attrKey) && jsonValue.getString(attrKey).equals(attrValue)){
+					jsonList.add(jsonValue);
+				}else{
+					jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue, attrKey, attrValue);
+				}
+			}catch(Exception e1){
+				try{
+					JSONArray jsonValue = jsonObj.getJSONArray(String.valueOf(jsonKey));
+					for(int i = 0;i < jsonValue.size();i++){
+						jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue.getJSONObject(i), attrKey, attrValue);
+					}
+				}catch(Exception e2){
+					//普通键值对
+				}
+			}
+		}
+		return jsonList;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月17日-下午1:51:22</li>
+	 *         <li>功能说明：根据数据库中的表生成java类</li>
+	 *         </p>
+	 * @param javaPackage
+	 * @param tableName
+	 * @param dataSource
+	 * @param outputPath
+	 * @throws SQLException
+	 */
+	public static void generateTableJava(String javaPackage, String tableName, String dataSource, String outputPath) throws SQLException {
+		final String nextLine = "\r\n\r\n";
+		final String tabSpace = "\t";
+		StringBuffer fieldBuffer = new StringBuffer();
+		StringBuffer getsetBuffer = new StringBuffer();
+		
+		StringBuffer toStringBuffer = new StringBuffer();
+		ResultSet resultSet = JDBCUtils.executeQuery("select * from " + tableName, dataSource);
+		ResultSetMetaData metaData = resultSet.getMetaData();
+		int colCount = metaData.getColumnCount();
+		tableName = CommonUtil.parseHumpStr(tableName);
+		
+		fieldBuffer.append("package ").append(javaPackage).append(";").append(nextLine).append(nextLine).append("public class ").append(tableName).append(" {").append(nextLine);
+		toStringBuffer.append(tabSpace).append("@Override\r\n\tpublic String toString() {\r\n\t\treturn \"").append(tableName).append(" [");
+		for(int i = 1;i <= colCount;i++){
+			//定义字段
+			fieldBuffer.append(tabSpace).append("private").append(" ").append(CommonUtil.getRealType(metaData.getColumnClassName(i))).append(" ").append(CommonUtil.parseHumpStr(metaData.getColumnName(i))).append(";").append(nextLine);
+			//定义get和set方法
+			String fieldName = CommonUtil.parseHumpStr(metaData.getColumnName(i));
+			String fieldType = CommonUtil.getRealType(metaData.getColumnClassName(i));
+			getsetBuffer.append(tabSpace).append("public").append(" ").append(fieldType).append(" ").append("get").append(fieldName.substring(0, 1).toUpperCase()).append(fieldName.substring(1)).append("() {").append("\r\n");
+			getsetBuffer.append(tabSpace).append(tabSpace).append("return ").append(fieldName).append(";").append("\r\n\t}").append(nextLine);
+		
+			getsetBuffer.append(tabSpace).append("public").append(" void ").append("set").append(fieldName.substring(0, 1).toUpperCase()).append(fieldName.substring(1)).append("(").append(fieldType).append(" ").append(fieldName).append(") {\r\n");
+			getsetBuffer.append(tabSpace).append(tabSpace).append("this.").append(fieldName).append(" = ").append(fieldName).append(";\r\n\t}").append(nextLine);
+			//定义toString方法
+			toStringBuffer.append(fieldName).append("=\" + ").append(fieldName).append(" + \", ");
+		}
+		toStringBuffer = toStringBuffer.replace(toStringBuffer.lastIndexOf(", "), toStringBuffer.lastIndexOf(", ") + 2, "");
+		toStringBuffer.append("]\";\r\n\t}\r\n}");
+		String javaFileContent = fieldBuffer.append(getsetBuffer).append(toStringBuffer).toString();
+		writeFileContent(javaFileContent, outputPath);
 	}
 }

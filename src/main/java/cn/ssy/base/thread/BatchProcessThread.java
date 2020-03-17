@@ -65,9 +65,9 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 		if(CommonUtil.isNotNull(taskList)){
 			for(int i = 0;i < taskList.size();i++){
 				if(taskList.get(i).getExecutionCode().equals("1")){
-					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), ++totalTaskNum));
+					taskMap.put(String.valueOf(taskList.get(i).getTranGroupId() + "-" + taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), ++totalTaskNum));
 				}else{
-					taskMap.put(String.valueOf(taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), -1));
+					taskMap.put(String.valueOf(taskList.get(i).getTranGroupId() + "-" + taskList.get(i).getStepId()), new TwoTuple<TspTranController, Integer>(taskList.get(i), -1));
 				}
 			}
 		}
@@ -79,14 +79,15 @@ public class BatchProcessThread implements Callable<Map<String, Object>>{
 			errorStack = CommonUtil.fetchResultSetValue(resultSet, "error_stack");
 			stepId = CommonUtil.fetchResultSetValue(resultSet, "current_step");
 			groupId = CommonUtil.fetchResultSetValue(resultSet, "current_tran_group_id");
+			String taskGetStr = groupId + "-" + stepId;
 			
-			if(CommonUtil.isNotNull(taskMap.get(stepId))){
-				TspTranController tsp = taskMap.get(stepId).getFirst();
-				logger.info("执行状态:"+tranState+",交易日期:"+trxnDate+",步骤号:"+stepId+",组号:"+groupId+",交易描述:"+taskMap.get(stepId).getFirst().getTranChineseName());
+			if(CommonUtil.isNotNull(taskMap.get(taskGetStr))){
+				TspTranController tsp = taskMap.get(taskGetStr).getFirst();
+				logger.info("执行状态:"+tranState+",交易日期:"+trxnDate+",步骤号:"+stepId+",组号:"+groupId+",交易描述:"+taskMap.get(taskGetStr).getFirst().getTranChineseName());
 				String curTask = tsp.getTranCode();
 				
-				if(CommonUtil.isNotNull(curTask) && CommonUtil.compare(curTask, beforeTask) != 0 && taskMap.get(stepId).getSecond() != -1){
-					logger.info("批量任务["+curTask+"]"+taskMap.get(stepId).getFirst().getTranChineseName()+"开始执行("+(taskMap.get(stepId).getSecond())+"/"+totalTaskNum+")");
+				if(CommonUtil.isNotNull(curTask) && CommonUtil.compare(curTask, beforeTask) != 0 && taskMap.get(taskGetStr).getSecond() != -1){
+					logger.info("批量任务["+curTask+"]"+taskMap.get(taskGetStr).getFirst().getTranChineseName()+"开始执行("+(taskMap.get(taskGetStr).getSecond())+"/"+totalTaskNum+")");
 					beforeTask = curTask;
 				}
 			}

@@ -12,12 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.jsoup.Jsoup;
@@ -29,6 +27,7 @@ import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
+import cn.ssy.base.core.utils.MD5Util;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.plugins.TwoTuple;
@@ -36,9 +35,6 @@ import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_STRUCTMODULE;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class SimpleTest{
 	
@@ -78,7 +74,8 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("base_period_no");
+		SunlineUtil.sunlineSearchDict("phase_rpym_method");
+		
 	}
 	
 	
@@ -149,8 +146,9 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7() throws SQLException{
-		BatTaskUtil.startupTask("ap05",40,"");
-		BatTaskUtil.printBatchTastExecuteRes();
+		BatTaskUtil.tryStartupTask("ap05",10,"");
+		BatTaskUtil.tryStartupTask("ln18",12,"");
+		BatTaskUtil.tryStartupTask("ap99",1000,"");
 	}
 	
 	
@@ -213,7 +211,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN_FAT);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
 	}
 
 	
@@ -695,7 +693,6 @@ public class SimpleTest{
 		}
 	}
 	
-	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -706,20 +703,27 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test42() throws Exception{
+		int dealCount = 0;
 		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
-		String key = "\"currency\"";
+		String key = "\"control\"";
 		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
 			String filePath = fileMap.get(fileName);
 			String fileContent = CommonUtil.readFileContent(filePath);
 			if(fileContent.contains(key)){
-				//CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"末期是否合并\""), filePath);
-				TwoTuple<Boolean, List<String>> result = checkDefaultValForCurrency(JSONObject.fromObject(fileContent));
+				/** 批量替换json中的字段描述 **/
+				//CommonUtil.writeFileContent(fileContent.replaceAll(key, "维护\""), filePath);
+				/** 批量为json中的currency控件新增默认空值 **/
+				//TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddDefaultValForCurrency(JSONObject.fromObject(fileContent));
+				/** 批量为json中的control及域后字段新增字段长度限制 **/
+				TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(result.getFirst()){
-					System.err.println(fileName+"存在未默认空值的currency控件字段:"+result.getSecond().toString());
+					//CommonUtil.writeFileContent(result.getSecond(), filePath);
+					dealCount++;
 				}
 			}
 		}
+		logger.info("已处理:"+dealCount);
 	}
 	
 	
@@ -729,73 +733,106 @@ public class SimpleTest{
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月17日-下午1:53:13</li>
+	 *         <li>功能说明：根据数据库中的表生成java类</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test44() throws Exception{
-	}
-	
-	
-	public static List<JSONObject> searchJsonAllTargetEqAttr(List<JSONObject> jsonList, JSONObject jsonObj, String attrKey, String attrValue){
-		jsonList = CommonUtil.nvl(jsonList, new LinkedList<JSONObject>());
-		for(Object jsonKey : jsonObj.keySet()){
-			try{
-				JSONObject jsonValue = jsonObj.getJSONObject(String.valueOf(jsonKey));
-				if(jsonValue.containsKey(attrKey) && jsonValue.getString(attrKey).equals(attrValue)){
-					jsonList.add(jsonValue);
-				}else{
-					jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue, attrKey, attrValue);
-				}
-			}catch(Exception e1){
-				try{
-					JSONArray jsonValue = jsonObj.getJSONArray(String.valueOf(jsonKey));
-					for(int i = 0;i < jsonValue.size();i++){
-						jsonList = searchJsonAllTargetEqAttr(jsonList, jsonValue.getJSONObject(i), attrKey, attrValue);
-					}
-				}catch(Exception e2){
-					//普通键值对
-				}
-			}
-		}
-		return jsonList;
-	}
-	
-	
-	
-	public static TwoTuple<Boolean, List<String>> checkDefaultValForCurrency(JSONObject jsonObj) throws IOException{
-		boolean isExist = false;
-		List<String> checkedFieldList = new LinkedList<>();
-		try{
-			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
-			if(form.containsKey("controlsGroup")){
-				JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
-				for(int i = 0;i < controlsGroup.size();i++){
-					JSONArray controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
-					isExist = dealFormControls(isExist, controls, checkedFieldList);
-				}
-			}else{
-				JSONArray controls = form.getJSONArray("controls");
-				isExist = dealFormControls(isExist, controls, checkedFieldList);
-			}
-		}catch(Exception e){
-		}
-		//使用jackson对json进行美化
-		return new TwoTuple<Boolean, List<String>>(isExist, checkedFieldList);
+		String javaPackage = "cn.ssy.base.entity.mybatis";
+		String tableName = "tsp_task_execution";
+		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
+		String output = outputPath  + CommonUtil.parseHumpStr(tableName) + ".java";
+		CommonUtil.generateTableJava(javaPackage, tableName, dataSource, output);
 	}
 
-	private static boolean dealFormControls(boolean isChange, JSONArray controls, List<String> checkedFieldList) {
-		for(int j = 0;j < controls.size();j++){
-			JSONObject control = controls.getJSONObject(j);
-			
-			for(Object key : control.keySet()){
-				JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
-				if((fieldJson.containsKey("control") && fieldJson.getString("control").equals("currency"))
-				&& !fieldJson.containsKey("value")){
-					fieldJson.put("value", "");
-					isChange = true;
-					checkedFieldList.add(String.valueOf(key));
+	
+	@Test
+	public void test45() throws Exception{
+		//MD5EncryptUtil.encrypt();
+		List<TierMnt> list = new ArrayList<TierMnt>();
+		HashMap<String, List<TierMnt>> map = new HashMap<>();
+		
+		//模拟数据
+		list.add(new TierMnt(true, "20190101", "IDR"));
+		list.add(new TierMnt(true, "20190101", "IDR"));
+		list.add(new TierMnt(false, "20190201", "IDR"));
+		list.add(new TierMnt(true, "20190201", "IDR"));
+		
+		for(TierMnt mnt : list){
+			//MD5加密关键字段(生效日期-币种)
+			String md5Key = MD5Util.MD5Encode(mnt.getEffectDate() + mnt.getCcyCode());
+			//只处理新增的数据
+			if(mnt.isAdd){
+				//map中存在该key,追加
+				if(map.containsKey(md5Key)){
+					map.get(md5Key).add(mnt);
+				}
+				//map中不存在该key,新增
+				else{
+					List<TierMnt> subList = new LinkedList<TierMnt>();
+					subList.add(mnt);
+					map.put(md5Key, subList);
 				}
 			}
 		}
-		return isChange;
+		
+		for(String md5Key : map.keySet()){
+			//该组数据条数不满足大于1的条件
+			List<TierMnt> checkList = map.get(md5Key);
+			System.out.println(checkList);
+			if(checkList.size() < 2){
+				System.err.println("非法的输入:" + String.valueOf(checkList.get(0)));
+			}
+		}
 	}
-}
+	
+	
+	class TierMnt{
+		private boolean isAdd;
+		
+		private String effectDate;
 
+		private String ccyCode;
+
+		public TierMnt(boolean isAdd, String effectDate, String ccyCode) {
+			super();
+			this.isAdd = isAdd;
+			this.effectDate = effectDate;
+			this.ccyCode = ccyCode;
+		}
+
+		public boolean isAdd() {
+			return isAdd;
+		}
+
+		public void setAdd(boolean isAdd) {
+			this.isAdd = isAdd;
+		}
+
+		public String getEffectDate() {
+			return effectDate;
+		}
+
+		public void setEffectDate(String effectDate) {
+			this.effectDate = effectDate;
+		}
+
+		public String getCcyCode() {
+			return ccyCode;
+		}
+
+		public void setCcyCode(String ccyCode) {
+			this.ccyCode = ccyCode;
+		}
+
+		@Override
+		public String toString() {
+			return "TierMnt [isAdd=" + isAdd + ", effectDate=" + effectDate + ", ccyCode=" + ccyCode + "]";
+		}
+	}
+}	

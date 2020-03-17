@@ -39,6 +39,8 @@ import cn.ssy.base.entity.sunline.BaseType;
 import cn.ssy.base.entity.sunline.Dict;
 import cn.ssy.base.entity.sunline.EnumElement;
 import cn.ssy.base.entity.sunline.EnumType;
+import cn.ssy.base.entity.sunline.Max;
+import cn.ssy.base.entity.sunline.Required;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -479,16 +481,23 @@ public class SunlineUtil {
 	private static void loanProjectBaseType(){
 		if(CommonUtil.isNotNull(projectFileMap)){
 			Element baseTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("BaseType.u_schema.xml"));
-			List<Element> restrictionTypeList = baseTypeRoot.elements();
-			for(Element restrictionType : restrictionTypeList){
-				BaseType baseType = new BaseType();
-				baseType.setId(restrictionType.attributeValue("id"));
-				baseType.setBase(restrictionType.attributeValue("base"));
-				baseType.setLongname(restrictionType.attributeValue("longname"));
-				
-				baseType.setMaxLength(restrictionType.attributeValue("maxLength"));
-				baseType.setFractionDigits(restrictionType.attributeValue("fractionDigits"));
-				baseTypeMap.put(restrictionType.attributeValue("id"), baseType);
+			Element msTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("MsType.u_schema.xml"));
+			List<Element> rootList = new ArrayList<>();
+			rootList.add(msTypeRoot);
+			rootList.add(baseTypeRoot);
+			
+			for(Element root : rootList){
+				List<Element> restrictionTypeList = root.elements();
+				for(Element restrictionType : restrictionTypeList){
+					BaseType baseType = new BaseType();
+					baseType.setId(restrictionType.attributeValue("id"));
+					baseType.setBase(restrictionType.attributeValue("base"));
+					baseType.setLongname(restrictionType.attributeValue("longname"));
+					
+					baseType.setMaxLength(restrictionType.attributeValue("maxLength"));
+					baseType.setFractionDigits(restrictionType.attributeValue("fractionDigits"));
+					baseTypeMap.put(restrictionType.attributeValue("id"), baseType);
+				}
 			}
 		}
 	}
@@ -816,6 +825,41 @@ public class SunlineUtil {
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-上午10:37:34</li>
+	 *         <li>功能说明：获取字段的基础类型</li>
+	 *         </p>
+	 * @param fieldId	字段id
+	 * @return	返回基础类型实体类
+	 */
+	public static BaseType sunlineGetFieldBaseType(String fieldId){
+		try{
+			return SunlineUtil.baseTypeMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(fieldId).getRefType()));
+		}catch(Exception e){
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-上午11:36:54</li>
+	 *         <li>功能说明：获取字段的枚举类型</li>
+	 *         </p>
+	 * @param fieldId	字段id
+	 * @return	返回枚举类型实体类
+	 */
+	public static EnumType sunlineGetFieldEnumType(String fieldId){
+		try{
+			return enumMap.get(CommonUtil.getRealType(SunlineUtil.dictMap.get(fieldId).getRefType()));
+		}catch(Exception e){
+		}
+		return null;
+	}
+	
 	
 	/**
 	 * @Author sunshaoyu
@@ -962,7 +1006,8 @@ public class SunlineUtil {
 		}
 		Dict dictInfo = dictMap.get(dictFieldName);
 		if(CommonUtil.isNotNull(dictInfo)){
-			if("BaseType".equals(CommonUtil.getFirstDotLeftStr(dictInfo.getRefType()))){
+			String basicType = CommonUtil.getFirstDotLeftStr(dictInfo.getRefType());
+			if("BaseType".equals(basicType) || "MsType".equals(basicType)){
 				logger.info(dictInfo.toString());
 				logger.info(String.valueOf(baseTypeMap.get(CommonUtil.getRealType(dictInfo.getRefType()))));
 			}else{
@@ -2407,18 +2452,259 @@ public class SunlineUtil {
 	 */
 	public static List<String> sunlineGenerateMenuSql(String menuCode, String serviceCode, String menuUpperId, String menuDesc, String pageId, String... isList){
 		List<String> sqlList = new LinkedList<>();
-		sqlList.add("-- ct --");
+		sqlList.add("-- "+menuCode+"-"+menuDesc+" --");
 		sqlList.add("delete from ctp_menu where menu_code = '" + menuCode + "';");
 		sqlList.add("delete from ctp_trxn_mapping where ct_trxn_code = '" + serviceCode + "';");
 		
 		sqlList.add("INSERT INTO `ctp_menu` (`menu_code`, `menu_id`, `menu_upper_id`, `menu_group`, `menu_default_ind`, `menu_desc`, `page_id`, `page_display_scene`, `output_page_id`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+menuCode+"', '"+serviceCode+"', '"+menuUpperId+"', 'LN', 'N', '"+menuDesc+"', '"+pageId+"', NULL, NULL, 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
 		sqlList.add("INSERT INTO `ctp_trxn_mapping` (`ct_trxn_code`, `trxn_code_name`, `backend_trxn_code`, `trxn_control_ind`, `cumulative_limit_ind`, `service_executor_id`, `package_mapping_id`, `register_server_id`, `external_scene_id`, `trxn_version`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+serviceCode+"', '"+menuDesc+"', '"+serviceCode+"', 'N', NULL, 'rpc', NULL, 'ln', '01', '1.0', 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
-		sqlList.add("-- smp --");
+		sqlList.add("-- "+serviceCode+"-"+menuDesc+" --");
 		sqlList.add("delete from smp_sys_trans where trans_cd = '" + serviceCode + "';");
 		
 		String outList = CommonUtil.isNull(isList) ? "NULL" : "'"+isList[0]+"'";
 		sqlList.add("INSERT INTO smp_sys_trans(`trans_cd`, `trans_name`, `service_cd`, `encap_cd`, `trans_status`, `deal_cnt`, `scene_id`, `dcn_id`, `version_id`, `app_id`, `timeout`, `group_id`, `isrecord`, `islist`, `system_id`, `is_approval`) VALUES ('"+serviceCode+"', '"+menuDesc+"', 'sunflow', '"+serviceCode+"', 'Y', '0', '01', 'adm', '1.0', '1021', '120000', 'LN', NULL, "+outList+", NULL, 'false');");
 		sqlList.add("commit;");
 		return sqlList;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-上午9:23:23</li>
+	 *         <li>功能说明：为前端界面为初始化未空的currency控件初始化为空</li>
+	 *         </p>
+	 * @param jsonObj	JSON对象
+	 * @return	返回二元组,<该json发生改变返回true,返回美化后的json>
+	 * @throws IOException
+	 */
+	public static TwoTuple<Boolean, String> sunlineAddDefaultValForCurrency(JSONObject jsonObj) throws IOException{
+		boolean isChange = false;
+		try{
+			//处理主字段
+			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
+			if(form.containsKey("controlsGroup")){
+				JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
+				for(int i = 0;i < controlsGroup.size();i++){
+					JSONArray controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
+					isChange = dealAddDefaultValFormControls(isChange, controls);
+				}
+			}else{
+				JSONArray controls = form.getJSONArray("controls");
+				isChange = dealAddDefaultValFormControls(isChange, controls);
+			}
+		}catch(Exception e){
+		}
+		//使用jackson对json进行美化
+		return new TwoTuple<Boolean, String>(isChange, CommonUtil.fastjsonFormat(jsonObj.toString()));
+	}
+
+	private static boolean dealAddDefaultValFormControls(boolean isChange, JSONArray controls) {
+		for(int j = 0;j < controls.size();j++){
+			JSONObject control = controls.getJSONObject(j);
+			
+			for(Object key : control.keySet()){
+				JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
+				if((fieldJson.containsKey("control") && fieldJson.getString("control").equals("currency"))
+				&& !fieldJson.containsKey("value")){
+					fieldJson.put("value", "");
+					isChange = true;
+				}
+			}
+		}
+		return isChange;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-下午2:55:32</li>
+	 *         <li>功能说明：为前端及域后字段新增长度限制</li>
+	 *         </p>
+	 * @param jsonObj	页面json对象
+	 * @return
+	 * @throws IOException
+	 */
+	public static TwoTuple<Boolean, String> sunlineAddFieldLengthLimit(JSONObject jsonObj) throws IOException{
+		int changeCount = 0;
+		JSONArray controls = null;
+		try{
+			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
+			if(!form.isNullObject()){
+				if(form.containsKey("controlsGroup")){
+					JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
+					for(int i = 0;i < controlsGroup.size();i++){
+						controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
+						changeCount += dealAddFieldLengthFormControls(controls);
+						//处理域后事件的字段
+						changeCount = addFieldLenLimitForEvents(changeCount, controls);
+					}
+				}else{
+					controls = form.getJSONArray("controls");
+					changeCount += dealAddFieldLengthFormControls(controls);
+					//处理域后事件的字段
+					changeCount = addFieldLenLimitForEvents(changeCount, controls);
+				}
+			}
+		}catch(Exception e){
+			CommonUtil.printLogError(e, logger);
+		}
+		//使用jackson对json进行美化
+		return new TwoTuple<Boolean, String>(changeCount > 0, CommonUtil.fastjsonFormat(jsonObj.toString()));
+	}
+
+	private static int addFieldLenLimitForEvents(int changeCount, JSONArray controls) {
+		if(CommonUtil.isNotNull(controls)){
+			for(int i = 0;i < controls.size();i++){
+				JSONObject control = controls.getJSONObject(i);
+				for(Object key : control.keySet()){
+					if(control.getJSONObject(String.valueOf(key)).containsKey("events")){
+						JSONObject condition = control.getJSONObject(String.valueOf(key)).getJSONObject("events").getJSONObject("condition");
+						for(Object conditionKey : condition.keySet()){
+							JSONObject subControl = condition.getJSONObject(String.valueOf(conditionKey)).getJSONObject("control");
+							for(Object subControlKey : subControl.keySet()){
+								String max = getFieldMaxLength(subControlKey);
+								if(CommonUtil.isNull(max)){
+									continue;
+								}
+								changeCount += replaceFieldMaxLength(subControl.getJSONObject(String.valueOf(subControlKey)), max, subControlKey);
+							}
+						}
+					}
+				}
+			}
+		}
+		return changeCount;
+	}
+
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-上午10:40:21</li>
+	 *         <li>功能说明：为字段添加默认长度限制</li>
+	 *         </p>
+	 * @param isChange
+	 * @param controls
+	 * @return
+	 */
+	private static int dealAddFieldLengthFormControls(JSONArray controls) {
+		int changeCount = 0;
+		for(int j = 0;j < controls.size();j++){
+			JSONObject control = controls.getJSONObject(j);
+			for(Object key : control.keySet()){
+				String max = getFieldMaxLength(key);
+				if(CommonUtil.isNull(max)){
+					continue;
+				}
+				JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
+				changeCount += replaceFieldMaxLength(fieldJson, max, key);
+			}
+		}
+		return changeCount;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月12日-下午2:41:07</li>
+	 *         <li>功能说明：获取字段最大长度</li>
+	 *         </p>
+	 * @param key	字段id
+	 * @return
+	 */
+	private static String getFieldMaxLength(Object key){
+		//获取当前字段的长度
+		BaseType baseType = sunlineGetFieldBaseType(String.valueOf(key));
+		String max = null;
+		if(CommonUtil.isNull(baseType)){
+			EnumType enumType = sunlineGetFieldEnumType(String.valueOf(key));
+			if(CommonUtil.isNotNull(enumType)){
+				max = enumType.getMaxLength();
+			}
+		}else{
+			max = baseType.getMaxLength();
+		}
+		
+		if(CommonUtil.isNull(max)){
+			String ref = CommonUtil.isNull(dictMap.get(String.valueOf(key))) ? "" : dictMap.get(String.valueOf(key)).getRefType();
+			String kBaseLen = ref.contains("KBaseType.U_LEIXIN") ? ref.split("KBaseType.U_LEIXIN")[1] : "";;
+			//例外
+			if(ref.contains("E_YESORNO") || ref.contains("E_DEBITCREDIT") || String.valueOf(key).contains("_ind")){
+				max = "1";
+			}else if(CommonUtil.isContainsIgnoreCase(String.valueOf(key), new String[]{"_bal"})){
+				max = "21";
+			}else if(CommonUtil.isNotNull(kBaseLen)){
+				max = kBaseLen;
+			}else{
+				logger.error("未查找到字段["+key+"]的最大长度");
+			}
+		}
+		return max;
+	}
+	
+	
+	
+	@SuppressWarnings({ "deprecation", "unchecked" })
+	private static int replaceFieldMaxLength(JSONObject fieldJson, String max, Object key){
+		Object rules = fieldJson.get("rules");
+		int changeCount = 0;
+		BaseType baseType = sunlineGetFieldBaseType(String.valueOf(key));
+		boolean isDecimal = CommonUtil.isNotNull(baseType) && ("decimal".equals(baseType.getBase()) || "inputNumber".equals(baseType.getBase()));
+		
+		//如果rules不是采用的规范写法,纠正为数组
+		if(CommonUtil.isNull(rules) || fieldJson.containsKey("required")){
+			//获取是否必输
+			boolean required = CommonUtil.isNull(fieldJson.get("required")) ? false : fieldJson.getBoolean("required");
+			List<JSONObject> fixedRules = new LinkedList<>();
+			fixedRules.add(JSONObject.fromObject(new Required(required)));
+			
+			//20200313:研发中心bug,移除掉decimal字段的最大长度限制
+			if(!isDecimal){
+				fixedRules.add(JSONObject.fromObject(new Max(max)));
+			}
+			fieldJson.remove("required");
+			
+			fieldJson.put("rules", JSONArray.fromObject(fixedRules));
+			changeCount++;
+		}
+		//如果rules采用的规范写法,在数组中新增或替换max规则
+		else if(CommonUtil.isJsonArray(rules.toString())){
+			JSONObject pendingRemoveObj = null;
+			List<JSONObject> ruleList = JSONArray.toList(JSONArray.fromObject(rules), JSONObject.class);
+			boolean isExist = false;
+			for(JSONObject ruleObj : ruleList){
+				//含max规则,如果不一致则替换属性
+				if(ruleObj.containsKey("max")){
+					if(!String.valueOf(ruleObj.get("max")).equals(max)){
+						logger.info("字段["+key+"]长度改变:" + ruleObj.get("max") + "->" + max);
+						ruleObj.put("max", Integer.parseInt(max));
+						ruleObj.put("message", "长度不能超过"+max+"个字符");
+					}
+					
+					//20200313:研发中心bug,移除掉decimal字段的最大长度限制
+					if(isDecimal){
+						pendingRemoveObj = ruleObj;
+					}
+					
+					isExist = true;
+					break;
+				}
+			}
+			//不含max属性,则新增
+			if(!isExist && !isDecimal){
+				ruleList.add(JSONObject.fromObject(new Max(max)));
+				changeCount++;
+			}
+			//字段为金额类,则删除
+			if(CommonUtil.isNotNull(pendingRemoveObj)){
+				ruleList.remove(pendingRemoveObj);
+				changeCount++;
+			}
+			fieldJson.put("rules", JSONArray.fromObject(ruleList));
+		}
+		return changeCount;
 	}
 }
