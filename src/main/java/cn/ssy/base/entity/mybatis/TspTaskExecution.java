@@ -4,7 +4,7 @@ import java.sql.Date;
 
 
 
-public class tspTaskExecution {
+public class TspTaskExecution {
 
 	private String systemCode;
 
@@ -318,6 +318,6 @@ public class tspTaskExecution {
 
 	@Override
 	public String toString() {
-		return "tspTaskExecution [systemCode=" + systemCode + ", corporateCode=" + corporateCode + ", taskNum=" + taskNum + ", taskExeNum=" + taskExeNum + ", taskCommitDate=" + taskCommitDate + ", tranDate=" + tranDate + ", transactionDate=" + transactionDate + ", tranFlowId=" + tranFlowId + ", flowStepNum=" + flowStepNum + ", tranGroupId=" + tranGroupId + ", tranId=" + tranId + ", tranGroupExeTime=" + tranGroupExeTime + ", totalCost=" + totalCost + ", tranState=" + tranState + ", taskExeMode=" + taskExeMode + ", taskInterruptFlag=" + taskInterruptFlag + ", taskCommitTime=" + taskCommitTime + ", taskPriority=" + taskPriority + ", tranStartTime=" + tranStartTime + ", tranStartTimestamp=" + tranStartTimestamp + ", tranEndTime=" + tranEndTime + ", tranEndTimestamp=" + tranEndTimestamp + ", dataArea=" + dataArea + ", currentFlowStepNum=" + currentFlowStepNum + ", currentExecutionNum=" + currentExecutionNum + ", currentTranGroupId=" + currentTranGroupId + ", currentStep=" + currentStep + ", errorMessage=" + errorMessage + ", errorStack=" + errorStack + ", serviceCode=" + serviceCode + ", subSystemCode=" + subSystemCode + "]";
+		return "TspTaskExecution [systemCode=" + systemCode + ", corporateCode=" + corporateCode + ", taskNum=" + taskNum + ", taskExeNum=" + taskExeNum + ", taskCommitDate=" + taskCommitDate + ", tranDate=" + tranDate + ", transactionDate=" + transactionDate + ", tranFlowId=" + tranFlowId + ", flowStepNum=" + flowStepNum + ", tranGroupId=" + tranGroupId + ", tranId=" + tranId + ", tranGroupExeTime=" + tranGroupExeTime + ", totalCost=" + totalCost + ", tranState=" + tranState + ", taskExeMode=" + taskExeMode + ", taskInterruptFlag=" + taskInterruptFlag + ", taskCommitTime=" + taskCommitTime + ", taskPriority=" + taskPriority + ", tranStartTime=" + tranStartTime + ", tranStartTimestamp=" + tranStartTimestamp + ", tranEndTime=" + tranEndTime + ", tranEndTimestamp=" + tranEndTimestamp + ", dataArea=" + dataArea + ", currentFlowStepNum=" + currentFlowStepNum + ", currentExecutionNum=" + currentExecutionNum + ", currentTranGroupId=" + currentTranGroupId + ", currentStep=" + currentStep + ", errorMessage=" + errorMessage + ", errorStack=" + errorStack + ", serviceCode=" + serviceCode + ", subSystemCode=" + subSystemCode + "]";
 	}
 }

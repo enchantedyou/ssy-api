@@ -10,6 +10,7 @@ import java.util.concurrent.FutureTask;
 import org.apache.log4j.Logger;
 
 import cn.ssy.base.entity.mybatis.BatStartParam;
+import cn.ssy.base.entity.mybatis.TspTaskExecution;
 import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.thread.BatchProcessThread;
@@ -35,7 +36,7 @@ public class BatTaskUtil {
 	
 	private static final Logger logger = Logger.getLogger(BatTaskUtil.class);
 	
-	static FutureTask<Map<String, Object>> listenerThreadTask = null;
+	static FutureTask<TspTaskExecution> listenerThreadTask = null;
 	
 	public final static String SUCCESS_STATE = "success";
 	
@@ -123,11 +124,11 @@ public class BatTaskUtil {
 			startupTask(ap05.getTranCode(), ap05.getStepId(), ap05.getTaskNum());
 		}
 		startupTask(taskParam.getTranCode(), taskParam.getStepId(), taskParam.getTaskNum());
-		printBatchTastExecuteRes();
 		if(CommonUtil.isNull(taskNum)){
 			BatStartParam ap99 = new BatStartParam("ap99", 1000, null);
 			startupTask(ap99.getTranCode(), ap99.getStepId(), ap99.getTaskNum());
 		}
+		printBatchTastExecuteRes();
 	}
 	
 	
@@ -170,7 +171,6 @@ public class BatTaskUtil {
 			startupSuccessInd = JDBCUtils.executeUpdate(taskSql, taskParameter, batSettingMap.get("datasource")) > 0;
 		}
 		
-		
 		if(startupSuccessInd){
 			logger.info("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动成功");
 			
@@ -194,17 +194,17 @@ public class BatTaskUtil {
 	 */
 	private static void printBatchTastExecuteRes(){
 		try{
-			Map<String, Object> resMap = listenerThreadTask.get();
+			TspTaskExecution tspTaskExecution = listenerThreadTask.get();
 			//查询新的交易日期
 			ResultSet resultSet = JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource"));
-			Object appDate = resMap.get("tranDate");
+			Object appDate = tspTaskExecution.getTranDate();
 			if(resultSet.next()){
 				appDate = resultSet.getString("trxn_date");
 			}
-			logger.info("交易日期:"+appDate+",批量执行结果:" + resMap.get("taskState"));
-			if(FAILURE_STATE.equals(resMap.get("taskState"))){
-				logger.info("错误信息:" + resMap.get("errorMsg"));
-				logger.info("错误堆栈:" + resMap.get("errorStack"));
+			logger.info("交易日期:"+appDate+",批量执行结果:" + tspTaskExecution.getTranState());
+			if(FAILURE_STATE.equals(tspTaskExecution.getTranState())){
+				logger.info("错误信息:" + tspTaskExecution.getErrorMessage());
+				logger.info("错误堆栈:" + tspTaskExecution.getErrorStack());
 			}
 		}catch(Exception e){
 			CommonUtil.printLogError(e, logger);

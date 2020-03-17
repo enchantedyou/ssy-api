@@ -74,7 +74,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("phase_rpym_method");
+		SunlineUtil.sunlineSearchDict("card_no");
 		
 	}
 	
@@ -146,9 +146,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7() throws SQLException{
-		BatTaskUtil.tryStartupTask("ap05",10,"");
 		BatTaskUtil.tryStartupTask("ln18",12,"");
-		BatTaskUtil.tryStartupTask("ap99",1000,"");
 	}
 	
 	
@@ -746,7 +744,9 @@ public class SimpleTest{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
 		String tableName = "tsp_task_execution";
 		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
-		String output = outputPath  + CommonUtil.parseHumpStr(tableName) + ".java";
+		
+		String parseTableName = CommonUtil.parseHumpStr(tableName);
+		String output = outputPath  + parseTableName.substring(0, 1).toUpperCase() + parseTableName.substring(1) + ".java";
 		CommonUtil.generateTableJava(javaPackage, tableName, dataSource, output);
 	}
 

@@ -2299,10 +2299,12 @@ public class CommonUtil {
 		ResultSet resultSet = JDBCUtils.executeQuery("select * from " + tableName, dataSource);
 		ResultSetMetaData metaData = resultSet.getMetaData();
 		int colCount = metaData.getColumnCount();
-		tableName = CommonUtil.parseHumpStr(tableName);
 		
+		tableName = CommonUtil.parseHumpStr(tableName);
+		tableName = tableName.substring(0, 1).toUpperCase() + tableName.substring(1);
 		fieldBuffer.append("package ").append(javaPackage).append(";").append(nextLine).append(nextLine).append("public class ").append(tableName).append(" {").append(nextLine);
 		toStringBuffer.append(tabSpace).append("@Override\r\n\tpublic String toString() {\r\n\t\treturn \"").append(tableName).append(" [");
+
 		for(int i = 1;i <= colCount;i++){
 			//定义字段
 			fieldBuffer.append(tabSpace).append("private").append(" ").append(CommonUtil.getRealType(metaData.getColumnClassName(i))).append(" ").append(CommonUtil.parseHumpStr(metaData.getColumnName(i))).append(";").append(nextLine);
