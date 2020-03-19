@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -27,9 +26,9 @@ import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
-import cn.ssy.base.core.utils.MD5Util;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.mybatis.LnaLoan;
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
@@ -74,7 +73,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("card_no");
+		SunlineUtil.sunlineSearchDict("trxn_status");
 		
 	}
 	
@@ -93,44 +92,6 @@ public class SimpleTest{
 		if(CommonUtil.isNotNull(requestList)){
 			for(String req : requestList){
 				System.out.println(req);
-			}
-		}
-	}
-	
-	
-	/**
-	 * @throws SQLException 
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月15日-下午7:21:40</li>
-	 *         <li>功能说明：获取批量控制表插入语句</li>
-	 *         </p>
-	 */
-	@Test
-	public void test4() throws SQLException{
-		List<String> sqlList = SunlineUtil.sunlineGetTranControlSql(E_ICOREMODULE.LN);
-		if(CommonUtil.isNotNull(sqlList)){
-			for(String sql : sqlList){
-				System.out.println(sql);
-			}
-		}
-	}
-	
-	
-	/**
-	 * @throws SQLException 
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月15日-下午7:32:10</li>
-	 *         <li>功能说明：获取批量分组表插入语句</li>
-	 *         </p>
-	 */
-	@Test
-	public void test5() throws SQLException{
-		List<String> sqlList = SunlineUtil.sunlineGetTranGroupSql(E_ICOREMODULE.LN);
-		if(CommonUtil.isNotNull(sqlList)){
-			for(String sql : sqlList){
-				System.out.println(sql);
 			}
 		}
 	}
@@ -361,9 +322,9 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test21() throws Exception{
-		List<Map<String, Object>> loanList = SunlineUtil.sunlineGetEffectLoanList(ApiConst.DATASOURCE_ICORE_LN_DIT);
-		for(Map<String, Object> map : loanList){
-			System.out.println(map.toString());
+		List<LnaLoan> loanList = SunlineUtil.sunlineGetEffectLoanList(ApiConst.DATASOURCE_ICORE_LN_FAT);
+		for(LnaLoan loanInfo : loanList){
+			System.out.println(loanInfo);
 		}
 	}
 	
@@ -378,7 +339,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("cl6801", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6146", outputPath);
 	}
 	
 	
@@ -742,7 +703,7 @@ public class SimpleTest{
 	@Test
 	public void test44() throws Exception{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
-		String tableName = "tsp_task_execution";
+		String tableName = "msp_transaction";
 		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
 		
 		String parseTableName = CommonUtil.parseHumpStr(tableName);
@@ -753,86 +714,6 @@ public class SimpleTest{
 	
 	@Test
 	public void test45() throws Exception{
-		//MD5EncryptUtil.encrypt();
-		List<TierMnt> list = new ArrayList<TierMnt>();
-		HashMap<String, List<TierMnt>> map = new HashMap<>();
 		
-		//模拟数据
-		list.add(new TierMnt(true, "20190101", "IDR"));
-		list.add(new TierMnt(true, "20190101", "IDR"));
-		list.add(new TierMnt(false, "20190201", "IDR"));
-		list.add(new TierMnt(true, "20190201", "IDR"));
-		
-		for(TierMnt mnt : list){
-			//MD5加密关键字段(生效日期-币种)
-			String md5Key = MD5Util.MD5Encode(mnt.getEffectDate() + mnt.getCcyCode());
-			//只处理新增的数据
-			if(mnt.isAdd){
-				//map中存在该key,追加
-				if(map.containsKey(md5Key)){
-					map.get(md5Key).add(mnt);
-				}
-				//map中不存在该key,新增
-				else{
-					List<TierMnt> subList = new LinkedList<TierMnt>();
-					subList.add(mnt);
-					map.put(md5Key, subList);
-				}
-			}
-		}
-		
-		for(String md5Key : map.keySet()){
-			//该组数据条数不满足大于1的条件
-			List<TierMnt> checkList = map.get(md5Key);
-			System.out.println(checkList);
-			if(checkList.size() < 2){
-				System.err.println("非法的输入:" + String.valueOf(checkList.get(0)));
-			}
-		}
-	}
-	
-	
-	class TierMnt{
-		private boolean isAdd;
-		
-		private String effectDate;
-
-		private String ccyCode;
-
-		public TierMnt(boolean isAdd, String effectDate, String ccyCode) {
-			super();
-			this.isAdd = isAdd;
-			this.effectDate = effectDate;
-			this.ccyCode = ccyCode;
-		}
-
-		public boolean isAdd() {
-			return isAdd;
-		}
-
-		public void setAdd(boolean isAdd) {
-			this.isAdd = isAdd;
-		}
-
-		public String getEffectDate() {
-			return effectDate;
-		}
-
-		public void setEffectDate(String effectDate) {
-			this.effectDate = effectDate;
-		}
-
-		public String getCcyCode() {
-			return ccyCode;
-		}
-
-		public void setCcyCode(String ccyCode) {
-			this.ccyCode = ccyCode;
-		}
-
-		@Override
-		public String toString() {
-			return "TierMnt [isAdd=" + isAdd + ", effectDate=" + effectDate + ", ccyCode=" + ccyCode + "]";
-		}
 	}
 }	

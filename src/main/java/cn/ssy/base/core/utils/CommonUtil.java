@@ -1605,7 +1605,7 @@ public class CommonUtil {
 	 * @return
 	 */
 	public static String parseHumpStr(String str){
-		List<String> list = CommonUtil.parseStringToList(str, "_");
+		List<String> list = CommonUtil.parseStringToList(str.toLowerCase(), "_");
 		StringBuffer buffer = new StringBuffer();
 		for(String s : list){
 			buffer.append(s.substring(0,1).toUpperCase()+s.substring(1,s.length()));
@@ -1719,6 +1719,8 @@ public class CommonUtil {
 		}
 		catch (Exception e) {
 			printLogError(e, logger);
+		}finally{
+			JDBCUtils.close(resultSet);
 		}
 		return null;
 	}
@@ -1753,6 +1755,8 @@ public class CommonUtil {
 		}
 		catch (Exception e) {
 			printLogError(e, logger);
+		}finally{
+			JDBCUtils.close(resultSet);
 		}
 		return null;
 	}
@@ -1812,6 +1816,8 @@ public class CommonUtil {
 			}
 		}catch(Exception e){
 			printLogError(e, logger);
+		}finally{
+			JDBCUtils.close(resultSet);
 		}
 		return null;
 	}

@@ -34,6 +34,10 @@ import org.jsoup.select.Elements;
 
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.mybatis.LnaLoan;
+import cn.ssy.base.entity.mybatis.MspTransaction;
+import cn.ssy.base.entity.mybatis.SmpSysDict;
+import cn.ssy.base.entity.mybatis.TspServiceIn;
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
 import cn.ssy.base.entity.sunline.Dict;
@@ -79,7 +83,7 @@ public class SunlineUtil {
 	//枚举优先级
 	private static Map<String, String> enumPriorityMap = new LinkedHashMap<String, String>();
 	//内管枚举(用于获取枚举值的中文描述)
-	public static Map<String, String> ctEnumMap = new LinkedHashMap<String, String>();
+	public static Map<String, SmpSysDict> ctEnumMap = new LinkedHashMap<String, SmpSysDict>();
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SunlineUtil.class);
 	//redis操作工具
@@ -163,7 +167,7 @@ public class SunlineUtil {
 		}
 		if(CommonUtil.isNull(ctEnumMap)){
 			//初始化内管枚举
-			ctEnumMap = (Map<String, String>) redisOperateUtil.getHashEntries(ApiConst.REDIS_CT_DICT_KEY);
+			ctEnumMap = (Map<String, SmpSysDict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_CT_DICT_KEY);
 			if(!redisFirst || CommonUtil.isNull(ctEnumMap)){
 				loanCtDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
@@ -223,9 +227,9 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void loanCtDict() throws SQLException {
-		ResultSet resultSet = JDBCUtils.executeQuery("select * from smp_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT);
-		while(resultSet.next()){
-			ctEnumMap.put(resultSet.getString("dict_type") + "." + resultSet.getString("dict_id"), resultSet.getString("dict_name"));
+		List<SmpSysDict> dictList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from smp_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT), SmpSysDict.class);
+		for(SmpSysDict dict : dictList){
+			ctEnumMap.put(dict.getDictType() + "." + dict.getDictId(), dict);
 		}
 	}
 	
@@ -1340,93 +1344,7 @@ public class SunlineUtil {
 		return sunlineGetYfditSuccessReq(trxnCode, null);
 	}
 	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月15日-下午7:09:50</li>
-	 *         <li>功能说明：生成批量交易控制表的插入sql</li>
-	 *         </p>
-	 * @param module 模块
-	 * @return
-	 * @throws SQLException 
-	 */
-	public static List<String> sunlineGetTranControlSql(E_ICOREMODULE module) throws SQLException{
-		List<String> sqlList = new ArrayList<String>();
-		if(CommonUtil.isNull(module)){
-			return sqlList;
-		}
-		String sql = "select * from ksys_jykzhq where pljioyma like ?";
-		ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{module.getId()+"%"}, ApiConst.DATASOURCE_YF);
-		try {
-			int colNum = CommonUtil.getColumnNameList(resultSet).size();
-			while(resultSet.next()){
-				StringBuffer buffer = new StringBuffer();
-				for(int i = 1;i <= colNum;i++){
-					String colValue = resultSet.getString(i);
-					String curCol = CommonUtil.isNull(colValue) ? "NULL," : "'"+colValue+"',";
-					
-					if(i == 1){
-						curCol = "'"+module.getSysCode()+"',";
-					}
-					buffer.append(curCol);
-				}
-				String value = buffer.toString().substring(0,buffer.toString().length() - 1);
-				
-				String insertSql = "INSERT INTO `DEV_LN`.`tsp_tran_controller` (`system_code`, `corporate_code`, `tran_group_id`, `step_id`, `tran_code`, `tran_chinese_name`, `execution_code`, `rely_tran_list`, `tran_run_conditions`, `reconnection_num`, `fail_interrupt_code`, `transactions_submit_num`, `data_split_mode`, `data_split_key`, `job_execution_mode`, `max_job_concurrency_num`, `log_level`, `job_split_condition`, `task_run_mode`, `is_skip`, `is_batch_file`, `tran_type`) VALUES ("+value+");";
-				sqlList.add(insertSql);
-			}
-		}
-		catch (SQLException e) {
-			CommonUtil.printLogError(e, logger);
-		}
-		return sqlList;
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月15日-下午7:30:05</li>
-	 *         <li>功能说明：生成批量交易分组表的插入sql</li>
-	 *         </p>
-	 * @param module	模块
-	 * @return
-	 * @throws SQLException 
-	 */
-	public static List<String> sunlineGetTranGroupSql(E_ICOREMODULE module) throws SQLException{
-		List<String> sqlList = new ArrayList<String>();
-		if(CommonUtil.isNull(module)){
-			return sqlList;
-		}
-		String sql = "select * from ksys_jyzkzq";
-		ResultSet resultSet = JDBCUtils.executeQuery(sql, ApiConst.DATASOURCE_YF);
-		try {
-			int colNum = CommonUtil.getColumnNameList(resultSet).size();
-			while(resultSet.next()){
-				StringBuffer buffer = new StringBuffer();
-				for(int i = 1;i <= colNum;i++){
-					String colValue = resultSet.getString(i);
-					String curCol = CommonUtil.isNull(colValue) ? "NULL," : "'"+colValue+"',";
-					
-					if(i == 1){
-						curCol = "'"+module.getSysCode()+"',";
-					}
-					buffer.append(curCol);
-				}
-				String value = buffer.toString().substring(0,buffer.toString().length() - 1);
-				
-				String insertSql = "INSERT INTO `DEV_LN`.`tsp_tran_group_controller` (`system_code`, `corporate_code`, `tran_group_id`, `tran_group_desc`, `task_run_conditions`, `task_run_callback_service`) VALUES ("+value+");";
-				sqlList.add(insertSql);
-			}
-		}
-		catch (SQLException e) {
-			CommonUtil.printLogError(e, logger);
-		}
-		return sqlList;
-	}
-	
-	
+
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -1840,17 +1758,17 @@ public class SunlineUtil {
 		}
 		String apiTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/api_tamplate.xlsx").getPath();
 		List<Map<String, String>> dataList = new ArrayList<>();
-		List<Map<String, Object>> result = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from tsp_service_in where service_category = 'T'", dataSource));
-		for(Map<String, Object> map : result){
+		List<TspServiceIn> serviceInList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_service_in where service_category = 'T'", dataSource), TspServiceIn.class);
+		for(TspServiceIn tspServiceIn : serviceInList){
 			Map<String, String> dataMap = new HashMap<>();
-			dataMap.put("api", String.valueOf(map.get("out_service_code")));
-			dataMap.put("中文名称", String.valueOf(map.get("description")));
-			dataMap.put("描述", String.valueOf(map.get("description")));
-			dataMap.put("后端服务地址", "rpc3load_alloc_type=NO&rpc3load_application="+map.get("sub_system_code")+"&rpc3load_service_id="+map.get("out_service_code")+"&rpc3load_group=01&rpc3load_service_type=concentrated&rpc3load_version=1.0");
+			dataMap.put("api", tspServiceIn.getOutServiceCode());
+			dataMap.put("中文名称", tspServiceIn.getDescription());
+			dataMap.put("描述", tspServiceIn.getDescription());
+			dataMap.put("后端服务地址", "rpc3load_alloc_type=NO&rpc3load_application="+tspServiceIn.getSubSystemCode()+"&rpc3load_service_id="+tspServiceIn.getOutServiceCode()+"&rpc3load_group=01&rpc3load_service_type=concentrated&rpc3load_version=1.0");
 			
 			if(CommonUtil.isNotNull(serviceCode)){
 				for(String code : serviceCode){
-					if(code.equals(String.valueOf(map.get("out_service_code")))){
+					if(code.equals(tspServiceIn.getOutServiceCode())){
 						dataList.add(dataMap);
 					}
 				}
@@ -1873,9 +1791,9 @@ public class SunlineUtil {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public static List<Map<String, Object>> sunlineGetEffectLoanList(String dataSource) throws SQLException{
+	public static List<LnaLoan> sunlineGetEffectLoanList(String dataSource) throws SQLException{
 		String sql = "select a.* from lna_loan a,lnf_basic b where a.loan_status = 'NORMAL' and a.settl_ind = 'N' and a.wrof_ind = 'N' and a.loan_classification = 1 and a.prod_id = b.prod_id limit 100";
-		return CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery(sql, dataSource));
+		return CommonUtil.mappingResultSetList(JDBCUtils.executeQuery(sql, dataSource), LnaLoan.class);
 	}
 	
 	
@@ -2227,8 +2145,8 @@ public class SunlineUtil {
 			JSONObject json = JSONObject.fromObject(request);
 			//获取服务码
 			String serviceCode = json.getJSONObject("sys").getString("servicecode");
-			List<Map<String, Object>> mspTransactionList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from msp_transaction where trxn_code like ?",new String[]{"%" + serviceCode.substring(serviceCode.length() - 4)}, dataSource));
-			String trxnCode = String.valueOf(mspTransactionList.get(0).get("trxn_code"));
+			List<MspTransaction> mspTransactionList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from msp_transaction where trxn_code like ?",new String[]{"%" + serviceCode.substring(serviceCode.length() - 4)}, dataSource), MspTransaction.class);
+			String trxnCode = String.valueOf(mspTransactionList.get(0).getTrxnCode());
 			//获取flowtran
 			Element flowtranRoot = CommonUtil.getXmlRootElement(projectFileMap.get(trxnCode + ".flowtrans.xml"));
 			Element serviceElement = CommonUtil.searchXmlElement(flowtranRoot, "service");

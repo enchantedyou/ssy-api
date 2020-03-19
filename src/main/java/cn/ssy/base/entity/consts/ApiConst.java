@@ -49,6 +49,10 @@ public class ApiConst {
 	public static final int CHECK_TIME_OUT = 30000;
 	//线程并发数上限
 	public static final int MAX_THREAD_CONCURRENT = 1000;
+	//连接存活的最大时长(秒)
+	public static final int MAX_CONNECTION_AGE = 60 * 5;
+	//空闲连接
+	public static final int MAX_IDLE_TIME = 0;
 	
 	//回调线程默认成功返回
 	public static final int CALLABLE_SUCCESS_RETURN = 0;

@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import cn.ssy.base.entity.mybatis.SmpSysDict;
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
 import cn.ssy.base.entity.sunline.EnumElement;
@@ -509,8 +510,8 @@ public class ExcelReader {
 						StringBuffer buffer = new StringBuffer();
 						for(String v : enumElementMap.keySet()){
 							//获取枚举值的中文
-							String longnameCN = SunlineUtil.ctEnumMap.get(enumId + "." + v);
-							buffer.append(v).append(":").append(CommonUtil.nvl(longnameCN, enumElementMap.get(v).getLongname())).append(";\r\n");
+							SmpSysDict dict = SunlineUtil.ctEnumMap.get(enumId + "." + v);
+							buffer.append(v).append(":").append(CommonUtil.isNull(dict) ? enumElementMap.get(v).getLongname() : dict.getDictName()).append(";\r\n");
 						}
 						Cell cell = curRow.createCell(7);
 						cell.setCellStyle(cellStyle);

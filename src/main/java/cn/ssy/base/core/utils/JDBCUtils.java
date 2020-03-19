@@ -17,6 +17,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.mybatis.SppDatasource;
 import cn.ssy.base.entity.plugins.DynamicDataSource;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -53,16 +54,10 @@ public class JDBCUtils {
 			logger.info("本地装载数据源:" + ApiConst.DATASOURCE_LOCAL);
 			
 			//装载动态数据源
-			ResultSet resultSet = executeQuery("select * from spp_datasource", ApiConst.DATASOURCE_LOCAL);
-			while(resultSet.next()){
-				String datasourceId = resultSet.getString("datasource_id");
-				String driverClass = resultSet.getString("datasource_driver");
-				String jdbcUrl = resultSet.getString("datasource_url");
-				String userName = resultSet.getString("datasource_user");
-				
-				String password = resultSet.getString("datasource_pwd");
-				loadDynamicDatasource(datasourceId, driverClass, jdbcUrl, userName, password);
-				logger.info("装载动态数据源:" + datasourceId);
+			List<SppDatasource> dataSourceList = CommonUtil.mappingResultSetList(executeQuery("select * from spp_datasource", ApiConst.DATASOURCE_LOCAL), SppDatasource.class);
+			for(SppDatasource dataSource : dataSourceList){
+				loadDynamicDatasource(dataSource.getDatasourceId(), dataSource.getDatasourceDriver(), dataSource.getDatasourceUrl(), dataSource.getDatasourceUser(), dataSource.getDatasourcePwd());
+				logger.info("装载动态数据源:" + dataSource.getDatasourceId());
 			}
 		}catch(Exception e){ 
 			CommonUtil.printLogError(e, logger);
@@ -97,7 +92,10 @@ public class JDBCUtils {
 		c3p0Datasource.setInitialPoolSize(ApiConst.INITIAL_POOL_SIZE);
 		c3p0Datasource.setMaxPoolSize(ApiConst.MAX_POOL_SIZE);
 		c3p0Datasource.setCheckoutTimeout(ApiConst.CHECK_TIME_OUT);
-		
+		c3p0Datasource.setAutoCommitOnClose(true);
+		//c3p0连接回收配置
+		c3p0Datasource.setMaxConnectionAge(ApiConst.MAX_CONNECTION_AGE);
+		c3p0Datasource.setMaxIdleTime(ApiConst.MAX_IDLE_TIME);
 		//存储数据源
 		DynamicDataSource.putDatasourcePool(datasourceId,c3p0Datasource);
 	}
@@ -110,9 +108,9 @@ public class JDBCUtils {
 	 * @throws SQLException 
 	 */
 	private static Connection getConnection(String datasourceId) throws SQLException {
-		if(CommonUtil.compare(datasourceId, DynamicDataSource.getBeforeDatasource()) != 0){
+		if(CommonUtil.compare(datasourceId, DynamicDataSource.getBeforeDatasourceKey()) != 0){
 			DynamicDataSource.setDataSourceKey(datasourceId);
-			String curDatasource = DynamicDataSource.getDataSource();
+			String curDatasource = DynamicDataSource.getDataSourceKey();
 			logger.info("获取数据源连接,当前数据源:"+curDatasource);
 			DynamicDataSource.setBeforeDatasource(datasourceId);
 			
@@ -189,10 +187,12 @@ public class JDBCUtils {
 			}
 		} catch (Exception e) {
 			//回滚
-			if(ct != null){
+			if(ct != null && !ct.getAutoCommit()){
 				ct.rollback();
 			}
 			throw new SQLException(e);
+		} finally{
+			close();
 		}
 		return 0;
 	}
@@ -228,10 +228,12 @@ public class JDBCUtils {
 			}
 		} catch (Exception e) {
 			//回滚
-			if(ct != null){
+			if(ct != null && !ct.getAutoCommit()){
 				ct.rollback();
 			}
 			throw new SQLException(e);
+		} finally{
+			close();
 		}
 		return 0;
 	}
@@ -260,10 +262,12 @@ public class JDBCUtils {
 			}
 		} catch (Exception e) {
 			//回滚
-			if(ct != null){
+			if(ct != null && !ct.getAutoCommit()){
 				ct.rollback();
 			}
 			throw new SQLException(e);
+		} finally{
+			close();
 		}
 		return 0;
 	}
@@ -290,10 +294,12 @@ public class JDBCUtils {
 			}
 		} catch (SQLException e) {
 			//回滚
-			if(ct != null){
+			if(ct != null && !ct.getAutoCommit()){
 				ct.rollback();
 			}
 			throw new SQLException(e);
+		} finally{
+			close();
 		}
 		return 0;
 	}
@@ -325,11 +331,13 @@ public class JDBCUtils {
 				return effectNum;
 			}
 		} catch (SQLException e) {
-			if(ct != null){
+			if(ct != null && !ct.getAutoCommit()){
 				//回滚
 				ct.rollback();
 			}
 			throw new SQLException(e);
+		} finally{
+			close();
 		}
 		return 0;
 	}

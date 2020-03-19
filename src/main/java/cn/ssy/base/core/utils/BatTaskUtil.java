@@ -13,6 +13,7 @@ import cn.ssy.base.entity.mybatis.BatStartParam;
 import cn.ssy.base.entity.mybatis.TspTaskExecution;
 import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.enums.E_ICOREMODULE;
+import cn.ssy.base.exception.BatBusinessException;
 import cn.ssy.base.thread.BatchProcessThread;
 
 
@@ -97,11 +98,12 @@ public class BatTaskUtil {
 	public static String getTranFlowId(String tranCode, Integer stepId) throws SQLException{
 		String sql = "select b.tran_flow_id from tsp_tran_controller a,tsp_flow_step_controller b where a.tran_group_id = b.tran_group_id and a.tran_code = ? and a.step_id = ?";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, new String[]{tranCode, String.valueOf(stepId)}, batSettingMap.get("datasource"));
+		String tranFlowId = null;
 		if(resultSet.next()){
-			return resultSet.getString("tran_flow_id");
-		}else{
-			return null;
+			tranFlowId = resultSet.getString("tran_flow_id");
 		}
+		JDBCUtils.close(resultSet);
+		return tranFlowId;
 	}
 	
 	
@@ -158,7 +160,9 @@ public class BatTaskUtil {
 		boolean startupSuccessInd = false;
 		String[] checkParameter = new String[]{taskNum};
 		String querySql = "select * from tsp_task where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
-		if(CommonUtil.getResultSetRecordNum(JDBCUtils.executeQuery(querySql,checkParameter , batSettingMap.get("datasource"))) > 0){
+		
+		ResultSet resultSet = JDBCUtils.executeQuery(querySql,checkParameter , batSettingMap.get("datasource"));
+		if(CommonUtil.getResultSetRecordNum(resultSet) > 0){
 			logger.info("任务["+bat.getTranCode() + "-" + bat.getTranGroupId() +"]已存在,更新任务状态");
 			String updateSql = "update tsp_task set tran_state = 'onprocess' where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
 			startupSuccessInd = JDBCUtils.executeUpdate(updateSql,checkParameter, batSettingMap.get("datasource")) > 0;
@@ -170,6 +174,7 @@ public class BatTaskUtil {
 			String[] taskParameter = new String[]{E_ICOREMODULE.LN.getSysCode(),batSettingMap.get("tenantId"),taskNum,String.valueOf(timestamp),trxnDate,dateformatDate,trxnDate,getTranFlowId(tranCode, stepId),String.valueOf(bat.getStepId()),bat.getTranGroupId(),tranCode,null,"onprocess","1",null,CommonUtil.getCurSysTime(),null,null,null,null,null,null,null,null,dataArea,"0","0",null,"0","","",""+batSettingMap.get("serverIp")+"#"+batSettingMap.get("module")+"#bat",batSettingMap.get("subSystemId")};
 			startupSuccessInd = JDBCUtils.executeUpdate(taskSql, taskParameter, batSettingMap.get("datasource")) > 0;
 		}
+		JDBCUtils.close(resultSet);
 		
 		if(startupSuccessInd){
 			logger.info("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动成功");
@@ -181,6 +186,7 @@ public class BatTaskUtil {
 		}else{
 			logger.error("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动失败");
 		}
+		printBatchTastExecuteRes();
 	}
 	
 	
@@ -192,22 +198,27 @@ public class BatTaskUtil {
 	 *         <li>功能说明：批量任务执行结果打印</li>
 	 *         </p>
 	 */
-	private static void printBatchTastExecuteRes(){
+	private static boolean printBatchTastExecuteRes(){
+		boolean isFailure = true;
 		try{
 			TspTaskExecution tspTaskExecution = listenerThreadTask.get();
+			isFailure = FAILURE_STATE.equals(tspTaskExecution.getTranState());
 			//查询新的交易日期
 			ResultSet resultSet = JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource"));
 			Object appDate = tspTaskExecution.getTranDate();
 			if(resultSet.next()){
 				appDate = resultSet.getString("trxn_date");
 			}
-			logger.info("交易日期:"+appDate+",批量执行结果:" + tspTaskExecution.getTranState());
-			if(FAILURE_STATE.equals(tspTaskExecution.getTranState())){
+			JDBCUtils.close(resultSet);
+			logger.info("交易日期:"+appDate+",批量["+tspTaskExecution.getTaskNum()+"]执行结果:" + tspTaskExecution.getTranState());
+			if(isFailure){
 				logger.info("错误信息:" + tspTaskExecution.getErrorMessage());
 				logger.info("错误堆栈:" + tspTaskExecution.getErrorStack());
+				throw new BatBusinessException("批量任务执行异常");
 			}
 		}catch(Exception e){
 			CommonUtil.printLogError(e, logger);
 		}
+		return !isFailure;
 	}
 }

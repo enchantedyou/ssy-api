@@ -5,7 +5,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.mchange.v2.c3p0.PooledDataSource;
 
 
 /**
@@ -26,6 +29,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  */
 public class DynamicDataSource{
 	
+	private static final Logger logger = Logger.getLogger(DynamicDataSource.class);
+	
 	private static final Map<String, ComboPooledDataSource> datasoucePoolMap = new HashMap<String, ComboPooledDataSource>();
 	
 	private static String beforeDatasource;
@@ -36,23 +41,39 @@ public class DynamicDataSource{
     	dataSourceThreadLoacl.set(dataSourceId);
     }
     
-    public static String getDataSource(){
+    public static String getDataSourceKey(){
     	return dataSourceThreadLoacl.get();
     }
     
     public static Connection getConnection() throws SQLException{
-		return datasoucePoolMap.get(getDataSource()).getConnection();
+		return datasoucePoolMap.get(getDataSourceKey()).getConnection();
+    }
+    
+    public static ComboPooledDataSource getDataSource() {
+		return datasoucePoolMap.get(getDataSourceKey());
     }
     
     public static void putDatasourcePool(String dataSourceId,ComboPooledDataSource datasource){
     	datasoucePoolMap.put(dataSourceId, datasource);
     }
 
-	public static String getBeforeDatasource() {
+	public static String getBeforeDatasourceKey() {
 		return beforeDatasource;
 	}
 
 	public static void setBeforeDatasource(String beforeDatasource) {
 		DynamicDataSource.beforeDatasource = beforeDatasource;
+	}
+	
+
+	public static void printC3p0PoolStatus(){
+		PooledDataSource pds = (PooledDataSource) getDataSource();  
+		if(null != pds){  
+            try {
+            	logger.info("<c3p0数据源状态[共:"+pds.getNumConnectionsDefaultUser()+",忙:"+pds.getNumBusyConnectionsDefaultUser()+",空闲:"+pds.getNumIdleConnectionsDefaultUser()+",未关闭:"+pds.getNumUnclosedOrphanedConnectionsAllUsers()+"]>");
+            } catch (SQLException e) {  
+            	logger.error("c3p0数据源异常");
+            }  
+        }
 	}
 }
