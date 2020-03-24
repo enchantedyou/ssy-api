@@ -29,7 +29,6 @@ import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
-import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -73,29 +72,8 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("trxn_status");
-		
+		SunlineUtil.sunlineSearchDict("inst_rate_file_way");
 	}
-	
-	
-	/**
-	 * @throws SQLException 
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月8日-上午10:47:54</li>
-	 *         <li>功能说明：获取请求报文</li>
-	 *         </p>
-	 */
-	@Test
-	public void test3() throws SQLException{
-		List<String> requestList = SunlineUtil.sunlineGetYfditSuccessReq(6200);
-		if(CommonUtil.isNotNull(requestList)){
-			for(String req : requestList){
-				System.out.println(req);
-			}
-		}
-	}
-	
 	
 	/**
 	 * @throws SQLException 
@@ -106,12 +84,13 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test7() throws SQLException{
-		BatTaskUtil.tryStartupTask("ln18",12,"");
+	public void test7() throws Exception{
+		BatTaskUtil.tryStartupTask();
 	}
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月30日-下午1:35:17</li>
@@ -119,11 +98,11 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test8(){
+	public void test8() throws SQLException{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnLoanRepayIn"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryWriteOffRepayment"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -252,10 +231,10 @@ public class SimpleTest{
 	
 	@Test
 	public void test18() throws Exception{
-		double crit = 0.3212;
-		double sunderArmor = 0.3858;
-		double critEffect = 1.75;
-		double initHarm = 30000;
+		double crit = 0.3542;
+		double sunderArmor = 0.3538;
+		double critEffect = 1.76;
+		double initHarm = 25000;
 		
 		double totalHarm = 0;
 		Random rand = new Random();
@@ -263,7 +242,7 @@ public class SimpleTest{
 		System.out.println(CommonUtil.buildSplitLine(120));
 		
 		int cn = 0;
-		for(int i = 0;i < 100;i++){
+		for(int i = 0;i < 10;i++){
 			double curHarm = 0;
 			if(rand.nextDouble() < crit){
 				curHarm = initHarm * critEffect * (1 + sunderArmor);
@@ -671,15 +650,18 @@ public class SimpleTest{
 			String fileContent = CommonUtil.readFileContent(filePath);
 			if(fileContent.contains(key)){
 				/** 批量替换json中的字段描述 **/
-				//CommonUtil.writeFileContent(fileContent.replaceAll(key, "维护\""), filePath);
+				/*CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"创建流水\""), filePath);
+				dealCount++;*/
 				/** 批量为json中的currency控件新增默认空值 **/
 				//TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddDefaultValForCurrency(JSONObject.fromObject(fileContent));
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
-				TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
+				/*TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(result.getFirst()){
 					//CommonUtil.writeFileContent(result.getSecond(), filePath);
 					dealCount++;
-				}
+				}*/
+				/** 加载字段名和字段描述的映射 **/
+				SunlineUtil.reloadCtpControl(JSONObject.fromObject(fileContent));
 			}
 		}
 		logger.info("已处理:"+dealCount);
@@ -703,8 +685,8 @@ public class SimpleTest{
 	@Test
 	public void test44() throws Exception{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
-		String tableName = "msp_transaction";
-		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
+		String tableName = "tsp_task";
+		String dataSource = ApiConst.DATASOURCE_ICORE_LN_FAT;
 		
 		String parseTableName = CommonUtil.parseHumpStr(tableName);
 		String output = outputPath  + parseTableName.substring(0, 1).toUpperCase() + parseTableName.substring(1) + ".java";
@@ -714,6 +696,10 @@ public class SimpleTest{
 	
 	@Test
 	public void test45() throws Exception{
-		
+		StringBuffer buffer = new StringBuffer();
+		for(int i = 0;i < 3;i++){
+			buffer.append(CommonUtil.randStr(5)).append("-");
+		}
+		System.out.println(buffer.toString().substring(0, buffer.length() - 1));
 	}
 }	

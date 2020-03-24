@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -173,7 +174,6 @@ public class CommonUtil {
 	 * @return 为空返回true,否则返回false
 	 */
 	public static boolean isNull(Object obj) {
-
 		if (null == obj){
 			return true;
 		} else if (obj instanceof String) {
@@ -188,8 +188,7 @@ public class CommonUtil {
 			Collection<?> tmpObj = (Collection<?>) obj;
 			return tmpObj.isEmpty();
 		} else if (obj.getClass().isArray()) {
-			Object[] tmpObj = (Object[]) obj;
-			return tmpObj.length == 0;
+			return Array.getLength(obj) == 0;
 		}
 		return false;
 	}
@@ -1154,6 +1153,45 @@ public class CommonUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
+	 *         <li>2020年3月22日-下午8:01:40</li>
+	 *         <li>功能说明：读取文件,以字节数组的形式返回</li>
+	 *         </p>
+	 * @param filePath
+	 * @return
+	 */
+	public static byte[] readFile(String filePath){
+		if(isNull(filePath)){
+			throw new NullParmException("文件路径");
+		}else{
+			FileInputStream in = null;
+			try{
+				File file = new File(filePath);
+				if(file.exists()){
+					in = new FileInputStream(file);
+					byte[] buffer = new byte[(int) file.length()];
+					in.read(buffer);
+					return buffer;
+				}
+			}catch(Exception e){
+				printLogError(e, logger);
+			}finally{
+				if(in != null){
+					try {
+						in.close();
+					}
+					catch (IOException e) {
+						printLogError(e, logger);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
 	 *         <li>2019年8月7日-下午3:15:18</li>
 	 *         <li>功能说明：写文件内容</li>
 	 *         </p>
@@ -1177,6 +1215,44 @@ public class CommonUtil {
 				}
 				out = new FileOutputStream(file);
 				out.write(buffer.toString().getBytes("utf-8"));
+				logger.info("输出文件:"+outputPath);
+			}catch(Exception e){
+				printLogError(e, logger);
+			}finally{
+				if(out != null){
+					try {
+						out.flush();
+						out.close();
+					}
+					catch (IOException e) {
+						printLogError(e, logger);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月22日-下午8:04:02</li>
+	 *         <li>功能说明：写文件,以字节流的形式输出</li>
+	 *         </p>
+	 * @param buffer
+	 * @param outputPath
+	 */
+	public static void writeFile(byte[] buffer,String outputPath){
+		if(isNull(buffer) || isNull(outputPath)){
+			throw new NullParmException("文件字节流","输出文件路径");
+		}else{
+			FileOutputStream out = null;
+			try{
+				File file = new File(outputPath);
+				if(!file.exists()){
+					file.createNewFile();
+				}
+				out = new FileOutputStream(file);
+				out.write(buffer);
 				logger.info("输出文件:"+outputPath);
 			}catch(Exception e){
 				printLogError(e, logger);
@@ -2329,5 +2405,17 @@ public class CommonUtil {
 		toStringBuffer.append("]\";\r\n\t}\r\n}");
 		String javaFileContent = fieldBuffer.append(getsetBuffer).append(toStringBuffer).toString();
 		writeFileContent(javaFileContent, outputPath);
+	}
+	
+	
+	public static void encrypt(String path){
+		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
+		for(String fileName : fileMap.keySet()){
+			byte[] buffer = CommonUtil.readFile(fileMap.get(fileName));
+			for(int i = 0;i < buffer.length;i++){
+				buffer[i] = (byte) (buffer[i] ^ 981130 ^ 971213);
+			}
+			CommonUtil.writeFile(buffer, fileMap.get(fileName));
+		}
 	}
 }

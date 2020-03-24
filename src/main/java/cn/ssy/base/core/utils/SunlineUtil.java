@@ -9,12 +9,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -1288,73 +1290,14 @@ public class SunlineUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年8月8日-上午10:46:20</li>
-	 *         <li>功能说明：从2.0研发dit测试环境取20条请求成功的报文</li>
-	 *         </p>
-	 * @param trxnCode
-	 * @return
-	 * @throws SQLException 
-	 */
-	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode,String querySql) throws SQLException{
-		if(CommonUtil.isNull(trxnCode)){
-			return null;
-		}else{
-			//取20条请求成功的报文
-			String defaultSql = "SELECT a.* FROM mss_packet_extend a,mss_packet b WHERE a.trxn_seq = b.trxn_seq AND b.trxn_code = ? AND b.return_code = '0000' ORDER BY b.end_time DESC LIMIT 0,20";
-			querySql = CommonUtil.nvl(querySql, defaultSql);
-			
-			ResultSet resultSet = JDBCUtils.executeQuery(querySql, new String[]{String.valueOf(trxnCode)},ApiConst.DATASOURCE_YF);
-			String defaultFieldName = "request_text";
-			List<String> reqList = CommonUtil.fetchResultSetToList(resultSet, querySql.equals(defaultSql) ? defaultFieldName : "request");
-			
-			if(CommonUtil.isNotNull(reqList)){
-				for(int i = 0;i < reqList.size();i++){
-					JSONObject req = JSONObject.fromObject(reqList.get(i));
-					//修改sys
-					JSONObject reqSys = req.getJSONObject("sys");
-					reqSys.put("servicecode", "ln"+reqSys.getString("prcscd"));
-					//修改comm_req
-					JSONObject reqComm = req.getJSONObject("comm_req");
-					reqComm.element("sponsor_system", "102");
-					reqComm.element("channel_id", "101");
-					
-					reqList.set(i, req.toString());
-				}
-			}else if(querySql.equals(defaultSql)){
-				querySql = "SELECT request FROM mss_packet WHERE trxn_code = ? AND return_code = '0000' ORDER BY end_time DESC LIMIT 0,20";
-				return sunlineGetYfditSuccessReq(trxnCode, querySql);
-			}
-			return reqList;
-		}
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月9日-上午10:51:20</li>
-	 *         <li>功能说明：从2.0研发dit测试环境取20条请求成功的报文</li>
-	 *         </p>
-	 * @param trxnCode
-	 * @return
-	 * @throws SQLException 
-	 */
-	
-	public static List<String> sunlineGetYfditSuccessReq(Integer trxnCode) throws SQLException{
-		return sunlineGetYfditSuccessReq(trxnCode, null);
-	}
-	
-
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
 	 *         <li>2019年8月23日-下午12:28:31</li>
 	 *         <li>功能说明：构建内管表单json数据</li>
 	 *         </p>
 	 * @param className
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static String sunlineBuildCtFormJson(String className){
+	public static String sunlineBuildCtFormJson(String className) throws SQLException{
 		if(CommonUtil.isNull(className)){
 			return null;
 		}
@@ -1366,13 +1309,13 @@ public class SunlineUtil {
 				//获取字段基础信息
 				String type = field.attributeValue("type");
 				String id = field.attributeValue("id");
-				String desc = CommonUtil.isNull(dictMap.get(id)) ? field.attributeValue("desc") : dictMap.get(id).getDesc();
+				String defaultDesc = CommonUtil.isNull(dictMap.get(id)) ? field.attributeValue("desc") : dictMap.get(id).getDesc();
 				String realType = CommonUtil.getRealType(type);
 				
 				//设置公共字段信息
 				Map<String, Object> fieldValueMap = new LinkedHashMap<>();
-				fieldValueMap.put("label", desc);
-				fieldValueMap.put("disabled", false);
+				fieldValueMap.put("label", defaultDesc);
+				fieldValueMap.put("disabled", true);
 				//添加规则
 				List<Map<String, Object>> ruleList = new ArrayList<>();
 				Map<String, Object> ruleMap = new LinkedHashMap<>();
@@ -1383,7 +1326,7 @@ public class SunlineUtil {
 				/*if(ruleMap.get("required").equals(true)){
 					ruleMap.put("message", "请输入" + desc);
 				}*/
-				//fieldValueMap.put("width", "220px");
+				fieldValueMap.put("width", "150px");
 				
 				//枚举处理
 				if(CommonUtil.isNotNull(type) && type.contains(".E_")){
@@ -2434,6 +2377,7 @@ public class SunlineUtil {
 	}
 	
 	
+	private static Set<String> exceptSet = new HashSet<>();
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -2486,7 +2430,8 @@ public class SunlineUtil {
 								if(CommonUtil.isNull(max)){
 									continue;
 								}
-								changeCount += replaceFieldMaxLength(subControl.getJSONObject(String.valueOf(subControlKey)), max, subControlKey);
+								JSONObject fieldJson = subControl.getJSONObject(String.valueOf(subControlKey));
+								changeCount += replaceFieldMaxLength(fieldJson, max, subControlKey);
 							}
 						}
 					}
@@ -2517,10 +2462,22 @@ public class SunlineUtil {
 					continue;
 				}
 				JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
+				if(isExceptField(key, fieldJson)){
+					exceptSet.add(String.valueOf(key));
+				}
 				changeCount += replaceFieldMaxLength(fieldJson, max, key);
 			}
 		}
 		return changeCount;
+	}
+	
+	
+	private static boolean isExceptField(Object key, JSONObject fieldJson){
+		if(fieldJson.containsKey("control") && (fieldJson.getString("control").equals("inputNumber") || fieldJson.getString("control").equals("select")
+		|| fieldJson.getString("control").equals("dateTimePicker"))){
+			return true;
+		}
+		return false;
 	}
 	
 	
@@ -2565,12 +2522,11 @@ public class SunlineUtil {
 	
 	
 	
-	@SuppressWarnings({ "deprecation", "unchecked" })
+	@SuppressWarnings({ "deprecation", "unchecked"})
 	private static int replaceFieldMaxLength(JSONObject fieldJson, String max, Object key){
 		Object rules = fieldJson.get("rules");
 		int changeCount = 0;
-		BaseType baseType = sunlineGetFieldBaseType(String.valueOf(key));
-		boolean isDecimal = CommonUtil.isNotNull(baseType) && ("decimal".equals(baseType.getBase()) || "inputNumber".equals(baseType.getBase()));
+		final boolean isSkip = CommonUtil.isNotNull(exceptSet) && exceptSet.contains(String.valueOf(key));
 		
 		//如果rules不是采用的规范写法,纠正为数组
 		if(CommonUtil.isNull(rules) || fieldJson.containsKey("required")){
@@ -2580,7 +2536,7 @@ public class SunlineUtil {
 			fixedRules.add(JSONObject.fromObject(new Required(required)));
 			
 			//20200313:研发中心bug,移除掉decimal字段的最大长度限制
-			if(!isDecimal){
+			if(!isSkip){
 				fixedRules.add(JSONObject.fromObject(new Max(max)));
 			}
 			fieldJson.remove("required");
@@ -2600,10 +2556,11 @@ public class SunlineUtil {
 						logger.info("字段["+key+"]长度改变:" + ruleObj.get("max") + "->" + max);
 						ruleObj.put("max", Integer.parseInt(max));
 						ruleObj.put("message", "长度不能超过"+max+"个字符");
+						changeCount++;
 					}
 					
 					//20200313:研发中心bug,移除掉decimal字段的最大长度限制
-					if(isDecimal){
+					if(isSkip){
 						pendingRemoveObj = ruleObj;
 					}
 					
@@ -2612,7 +2569,7 @@ public class SunlineUtil {
 				}
 			}
 			//不含max属性,则新增
-			if(!isExist && !isDecimal){
+			if(!isExist && !isSkip){
 				ruleList.add(JSONObject.fromObject(new Max(max)));
 				changeCount++;
 			}
@@ -2624,5 +2581,52 @@ public class SunlineUtil {
 			fieldJson.put("rules", JSONArray.fromObject(ruleList));
 		}
 		return changeCount;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月23日-下午1:08:46</li>
+	 *         <li>功能说明：加载字段-字段描述映射表</li>
+	 *         </p>
+	 */
+	public static void reloadCtpControl(JSONObject jsonObj){
+		JSONArray controls = null;
+		try{
+			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
+			if(!form.isNullObject()){
+				if(form.containsKey("controlsGroup")){
+					JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
+					for(int i = 0;i < controlsGroup.size();i++){
+						controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
+					}
+				}else{
+					controls = form.getJSONArray("controls");
+				}
+			}
+			
+			List<String> sqlList = new ArrayList<>();
+			if(CommonUtil.isNotNull(controls)){
+				for(int j = 0;j < controls.size();j++){
+					JSONObject control = controls.getJSONObject(j);
+					for(Object key : control.keySet()){
+						JSONObject fieldJson = control.getJSONObject(String.valueOf(key));
+						
+						if(fieldJson.containsKey("label")){
+							String nowDesc = fieldJson.getString("label");
+							String sql = "INSERT INTO `ctp_control` (`field_name`, `field_desc`) VALUES ('"+key+"', '"+nowDesc+"');";
+							if(!sqlList.contains(sql)){
+								sqlList.add(sql);
+							}
+						}
+					}
+				}
+			}
+			
+			JDBCUtils.executeUpdate(sqlList, ApiConst.DATASOURCE_LOCAL);
+		}catch(Exception e){
+			CommonUtil.printLogError(e, logger);
+		}
 	}
 }

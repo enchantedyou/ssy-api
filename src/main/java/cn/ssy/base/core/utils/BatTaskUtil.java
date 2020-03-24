@@ -2,14 +2,16 @@ package cn.ssy.base.core.utils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import org.apache.log4j.Logger;
 
-import cn.ssy.base.entity.mybatis.BatStartParam;
+import cn.ssy.base.entity.mybatis.AppDate;
+import cn.ssy.base.entity.mybatis.TspFlowStepController;
+import cn.ssy.base.entity.mybatis.TspTask;
 import cn.ssy.base.entity.mybatis.TspTaskExecution;
 import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.enums.E_ICOREMODULE;
@@ -55,14 +57,9 @@ public class BatTaskUtil {
 	 * @throws SQLException 
 	 */
 	public static List<TspTranController> getBatTaskList() throws SQLException{
-		String sql = "select * from tsp_tran_controller order by tran_group_id,step_id;";
+		String sql = "select * from tsp_tran_controller order by cast(tran_group_id as signed),step_id;";
 		ResultSet resultSet = JDBCUtils.executeQuery(sql, batSettingMap.get("datasource"));
-		List<TspTranController> taskList = new ArrayList<TspTranController>();
-		if(CommonUtil.getResultSetRecordNum(resultSet) > 1){
-			taskList = CommonUtil.mappingResultSetList(resultSet, TspTranController.class);
-		}else{
-			taskList.add(CommonUtil.mappingResultSetSingle(resultSet, TspTranController.class));
-		}
+		List<TspTranController> taskList = CommonUtil.mappingResultSetList(resultSet, TspTranController.class);
 		return taskList;
 	}
 	
@@ -117,20 +114,29 @@ public class BatTaskUtil {
 	 * @param stepId
 	 * @param taskNum
 	 * @throws SQLException 
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	public static void tryStartupTask(String tranCode,Integer stepId, String taskNum) throws SQLException{
-		BatStartParam taskParam = new BatStartParam(tranCode, stepId, taskNum);
-		//启动批量
-		if(CommonUtil.isNull(taskNum)){
-			BatStartParam ap05 = new BatStartParam("ap05", 10, null);
-			startupTask(ap05.getTranCode(), ap05.getStepId(), ap05.getTaskNum());
+	public static void tryStartupTask() throws SQLException, InterruptedException, ExecutionException{
+		List<TspFlowStepController> flowStepControlList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_flow_step_controller order by cast(tran_group_id as signed)", batSettingMap.get("datasource")), TspFlowStepController.class);
+		for(TspFlowStepController tspFlowStepController : flowStepControlList){
+			AppDate appDate = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), AppDate.class);
+			//日切前判断
+			if("Switch".equals(tspFlowStepController.getTranFlowId())){
+				List<TspTask> taskList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_task where transaction_date = ? and tran_state = 'failure'", new String[]{appDate.getTrxnDate()}, batSettingMap.get("datasource")), TspTask.class);
+				//当天有失败的批量,不日切
+				if(CommonUtil.isNotNull(taskList)){
+					logger.info(CommonUtil.buildSplitLine(30) + "交易日期["+ appDate.getTrxnDate() +"]存在执行失败的批量,不进行日切" + CommonUtil.buildSplitLine(30));
+					continue;
+				}
+			}
+			String taskNum = tspFlowStepController.getTranFlowId() + "_" + appDate.getTrxnDate() + "_" + appDate.getBusiOrgId(); 
+			logger.info(CommonUtil.buildSplitLine(50) + taskNum + "  begin" + CommonUtil.buildSplitLine(50));
+			
+			TspTranController tspTranController = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from tsp_tran_controller where tran_group_id = ? order by cast(step_id as signed) limit 1", new String[]{tspFlowStepController.getTranGroupId()}, batSettingMap.get("datasource")), TspTranController.class);
+			startupTask(tspTranController.getTranGroupId(), tspTranController.getTranCode(), tspTranController.getStepId(), taskNum);
+			logger.info(CommonUtil.buildSplitLine(50) + taskNum + "  end" + CommonUtil.buildSplitLine(50));
 		}
-		startupTask(taskParam.getTranCode(), taskParam.getStepId(), taskParam.getTaskNum());
-		if(CommonUtil.isNull(taskNum)){
-			BatStartParam ap99 = new BatStartParam("ap99", 1000, null);
-			startupTask(ap99.getTranCode(), ap99.getStepId(), ap99.getTaskNum());
-		}
-		printBatchTastExecuteRes();
 	}
 	
 	
@@ -142,8 +148,10 @@ public class BatTaskUtil {
 	 *         </p>
 	 * @param tranCode
 	 * @throws SQLException 
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	private static void startupTask(String tranCode,Integer stepId,String taskNum) throws SQLException{
+	private static void startupTask(String tranGroupId, String tranCode,Integer stepId,String taskNum) throws SQLException, InterruptedException, ExecutionException{
 		String trxnDate = CommonUtil.fetchResultSetValue(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), "trxn_date");
 		TspTranController bat = getBatTaskByTranCode(tranCode, stepId);
 		if(CommonUtil.isNull(bat) || CommonUtil.isNull(trxnDate)){
@@ -151,30 +159,33 @@ public class BatTaskUtil {
 			return;
 		}
 		long timestamp = System.currentTimeMillis();
-		String dataArea = "{\"input\":{},\"sys\":{\"tran_flow_id\":\"CoreEOD\",\"servicecode\":\"onTimeSyscRemoteDirectory\",\"error_id\":null,\"pljypich\":\"onTimeSyscRemoteDirectorybatch.5B7C307FF6D44EDA97B596A794118898\"},\"comm_req\":{\"initiator_system\":\""+batSettingMap.get("systemCode")+"\",\"trxn_branch\":\""+batSettingMap.get("1234")+"\",\"trxn_teller\":\"S####\",\"sponsor_system\":\""+batSettingMap.get("systemCode")+"\",\"timerName\":\"onTimeSyscRemoteDirectory\",\"jiaoyirq\":\""+trxnDate+"\",\"busi_org_id\":\""+batSettingMap.get("tenantId")+"\",\"channel_id\":\""+batSettingMap.get("channelId")+"\"}}";
-		taskNum = CommonUtil.nvl(taskNum, MD5Util.MD5Encode(String.valueOf(timestamp)).toUpperCase());
+		String dataArea = "{\"input\":{},\"sys\":{\"tran_flow_id\":\"CoreEOD\",\"servicecode\":\"onTimeSyscRemoteDirectory\",\"error_id\":null,\"pljypich\":\"onTimeSyscRemoteDirectorybatch.5B7C307FF6D44EDA97B596A794118898\"},\"comm_req\":{\"initiator_system\":\""+batSettingMap.get("systemCode")+"\",\"trxn_branch\":\""+batSettingMap.get("trxnBranch")+"\",\"trxn_teller\":\"S####\",\"sponsor_system\":\""+batSettingMap.get("systemCode")+"\",\"timerName\":\"onTimeSyscRemoteDirectory\",\"jiaoyirq\":\""+trxnDate+"\",\"busi_org_id\":\""+batSettingMap.get("tenantId")+"\",\"channel_id\":\""+batSettingMap.get("channelId")+"\"}}";
 		logger.info("当前批量任务标识:" + taskNum);
 		String dateformatDate = trxnDate.substring(0, 4) + "-" + trxnDate.substring(4,6) + "-" + trxnDate.substring(6);
 		
 		
 		boolean startupSuccessInd = false;
-		String[] checkParameter = new String[]{taskNum};
-		String querySql = "select * from tsp_task where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
+		String[] checkParameter = new String[]{taskNum, trxnDate};
+		String querySql = "select * from tsp_task where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and transaction_date = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
 		
-		ResultSet resultSet = JDBCUtils.executeQuery(querySql,checkParameter , batSettingMap.get("datasource"));
-		if(CommonUtil.getResultSetRecordNum(resultSet) > 0){
-			logger.info("任务["+bat.getTranCode() + "-" + bat.getTranGroupId() +"]已存在,更新任务状态");
-			String updateSql = "update tsp_task set tran_state = 'onprocess' where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
-			startupSuccessInd = JDBCUtils.executeUpdate(updateSql,checkParameter, batSettingMap.get("datasource")) > 0;
-			String updateSql2 = "update tsp_task_execution set tran_state = 'onprocess' where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
-			startupSuccessInd = JDBCUtils.executeUpdate(updateSql2,checkParameter, batSettingMap.get("datasource")) > 0;
+		TspTask tspTask = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery(querySql,checkParameter , batSettingMap.get("datasource")), TspTask.class);
+		if(CommonUtil.isNotNull(tspTask)){
+			if(!SUCCESS_STATE.equals(tspTask.getTranState())){
+				logger.info("任务["+ taskNum +"]执行失败,重新执行");
+				String updateSql = "update tsp_task set tran_state = 'onprocess' where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and transaction_date = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
+				startupSuccessInd = JDBCUtils.executeUpdate(updateSql,checkParameter, batSettingMap.get("datasource")) > 0;
+				String updateSql2 = "update tsp_task_execution set tran_state = 'onprocess' where sub_system_code = '"+batSettingMap.get("subSystemId")+"' and task_num = ? and transaction_date = ? and system_code = '"+batSettingMap.get("systemCode")+"' and corporate_code = '"+batSettingMap.get("tenantId")+"'";
+				startupSuccessInd = JDBCUtils.executeUpdate(updateSql2,checkParameter, batSettingMap.get("datasource")) > 0;
+			}else{
+				logger.info("任务["+ taskNum +"]已成功,跳过执行");
+				return;
+			}
 		}else{
-			logger.info("新建任务["+bat.getTranCode() + "-" + bat.getTranGroupId() + "-" + dateformatDate +"]");
-			String taskSql = "INSERT INTO `DEV_LN`.`tsp_task` (`system_code`, `corporate_code`, `task_num`, `task_exe_num`, `task_commit_date`, `tran_date`, `transaction_date`, `tran_flow_id`, `flow_step_num`, `tran_group_id`, `tran_id`, `total_cost`, `tran_state`, `task_exe_mode`, `task_interrupt_flag`, `task_commit_time`, `task_priority`, `tran_start_time`, `tran_start_timestamp`, `tran_end_time`, `tran_end_timestamp`, `vm_id`, `ip_address`, `server_host_name`, `data_area`, `start_flow_step_num`, `start_execution_no`, `start_tran_group_id`, `start_step_num`, `error_message`, `error_stack`, `service_code`, `sub_system_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+			logger.info("新建任务["+ taskNum +"]");
+			String taskSql = "INSERT INTO `tsp_task` (`system_code`, `corporate_code`, `task_num`, `task_exe_num`, `task_commit_date`, `tran_date`, `transaction_date`, `tran_flow_id`, `flow_step_num`, `tran_group_id`, `tran_id`, `total_cost`, `tran_state`, `task_exe_mode`, `task_interrupt_flag`, `task_commit_time`, `task_priority`, `tran_start_time`, `tran_start_timestamp`, `tran_end_time`, `tran_end_timestamp`, `vm_id`, `ip_address`, `server_host_name`, `data_area`, `start_flow_step_num`, `start_execution_no`, `start_tran_group_id`, `start_step_num`, `error_message`, `error_stack`, `service_code`, `sub_system_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 			String[] taskParameter = new String[]{E_ICOREMODULE.LN.getSysCode(),batSettingMap.get("tenantId"),taskNum,String.valueOf(timestamp),trxnDate,dateformatDate,trxnDate,getTranFlowId(tranCode, stepId),String.valueOf(bat.getStepId()),bat.getTranGroupId(),tranCode,null,"onprocess","1",null,CommonUtil.getCurSysTime(),null,null,null,null,null,null,null,null,dataArea,"0","0",null,"0","","",""+batSettingMap.get("serverIp")+"#"+batSettingMap.get("module")+"#bat",batSettingMap.get("subSystemId")};
 			startupSuccessInd = JDBCUtils.executeUpdate(taskSql, taskParameter, batSettingMap.get("datasource")) > 0;
 		}
-		JDBCUtils.close(resultSet);
 		
 		if(startupSuccessInd){
 			logger.info("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动成功");
@@ -192,32 +203,31 @@ public class BatTaskUtil {
 	
 	
 	/**
+	 * @throws SQLException 
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月17日-下午2:45:30</li>
 	 *         <li>功能说明：批量任务执行结果打印</li>
 	 *         </p>
 	 */
-	private static boolean printBatchTastExecuteRes(){
+	private static boolean printBatchTastExecuteRes() throws SQLException, InterruptedException, ExecutionException{
 		boolean isFailure = true;
-		try{
-			TspTaskExecution tspTaskExecution = listenerThreadTask.get();
-			isFailure = FAILURE_STATE.equals(tspTaskExecution.getTranState());
-			//查询新的交易日期
-			ResultSet resultSet = JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource"));
-			Object appDate = tspTaskExecution.getTranDate();
-			if(resultSet.next()){
-				appDate = resultSet.getString("trxn_date");
-			}
-			JDBCUtils.close(resultSet);
-			logger.info("交易日期:"+appDate+",批量["+tspTaskExecution.getTaskNum()+"]执行结果:" + tspTaskExecution.getTranState());
-			if(isFailure){
-				logger.info("错误信息:" + tspTaskExecution.getErrorMessage());
-				logger.info("错误堆栈:" + tspTaskExecution.getErrorStack());
-				throw new BatBusinessException("批量任务执行异常");
-			}
-		}catch(Exception e){
-			CommonUtil.printLogError(e, logger);
+		TspTaskExecution tspTaskExecution = listenerThreadTask.get();
+		isFailure = FAILURE_STATE.equals(tspTaskExecution.getTranState());
+		//查询新的交易日期
+		ResultSet resultSet = JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource"));
+		Object appDate = tspTaskExecution.getTranDate();
+		if(resultSet.next()){
+			appDate = resultSet.getString("trxn_date");
+		}
+		JDBCUtils.close(resultSet);
+		logger.info("交易日期:"+appDate+",批量["+tspTaskExecution.getTaskNum()+"]执行结果:" + tspTaskExecution.getTranState());
+		if(isFailure){
+			logger.info("错误信息:" + tspTaskExecution.getErrorMessage());
+			logger.info("错误堆栈:" + tspTaskExecution.getErrorStack());
+			throw new BatBusinessException("批量任务执行异常");
 		}
 		return !isFailure;
 	}

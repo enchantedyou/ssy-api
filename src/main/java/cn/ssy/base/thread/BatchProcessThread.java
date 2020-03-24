@@ -12,7 +12,6 @@ import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.entity.mybatis.TspTaskExecution;
 import cn.ssy.base.entity.mybatis.TspTranController;
-import cn.ssy.base.entity.plugins.DynamicDataSource;
 import cn.ssy.base.entity.plugins.TwoTuple;
 
 
@@ -67,7 +66,7 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 		
 		TspTaskExecution tspTaskExecution = null;
 		do{
-			DynamicDataSource.printC3p0PoolStatus();
+			//DynamicDataSource.printC3p0PoolStatus();
 			tspTaskExecution = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery(sql, new String[]{taskNum,tranId}, BatTaskUtil.batSettingMap.get("datasource")), TspTaskExecution.class);
 			if(CommonUtil.isNotNull(tspTaskExecution)){
 				String taskGetStr = tspTaskExecution.getCurrentTranGroupId() + "-" + tspTaskExecution.getCurrentStep();
@@ -86,7 +85,6 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 			}*/
 			CommonUtil.systemPause(delay);
 		}while(CommonUtil.isNull(tspTaskExecution) || (!BatTaskUtil.SUCCESS_STATE.equals(tspTaskExecution.getTranState()) && !BatTaskUtil.FAILURE_STATE.equals(tspTaskExecution.getTranState())));
-		CommonUtil.printSplitLine(120);
 		return tspTaskExecution;
 	}
 }
