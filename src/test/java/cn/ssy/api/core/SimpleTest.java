@@ -29,6 +29,7 @@ import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
+import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -36,7 +37,7 @@ import cn.ssy.base.enums.E_STRUCTMODULE;
 
 public class SimpleTest{
 	
-	public String outputPath = "C:/Users/DELL/Desktop/";
+	final public String outputPath = "C:/Users/DELL/Desktop/";
 	
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SimpleTest.class);
@@ -72,7 +73,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("inst_rate_file_way");
+		SunlineUtil.sunlineSearchDict("Accrual_type");
 	}
 	
 	/**
@@ -102,7 +103,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryWriteOffRepayment"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnDrawdownInfo"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -115,7 +116,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test37(){
-		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("new_reimburse_ind", true, false,"reimburse_no"));
+		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("cycle_dwdn_method", true, false,"cycle_dwdn_amt","cycle_dwdn_percent"));
 	}
 	
 	/**
@@ -135,7 +136,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnReimburseInfoOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
 	}
 	
 	
@@ -655,13 +656,13 @@ public class SimpleTest{
 				/** 批量为json中的currency控件新增默认空值 **/
 				//TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddDefaultValForCurrency(JSONObject.fromObject(fileContent));
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
-				/*TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
+				TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(result.getFirst()){
-					//CommonUtil.writeFileContent(result.getSecond(), filePath);
+					CommonUtil.writeFileContent(result.getSecond(), filePath);
 					dealCount++;
-				}*/
+				}
 				/** 加载字段名和字段描述的映射 **/
-				SunlineUtil.reloadCtpControl(JSONObject.fromObject(fileContent));
+				//SunlineUtil.reloadCtpControl(JSONObject.fromObject(fileContent));
 			}
 		}
 		logger.info("已处理:"+dealCount);
@@ -694,12 +695,15 @@ public class SimpleTest{
 	}
 
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月28日-下午12:52:37</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test45() throws Exception{
-		StringBuffer buffer = new StringBuffer();
-		for(int i = 0;i < 3;i++){
-			buffer.append(CommonUtil.randStr(5)).append("-");
-		}
-		System.out.println(buffer.toString().substring(0, buffer.length() - 1));
 	}
 }	

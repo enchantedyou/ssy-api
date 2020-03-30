@@ -24,9 +24,19 @@ public class Required implements Serializable{
 	
 	private boolean required;
 	
+	private String message;
+	
 	public Required(boolean required) {
 		super();
 		this.required = required;
+	}
+	
+	public Required(boolean required, String message) {
+		super();
+		this.required = required;
+		if(this.required){
+			this.message = message;
+		}
 	}
 
 	public boolean isRequired() {
@@ -37,9 +47,16 @@ public class Required implements Serializable{
 		this.required = required;
 	}
 
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
 	@Override
 	public String toString() {
-		return "Required [required=" + required + "]";
+		return "Required [required=" + required + ", message=" + message + "]";
 	}
-	
 }

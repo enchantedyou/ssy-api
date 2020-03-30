@@ -2378,6 +2378,7 @@ public class SunlineUtil {
 	
 	
 	private static Set<String> exceptSet = new HashSet<>();
+	private static Map<String, TwoTuple<String, String>> keyControlMap = new HashMap<>();
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -2473,9 +2474,12 @@ public class SunlineUtil {
 	
 	
 	private static boolean isExceptField(Object key, JSONObject fieldJson){
-		if(fieldJson.containsKey("control") && (fieldJson.getString("control").equals("inputNumber") || fieldJson.getString("control").equals("select")
-		|| fieldJson.getString("control").equals("dateTimePicker"))){
-			return true;
+		boolean isContainsControl = fieldJson.containsKey("control");
+		String control = null;
+		if(isContainsControl){
+			control = fieldJson.getString("control");
+			keyControlMap.put(String.valueOf(key), new TwoTuple<String, String>(control, fieldJson.getString("label")));
+			return control.equals("inputNumber") || control.equals("select") || control.equals("dateTimePicker");
 		}
 		return false;
 	}
@@ -2527,15 +2531,22 @@ public class SunlineUtil {
 		Object rules = fieldJson.get("rules");
 		int changeCount = 0;
 		final boolean isSkip = CommonUtil.isNotNull(exceptSet) && exceptSet.contains(String.valueOf(key));
+		//筛选不含control和label的字段json
+		if(CommonUtil.isNull(keyControlMap.get(key))){
+			logger.info("字段json未查找到control属性:" + fieldJson);
+			return changeCount;
+		}
+		final String control = keyControlMap.get(key).getFirst();
+		final String message = ("select".equals(control) ||  "lookup".equals(control) ? "请选择" : "请输入") + keyControlMap.get(key).getSecond();
 		
 		//如果rules不是采用的规范写法,纠正为数组
 		if(CommonUtil.isNull(rules) || fieldJson.containsKey("required")){
 			//获取是否必输
 			boolean required = CommonUtil.isNull(fieldJson.get("required")) ? false : fieldJson.getBoolean("required");
 			List<JSONObject> fixedRules = new LinkedList<>();
-			fixedRules.add(JSONObject.fromObject(new Required(required)));
+			fixedRules.add(JSONObject.fromObject(new Required(required, message)));
 			
-			//20200313:研发中心bug,移除掉decimal字段的最大长度限制
+			//20200326:移除掉指定字段的最大长度限制
 			if(!isSkip){
 				fixedRules.add(JSONObject.fromObject(new Max(max)));
 			}
@@ -2566,6 +2577,25 @@ public class SunlineUtil {
 					
 					isExist = true;
 					break;
+				}
+				//为必输的子段指定message属性
+				else if(ruleObj.containsKey("required")){
+					Object requiredObj = ruleObj.get("required");
+					boolean required = false;
+					if(requiredObj instanceof Boolean || requiredObj instanceof String){
+						required = Boolean.parseBoolean(String.valueOf(requiredObj));
+					}
+					
+					if(!message.equals(String.valueOf(ruleObj.get("message"))) && required){
+						logger.info("字段["+key+"]必输信息新增或改变:" + ruleObj.get("message") + "->" + message);
+						ruleObj.put("required", required);
+						ruleObj.put("message", message);
+						changeCount++;
+					}else if(!required){
+						//不必输,移除message
+						ruleObj.remove("message");
+						changeCount++;
+					}
 				}
 			}
 			//不含max属性,则新增
