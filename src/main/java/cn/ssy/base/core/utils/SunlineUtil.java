@@ -92,6 +92,8 @@ public class SunlineUtil {
 	private static final RedisOperateUtil redisOperateUtil = new RedisOperateUtil();
 	//字段引用字典校验缓存
 	private static final StringBuffer fieldRefReportBuffer = new StringBuffer();
+	//是否以MS为最高优先级
+	private static final boolean isMsAsFirst = false;
 	
 	
 	
@@ -248,14 +250,26 @@ public class SunlineUtil {
 		for(String dictType : dictPriorityMap.keySet()){
 			String priorityValue = dictPriorityMap.get(dictType);
 			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
-				throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
+				if("MsDict".equals(dictType)){
+					if(isMsAsFirst){
+						throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
+					}
+				}else{
+					throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
+				}
 			}
 		}
 		//检查枚举优先级设置
 		for(String enumType : enumPriorityMap.keySet()){
 			String priorityValue = enumPriorityMap.get(enumType);
 			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
-				throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
+				if("MsEnumType".equals(enumType)){
+					if(isMsAsFirst){
+						throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
+					}
+				}else{
+					throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
+				}
 			}
 		}
 	}
@@ -487,9 +501,11 @@ public class SunlineUtil {
 	private static void loanProjectBaseType(){
 		if(CommonUtil.isNotNull(projectFileMap)){
 			Element baseTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("BaseType.u_schema.xml"));
-			Element msTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("MsType.u_schema.xml"));
 			List<Element> rootList = new ArrayList<>();
-			rootList.add(msTypeRoot);
+			if(isMsAsFirst){
+				Element msTypeRoot = CommonUtil.getXmlRootElement(projectFileMap.get("MsType.u_schema.xml"));
+				rootList.add(msTypeRoot);
+			}
 			rootList.add(baseTypeRoot);
 			
 			for(Element root : rootList){
@@ -1345,11 +1361,8 @@ public class SunlineUtil {
 				}
 				//金额处理
 				else if("U_MONEY".equals(realType) || "U_INTERESTRATE".equals(realType) || "U_INTEREST".equals(realType)){
-					Map<String, Object> formatMap = new HashMap<>();
-					formatMap.put("decimal", 2);
-					formatMap.put("decimalPoint", ".");
-					formatMap.put("thousandsPoint", ",");
-					fieldValueMap.put("format", formatMap);
+					fieldValueMap.put("decimal", 2);
+					fieldValueMap.put("thousand", ",");
 					fieldValueMap.put("control", "currency");
 				}
 				//普通值处理
@@ -1526,8 +1539,7 @@ public class SunlineUtil {
 				}
 			});
 		}
-		threadPool.shutdown();
-		while(!threadPool.isTerminated());
+		CommonUtil.awaitThreadPoolFinish(threadPool, 0);
 		CommonUtil.printSplitLine(120);
 	}
 	
@@ -2378,6 +2390,9 @@ public class SunlineUtil {
 	
 	
 	private static Set<String> exceptSet = new HashSet<>();
+	/**
+	 * <字段id,二元组:control,label>
+	 */
 	private static Map<String, TwoTuple<String, String>> keyControlMap = new HashMap<>();
 	/**
 	 * @Author sunshaoyu
@@ -2389,8 +2404,7 @@ public class SunlineUtil {
 	 * @return
 	 * @throws IOException
 	 */
-	public static TwoTuple<Boolean, String> sunlineAddFieldLengthLimit(JSONObject jsonObj) throws IOException{
-		int changeCount = 0;
+	public static String sunlineAddFieldLengthLimit(JSONObject jsonObj) throws IOException{
 		JSONArray controls = null;
 		try{
 			JSONObject form = jsonObj.getJSONObject("layout").getJSONObject("form");
@@ -2399,25 +2413,25 @@ public class SunlineUtil {
 					JSONArray controlsGroup = jsonObj.getJSONObject("layout").getJSONObject("form").getJSONArray("controlsGroup");
 					for(int i = 0;i < controlsGroup.size();i++){
 						controls = controlsGroup.getJSONObject(i).getJSONArray("controls");
-						changeCount += dealAddFieldLengthFormControls(controls);
+						dealAddFieldLengthFormControls(controls);
 						//处理域后事件的字段
-						changeCount = addFieldLenLimitForEvents(changeCount, controls);
+						addFieldLenLimitForEvents(controls);
 					}
 				}else{
 					controls = form.getJSONArray("controls");
-					changeCount += dealAddFieldLengthFormControls(controls);
+					dealAddFieldLengthFormControls(controls);
 					//处理域后事件的字段
-					changeCount = addFieldLenLimitForEvents(changeCount, controls);
+					addFieldLenLimitForEvents(controls);
 				}
 			}
 		}catch(Exception e){
 			CommonUtil.printLogError(e, logger);
 		}
 		//使用jackson对json进行美化
-		return new TwoTuple<Boolean, String>(changeCount > 0, CommonUtil.fastjsonFormat(jsonObj.toString()));
+		return CommonUtil.fastjsonFormat(jsonObj.toString());
 	}
 
-	private static int addFieldLenLimitForEvents(int changeCount, JSONArray controls) {
+	private static void addFieldLenLimitForEvents(JSONArray controls) {
 		if(CommonUtil.isNotNull(controls)){
 			for(int i = 0;i < controls.size();i++){
 				JSONObject control = controls.getJSONObject(i);
@@ -2432,14 +2446,13 @@ public class SunlineUtil {
 									continue;
 								}
 								JSONObject fieldJson = subControl.getJSONObject(String.valueOf(subControlKey));
-								changeCount += replaceFieldMaxLength(fieldJson, max, subControlKey);
+								replaceFieldMaxLength(fieldJson, max, subControlKey);
 							}
 						}
 					}
 				}
 			}
 		}
-		return changeCount;
 	}
 
 	
@@ -2453,8 +2466,7 @@ public class SunlineUtil {
 	 * @param controls
 	 * @return
 	 */
-	private static int dealAddFieldLengthFormControls(JSONArray controls) {
-		int changeCount = 0;
+	private static void dealAddFieldLengthFormControls(JSONArray controls) {
 		for(int j = 0;j < controls.size();j++){
 			JSONObject control = controls.getJSONObject(j);
 			for(Object key : control.keySet()){
@@ -2466,10 +2478,9 @@ public class SunlineUtil {
 				if(isExceptField(key, fieldJson)){
 					exceptSet.add(String.valueOf(key));
 				}
-				changeCount += replaceFieldMaxLength(fieldJson, max, key);
+				replaceFieldMaxLength(fieldJson, max, key);
 			}
 		}
-		return changeCount;
 	}
 	
 	
@@ -2479,7 +2490,7 @@ public class SunlineUtil {
 		if(isContainsControl){
 			control = fieldJson.getString("control");
 			keyControlMap.put(String.valueOf(key), new TwoTuple<String, String>(control, fieldJson.getString("label")));
-			return control.equals("inputNumber") || control.equals("select") || control.equals("dateTimePicker");
+			return control.equals("inputNumber") || control.equals("select") || control.equals("dateTimePicker") || control.equals("currency");
 		}
 		return false;
 	}
@@ -2527,17 +2538,30 @@ public class SunlineUtil {
 	
 	
 	@SuppressWarnings({ "deprecation", "unchecked"})
-	private static int replaceFieldMaxLength(JSONObject fieldJson, String max, Object key){
+	private static void replaceFieldMaxLength(JSONObject fieldJson, String max, Object key){
 		Object rules = fieldJson.get("rules");
-		int changeCount = 0;
 		final boolean isSkip = CommonUtil.isNotNull(exceptSet) && exceptSet.contains(String.valueOf(key));
 		//筛选不含control和label的字段json
 		if(CommonUtil.isNull(keyControlMap.get(key))){
 			logger.info("字段json未查找到control属性:" + fieldJson);
-			return changeCount;
+			return;
 		}
 		final String control = keyControlMap.get(key).getFirst();
 		final String message = ("select".equals(control) ||  "lookup".equals(control) ? "请选择" : "请输入") + keyControlMap.get(key).getSecond();
+		
+		//currency控件格式纠正
+		if("currency".equals(keyControlMap.get(key).getFirst())){
+			//移除format
+			if(fieldJson.containsKey("format")){
+				fieldJson.remove("format");
+			}
+			//重置千位分隔符
+			fieldJson.put("decimal", 2);
+			fieldJson.put("thousand", ",");
+			
+			//currency新增最大长度属性
+			fieldJson.put("max", 16);
+		}
 		
 		//如果rules不是采用的规范写法,纠正为数组
 		if(CommonUtil.isNull(rules) || fieldJson.containsKey("required")){
@@ -2553,7 +2577,6 @@ public class SunlineUtil {
 			fieldJson.remove("required");
 			
 			fieldJson.put("rules", JSONArray.fromObject(fixedRules));
-			changeCount++;
 		}
 		//如果rules采用的规范写法,在数组中新增或替换max规则
 		else if(CommonUtil.isJsonArray(rules.toString())){
@@ -2567,7 +2590,6 @@ public class SunlineUtil {
 						logger.info("字段["+key+"]长度改变:" + ruleObj.get("max") + "->" + max);
 						ruleObj.put("max", Integer.parseInt(max));
 						ruleObj.put("message", "长度不能超过"+max+"个字符");
-						changeCount++;
 					}
 					
 					//20200313:研发中心bug,移除掉decimal字段的最大长度限制
@@ -2590,27 +2612,22 @@ public class SunlineUtil {
 						logger.info("字段["+key+"]必输信息新增或改变:" + ruleObj.get("message") + "->" + message);
 						ruleObj.put("required", required);
 						ruleObj.put("message", message);
-						changeCount++;
 					}else if(!required){
 						//不必输,移除message
 						ruleObj.remove("message");
-						changeCount++;
 					}
 				}
 			}
 			//不含max属性,则新增
 			if(!isExist && !isSkip){
 				ruleList.add(JSONObject.fromObject(new Max(max)));
-				changeCount++;
 			}
 			//字段为金额类,则删除
 			if(CommonUtil.isNotNull(pendingRemoveObj)){
 				ruleList.remove(pendingRemoveObj);
-				changeCount++;
 			}
 			fieldJson.put("rules", JSONArray.fromObject(ruleList));
 		}
-		return changeCount;
 	}
 	
 	

@@ -40,6 +40,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_CT_FAT = "ICORE3.0CT_FAT";
 	//本地稽核数据库
 	public static final String DATASOURCE_LOCAL_CHECK = "LOCALCHECK";
+	//3.0集中式数据库
+	public static final String DATASOURCE_ICORE_CBS = "ICORE3.0CBS";
 	
 	//c3p0初始线程数
 	public static final int INITIAL_POOL_SIZE = 20;

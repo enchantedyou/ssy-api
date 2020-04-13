@@ -93,6 +93,9 @@ public class JDBCUtils {
 		c3p0Datasource.setMaxPoolSize(ApiConst.MAX_POOL_SIZE);
 		c3p0Datasource.setCheckoutTimeout(ApiConst.CHECK_TIME_OUT);
 		c3p0Datasource.setAutoCommitOnClose(true);
+		
+		c3p0Datasource.setPreferredTestQuery("select 1");
+		c3p0Datasource.setTestConnectionOnCheckin(true);
 		//c3p0连接回收配置
 		c3p0Datasource.setMaxConnectionAge(ApiConst.MAX_CONNECTION_AGE);
 		c3p0Datasource.setMaxIdleTime(ApiConst.MAX_IDLE_TIME);

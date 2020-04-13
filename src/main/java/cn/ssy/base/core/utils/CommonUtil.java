@@ -42,7 +42,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -2109,17 +2108,13 @@ public class CommonUtil {
 		printSplitLine(120);
 		
 		//等待线程执行完成或超时
-		if(timeoutMillis == 0){
-			awaitThreadPoolFinish(threadPool);
+		boolean isComplete = awaitThreadPoolFinish(threadPool, timeoutMillis);
+		if(isComplete){
 			logger.info("并发任务["+ method.getName() +"]执行完成,作业总数:" + concurrentNum + ",成功作业数:" + successThreadReturnList.size() + ",失败作业数:" + errorThreadReturnList.size());
 		}else{
-			boolean isComplete = threadPool.awaitTermination(timeoutMillis, TimeUnit.MILLISECONDS);
-			if(!isComplete){
-				logger.error("并发任务["+ method.getName() +"]执行超时");
-			}else{
-				logger.info("并发任务["+ method.getName() +"]执行完成,作业总数:" + concurrentNum + ",成功作业数:" + successThreadReturnList.size() + ",失败作业数:" + errorThreadReturnList.size());
-			}
+			logger.error("并发任务["+ method.getName() +"]执行超时");
 		}
+		
 		printSplitLine(120);
 		return returnObjMap;
 	}
@@ -2244,10 +2239,19 @@ public class CommonUtil {
 	 *         <li>功能说明：等待线程池的所有线程执行完成</li>
 	 *         </p>
 	 * @param threadPool
+	 * @param timeout
+	 * @return 正常完成返回true,超时返回false
 	 */
-	public static void awaitThreadPoolFinish(ExecutorService threadPool){
+	public static boolean awaitThreadPoolFinish(ExecutorService threadPool, long timeout){
 		threadPool.shutdown();
-		while(!threadPool.isTerminated());
+		long start = System.currentTimeMillis();
+		while(!threadPool.isTerminated()){
+			if((System.currentTimeMillis() - start) > timeout){
+				threadPool.shutdownNow();
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	
@@ -2406,7 +2410,6 @@ public class CommonUtil {
 		String javaFileContent = fieldBuffer.append(getsetBuffer).append(toStringBuffer).toString();
 		writeFileContent(javaFileContent, outputPath);
 	}
-	
 	
 	public static void encrypt(String path){
 		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);

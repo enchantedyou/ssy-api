@@ -1,5 +1,6 @@
 package cn.ssy.api.core;
 
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -29,7 +30,6 @@ import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
-import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -73,7 +73,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("Accrual_type");
+		SunlineUtil.sunlineSearchDict("prod_id");
 	}
 	
 	/**
@@ -103,7 +103,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnDrawdownInfo"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnScheduleMaintenanceType"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -116,7 +116,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test37(){
-		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("cycle_dwdn_method", true, false,"cycle_dwdn_amt","cycle_dwdn_percent"));
+		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("oldi_amortization_method", true, false,"amort_amt"));
 	}
 	
 	/**
@@ -136,7 +136,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnDrawdownInfo"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("ClBaseInfo"));
 	}
 	
 	
@@ -150,7 +150,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_CBS);
 	}
 
 	
@@ -302,7 +302,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test21() throws Exception{
-		List<LnaLoan> loanList = SunlineUtil.sunlineGetEffectLoanList(ApiConst.DATASOURCE_ICORE_LN_FAT);
+		List<LnaLoan> loanList = SunlineUtil.sunlineGetEffectLoanList(ApiConst.DATASOURCE_ICORE_CBS);
 		for(LnaLoan loanInfo : loanList){
 			System.out.println(loanInfo);
 		}
@@ -319,7 +319,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6146", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6020", outputPath);
 	}
 	
 	
@@ -388,7 +388,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test28() throws Exception{
-		SunlineUtil.sunlineDictRefValidation(outputPath + File.separator + "ln");
+		SunlineUtil.sunlineDictRefValidation(outputPath + File.separator + "ln/FieldRefDict");
 	}
 	
 	
@@ -560,8 +560,8 @@ public class SimpleTest{
 	@Test
 	public void test38() throws Exception{
 		String body = CommonUtil.readFileContent(SimpleTest.class.getResource("/json/6020.json").getPath());
-		final int concurrentNum = 5;
-		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 0, "326020",body);
+		final int concurrentNum = 10;
+		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 30000, "326020",body);
 		for(String threadId : responseMap.keySet()){
 			JSONObject responseJson = JSONObject.fromObject(responseMap.get(threadId));
 			if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
@@ -583,7 +583,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test39() throws Exception{
-		Map<String, String> versionMap = SunlineUtil.sunlineQueryNexusJarVersion("iobus", "cf","us","cl","cm","dp","ds","ln","pt");
+		Map<String, String> versionMap = SunlineUtil.sunlineQueryNexusJarVersion("serv", "cf","us","cl","cm","dp","ds","ln","pt");
 		for(String md : versionMap.keySet()){
 			System.out.println(md + "模块的最新版本为:" + versionMap.get(md));
 		}
@@ -651,14 +651,14 @@ public class SimpleTest{
 			String fileContent = CommonUtil.readFileContent(filePath);
 			if(fileContent.contains(key)){
 				/** 批量替换json中的字段描述 **/
-				/*CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"创建流水\""), filePath);
+				/*CommonUtil.writeFileContent(fileContent.replaceAll(key, "\"初始额度\""), filePath);
 				dealCount++;*/
 				/** 批量为json中的currency控件新增默认空值 **/
 				//TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddDefaultValForCurrency(JSONObject.fromObject(fileContent));
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
-				TwoTuple<Boolean, String> result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
-				if(result.getFirst()){
-					CommonUtil.writeFileContent(result.getSecond(), filePath);
+				String result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
+				if(!JSONObject.fromObject(result).equals(JSONObject.fromObject(fileContent))){
+					CommonUtil.writeFileContent(result, filePath);
 					dealCount++;
 				}
 				/** 加载字段名和字段描述的映射 **/
@@ -686,7 +686,7 @@ public class SimpleTest{
 	@Test
 	public void test44() throws Exception{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
-		String tableName = "tsp_task";
+		String tableName = "tsp_param_version_info";
 		String dataSource = ApiConst.DATASOURCE_ICORE_LN_FAT;
 		
 		String parseTableName = CommonUtil.parseHumpStr(tableName);
@@ -705,5 +705,6 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test45() throws Exception{
+		System.out.println(KeyEvent.VK_F8);
 	}
 }	
