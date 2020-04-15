@@ -39,7 +39,10 @@ import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
 import cn.ssy.base.entity.mybatis.MspTransaction;
 import cn.ssy.base.entity.mybatis.SmpSysDict;
+import cn.ssy.base.entity.mybatis.SppDictPriority;
+import cn.ssy.base.entity.mybatis.SppEnumPriority;
 import cn.ssy.base.entity.mybatis.TspServiceIn;
+import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
 import cn.ssy.base.entity.sunline.Dict;
@@ -52,6 +55,7 @@ import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_STRUCTMODULE;
 import cn.ssy.base.exception.ConfigSettingException;
+import cn.ssy.base.exception.IcorePostException;
 import cn.ssy.base.exception.NullParmException;
 
 /**
@@ -81,9 +85,9 @@ public class SunlineUtil {
 	//基础引用类型
 	public static Map<String, BaseType> baseTypeMap = new LinkedHashMap<String, BaseType>();
 	//字典优先级
-	private static Map<String, String> dictPriorityMap = new LinkedHashMap<String, String>();
+	public static Map<String, SppDictPriority> dictPriorityMap = new LinkedHashMap<String, SppDictPriority>();
 	//枚举优先级
-	private static Map<String, String> enumPriorityMap = new LinkedHashMap<String, String>();
+	public static Map<String, SppEnumPriority> enumPriorityMap = new LinkedHashMap<String, SppEnumPriority>();
 	//内管枚举(用于获取枚举值的中文描述)
 	public static Map<String, SmpSysDict> ctEnumMap = new LinkedHashMap<String, SmpSysDict>();
 	//log4j日志
@@ -127,25 +131,12 @@ public class SunlineUtil {
 			}
 			logger.info("初始化项目文件完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		}
-		//读取字典和枚举优先级
-		Map<String, String> tmpDictPriorityMap = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/priority/dictPriority.properties").getPath());
-		Map<String, String> tmpEnumPriorityMap = CommonUtil.readPropertiesSettings(SunlineUtil.class.getResource("/priority/enumPriority.properties").getPath());
-		if(CommonUtil.isNotNull(tmpDictPriorityMap)){
-			//初始化字典优先级
-			SunlineUtil.dictPriorityMap = tmpDictPriorityMap;
-			logger.info("初始化字典优先级完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-		}
-		if(CommonUtil.isNotNull(tmpEnumPriorityMap)){
-			//初始化枚举优先级
-			SunlineUtil.enumPriorityMap = tmpEnumPriorityMap;
-			logger.info("初始化枚举优先级完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-		}
-		//优先级检查
-		checkPrioritySetting();
 		if(CommonUtil.isNull(dictMap)){
 			//初始化项目字典
 			dictMap = (Map<String, Dict>) redisOperateUtil.getHashEntries(ApiConst.REDIS_PROJECT_DICT_KEY);
 			if(!redisFirst || CommonUtil.isNull(dictMap)){
+				//优先级检查
+				checkPrioritySetting();
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
@@ -191,6 +182,28 @@ public class SunlineUtil {
 			logger.info("Redis缓存数据占用内存:" + redisOperateUtil.getRedisInfo().get("used_memory_human"));
 		}
 		CommonUtil.printSplitLine(150);
+	}
+	
+	
+	/**
+	 * @throws SQLException 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午4:51:46</li>
+	 *         <li>功能说明：加载字典枚举优先级</li>
+	 *         </p>
+	 */
+	private static void loadDictEnumPriority() throws SQLException{
+		List<SppDictPriority> dictPriorityList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("SELECT * FROM spp_dict_priority where is_enabled = 1 order by dict_priority", ApiConst.DATASOURCE_LOCAL), SppDictPriority.class);
+		List<SppEnumPriority> enumtPriorityList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("SELECT * FROM spp_enum_priority where is_enabled = 1 order by enum_priority", ApiConst.DATASOURCE_LOCAL), SppEnumPriority.class);
+		
+		for(SppDictPriority dictPriority : dictPriorityList){
+			dictPriorityMap.put(dictPriority.getDictType(), dictPriority);
+		}
+		
+		for(SppEnumPriority enumPriority : enumtPriorityList){
+			enumPriorityMap.put(enumPriority.getEnumType(), enumPriority);
+		}
 	}
 	
 	/**
@@ -239,17 +252,19 @@ public class SunlineUtil {
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年11月12日-下午3:56:33</li>
 	 *         <li>功能说明：检查优先级设置(字典和枚举)</li>
 	 *         </p>
 	 */
-	private static void checkPrioritySetting(){
+	private static void checkPrioritySetting() throws SQLException{
+		loadDictEnumPriority();
 		//检查字典优先级设置
 		for(String dictType : dictPriorityMap.keySet()){
-			String priorityValue = dictPriorityMap.get(dictType);
-			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+			Integer priorityValue = dictPriorityMap.get(dictType).getDictPriority();
+			if(!(projectFileMap.containsKey(dictType + ApiConst.DICTFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", String.valueOf(priorityValue)))){
 				if("MsDict".equals(dictType)){
 					if(isMsAsFirst){
 						throw new ConfigSettingException("[字典优先级]" + dictType + "-" + priorityValue);
@@ -261,8 +276,8 @@ public class SunlineUtil {
 		}
 		//检查枚举优先级设置
 		for(String enumType : enumPriorityMap.keySet()){
-			String priorityValue = enumPriorityMap.get(enumType);
-			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", priorityValue))){
+			Integer priorityValue = enumPriorityMap.get(enumType).getEnumPriority();
+			if(!(projectFileMap.containsKey(enumType + ApiConst.ENUMFILE_SUFFIX) || !CommonUtil.isRegexMatches("^[-\\+]?[\\d]*$", String.valueOf(priorityValue)))){
 				if("MsEnumType".equals(enumType)){
 					if(isMsAsFirst){
 						throw new ConfigSettingException("[枚举优先级]" + enumType + "-" + priorityValue);
@@ -273,57 +288,6 @@ public class SunlineUtil {
 			}
 		}
 	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年7月31日-下午1:30:10</li>
-	 *         <li>功能说明：获取默认字典优先级哈希表</li>
-	 *         </p>
-	 * @return
-	 */
-	private static Map<String, String> getDefaultDictPriorityMap(){
-		Map<String, String> map = new HashMap<>();
-		map.put("MsDict", "1");
-		map.put("SysDict", "2");
-		/*map.put("ApDict", "3");
-		
-		map.put("ApBaseDict", "4");
-		map.put("CtBaseDict", "5");*/
-		map.put("LnSysDict", "6");
-		map.put("LnBaseDict", "7");
-		
-		map.put("LnIobusDict", "8");
-		map.put("LnServDict", "9");
-		map.put("CoServDict", "9");
-		return map;
-	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月1日-上午11:04:23</li>
-	 *         <li>功能说明：获取枚举优先级哈希表</li>
-	 *         </p>
-	 * @return
-	 */
-	private static Map<String, String> getDefaultEnumPriorityMap(){
-		Map<String, String> map = new HashMap<>();
-		map.put("MsEnumType", "1");
-		map.put("EnumType", "2");
-		map.put("LnBaseEnumType", "3");
-		
-		map.put("LnSysEnumType", "4");
-		map.put("LnIobusEnumType", "5");
-		map.put("LnServEnumType", "6");
-		map.put("CoServEnumType", "6");
-		
-		return map;
-	}
-	
-	
 	
 	/**
 	 * @Author sunshaoyu
@@ -336,7 +300,6 @@ public class SunlineUtil {
 	private static void loadProjectEnum(){
 		if(CommonUtil.isNotNull(projectFileMap)){
 			enumMap.clear();
-			Map<String, String> priorityMap = CommonUtil.nvl(enumPriorityMap, getDefaultEnumPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从枚举中解析
 				if(CommonUtil.isRegexMatches("^.*?EnumType.*.xml$", fileName)){
@@ -368,13 +331,31 @@ public class SunlineUtil {
 								}
 							}
 							
+							if(CommonUtil.isNotNull(beforeEnumType)){
+								//获取字典优先级
+								SppEnumPriority curEnumPriority = enumPriorityMap.get(curEnumType.getEnumLocation());
+								SppEnumPriority beforeEnumPriority = enumPriorityMap.get(beforeEnumType.getEnumLocation());
+								
+								if(CommonUtil.isNull(curEnumPriority)){
+									throw new IllegalArgumentException("未找到["+curEnumType.getEnumLocation()+"]对应的枚举优先级配置");
+								}else if(CommonUtil.isNull(beforeEnumPriority)){
+									throw new IllegalArgumentException("未找到["+beforeEnumType.getEnumLocation()+"]对应的枚举优先级配置");
+								}
+								
+								if(!ApiConst.DEFAULT_WILDCARD.equals(curEnumPriority.getGroupId()) 
+								&& !ApiConst.DEFAULT_WILDCARD.equals(beforeEnumPriority.getGroupId())
+								&& CommonUtil.compare(curEnumPriority.getGroupId(), beforeEnumPriority.getGroupId()) != 0){
+									continue;
+								}
+							}
+							
 							//枚举重复性校验
-							if(CommonUtil.isNull(beforeEnumType) || CommonUtil.compare(priorityMap.get(curEnumType.getEnumLocation()),priorityMap.get(beforeEnumType.getEnumLocation())) < 0){
+							if(CommonUtil.isNull(beforeEnumType) || CommonUtil.compare(enumPriorityMap.get(curEnumType.getEnumLocation()).getEnumPriority(),enumPriorityMap.get(beforeEnumType.getEnumLocation()).getEnumPriority()) < 0){
 								enumMap.put(enumId, curEnumType);
 								if(CommonUtil.isNotNull(beforeEnumType)){
 									logger.warn("枚举["+beforeEnumType.getFullName()+"]优先级低于["+curEnumType.getFullName()+"],应当被移除");
 								}
-							}else if(CommonUtil.compare(priorityMap.get(curEnumType.getEnumLocation()),priorityMap.get(beforeEnumType.getEnumLocation())) == 0){
+							}else if(CommonUtil.compare(enumPriorityMap.get(curEnumType.getEnumLocation()).getEnumPriority(),enumPriorityMap.get(beforeEnumType.getEnumLocation()).getEnumPriority()) == 0){
 								logger.warn("枚举["+beforeEnumType.getFullName()+"]优先级等于["+curEnumType.getFullName()+"],应当被移到公用系统部分");
 							}
 						}
@@ -458,7 +439,6 @@ public class SunlineUtil {
 	private static void loadProjectDict(){
 		if(CommonUtil.isNotNull(projectFileMap)){
 			dictMap.clear();
-			Map<String, String> priorityMap = CommonUtil.nvl(dictPriorityMap, getDefaultDictPriorityMap());
 			for(String fileName : projectFileMap.keySet()){
 				//从字典中解析
 				if(CommonUtil.isRegexMatches("^.*?Dict.*.xml$", fileName)){
@@ -475,8 +455,26 @@ public class SunlineUtil {
 						Dict beforeDictInfo = dictMap.get(id);
 						Dict dictInfo = new Dict(id, dictType, element.attributeValue("longname"), type, element.attributeValue("desc"));
 						
+						if(CommonUtil.isNotNull(beforeDictInfo)){
+							//获取字典优先级
+							SppDictPriority curDictPriority = dictPriorityMap.get(dictType);
+							SppDictPriority beforeDictPriority = dictPriorityMap.get(beforeDictInfo.getDictType());
+							
+							if(CommonUtil.isNull(curDictPriority)){
+								throw new IllegalArgumentException("未找到["+dictType+"]对应的字典优先级配置");
+							}else if(CommonUtil.isNull(beforeDictPriority)){
+								throw new IllegalArgumentException("未找到["+beforeDictPriority.getDictType()+"]对应的字典优先级配置");
+							}
+							
+							if(!ApiConst.DEFAULT_WILDCARD.equals(curDictPriority.getGroupId()) 
+							&& !ApiConst.DEFAULT_WILDCARD.equals(beforeDictPriority.getGroupId())
+							&& CommonUtil.compare(curDictPriority.getGroupId(), beforeDictPriority.getGroupId()) != 0){
+								continue;
+							}
+						}
+						
 						//字典重复性校验
-						if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(priorityMap.get(dictType),priorityMap.get(beforeDictInfo.getDictType())) < 0){
+						if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(dictPriorityMap.get(dictType).getDictPriority(),dictPriorityMap.get(beforeDictInfo.getDictType()).getDictPriority()) < 0){
 							dictMap.put(id, dictInfo);
 							if(CommonUtil.isNotNull(beforeDictInfo)){
 								logger.warn("字典["+beforeDictInfo.getDictType()+"."+id+"]优先级低于["+dictType+"."+id+"],应当被移除");
@@ -966,6 +964,80 @@ public class SunlineUtil {
 		return null;
 	}
 	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午6:27:40</li>
+	 *         <li>功能说明：获取表模型的根元素</li>
+	 *         </p>
+	 * @param tableModelName	表模型名,非文件名
+	 * @return
+	 */
+	public static Element sunlineGetTableModelType(String tableModelName){
+		if(CommonUtil.isNotNull(tableModelName)){
+			for(String fileName : projectFileMap.keySet()){
+				//从表类型中解析
+				if(CommonUtil.isRegexMatches("^Tab.*?.tables.xml$", fileName)){
+					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
+					if(tableModelName.equals(root.attributeValue("id"))){
+						return root;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午7:13:13</li>
+	 *         <li>功能说明：获取字典模型的根元素</li>
+	 *         </p>
+	 * @param dictModelName
+	 * @return
+	 */
+	public static Element sunlineGetDictModelType(String dictModelName){
+		if(CommonUtil.isNotNull(dictModelName)){
+			for(String fileName : projectFileMap.keySet()){
+				//从表类型中解析
+				if(CommonUtil.isRegexMatches("^.*?Dict.*.xml$", fileName)){
+					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
+					if(dictModelName.equals(root.attributeValue("id"))){
+						return root;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午7:17:08</li>
+	 *         <li>功能说明：获取枚举模型的根元素</li>
+	 *         </p>
+	 * @param enumModelName
+	 * @return
+	 */
+	public static Element sunlineGetEnumModelType(String enumModelName){
+		if(CommonUtil.isNotNull(enumModelName)){
+			for(String fileName : projectFileMap.keySet()){
+				//从表类型中解析
+				if(CommonUtil.isRegexMatches("^.*?EnumType.*.xml$", fileName)){
+					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
+					if(enumModelName.equals(root.attributeValue("id"))){
+						return root;
+					}
+				}
+			}
+		}
+		return null;
+	}
 	
 	/**
 	 * @Author sunshaoyu
@@ -1616,47 +1688,91 @@ public class SunlineUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年9月6日-下午2:42:01</li>
-	 *         <li>功能说明：发送post交易请求</li>
+	 *         <li>2020年4月15日-下午4:04:25</li>
+	 *         <li>功能说明：向核心发起请求</li>
 	 *         </p>
-	 * @param serviceCode	外部服务码
-	 * @param body	请求体
-	 * @throws Exception 
+	 * @param postmanCollection
+	 * @param serviceCode
+	 * @param params
+	 * @return
+	 * @throws Exception
 	 */
-	public static String sunlineSendPostTrxnRequest(String serviceCode,String body) throws Exception{
-		if(CommonUtil.isNull(serviceCode)){
-			return null;
+	public static String sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode, Params params) throws Exception{
+		if(CommonUtil.isNull(serviceCode) || CommonUtil.isNull(postmanCollection)){
+			throw new NullParmException("报文集", "交易服务码");
 		}
-		String host = "http://10.22.12.46:9009/";
-		String path = "/gateway/";
-		
-		//封装请求头
-		Map<String, String> headers = new HashMap<>();
-		headers.put("dserviceId", serviceCode);
-		headers.put("api_id", serviceCode);
-		headers.put("dapplication", "1021");
-		
-		headers.put("dgroup", "01");
-		headers.put("dversion", "1.0");
-		String trxnSeq = CommonUtil.buildTrxnSeq(25);
-		headers.put("busiseqno", trxnSeq);
-		
-		headers.put("callseqno", trxnSeq);
-		headers.put("Content-Type", "application/json");
-		//封装查询条件
-		Map<String, String> querys = new HashMap<String, String>();
+		//读取报文集数据
+		String json = CommonUtil.readFileContent(SunlineUtil.class.getResourceAsStream(postmanCollection));
+		JSONArray item = JSONObject.fromObject(json).getJSONArray("item");
 
-		HttpResponse response = NetworkApi.doPost(host, path, headers, querys, body);
-		// 获取响应结果
-		HttpEntity httpEntity = response.getEntity();
-		if (httpEntity != null) {
-			InputStream instreams = httpEntity.getContent();
-			String str = CommonUtil.convertStreamToJson(instreams);
-			return str;
+		for(int i = 0;i < item.size();i++){
+			JSONObject trxn = item.getJSONObject(i);
+			String requestName = trxn.getString("name");
+			String url = trxn.getJSONObject("request").getJSONObject("url").getString("raw");
+			JSONArray headers = trxn.getJSONObject("request").getJSONArray("header");
+			JSONObject body = trxn.getJSONObject("request").getJSONObject("body").getJSONObject("raw");
+			
+			//封装请求头
+			Map<String, String> headerMap = new HashMap<String, String>();
+			for(int j = 0;j < headers.size();j++){
+				JSONObject header = headers.getJSONObject(j);
+				String key = header.getString("key");
+				String value = header.getString("value");
+				if("busiseqno".equals("key") || "callseqno".equals("key")){
+					headerMap.put(key, CommonUtil.buildTrxnSeq(24));
+				}else{
+					headerMap.put(key, value);
+				}
+			}
+			
+			//自定义参数
+			JSONObject input = body.getJSONObject("input");
+			if(CommonUtil.isNotNull(params)){
+				for(String key : params.keySet()){
+					input.put(key, params.get(key));
+				}
+			}
+			
+			//发起请求
+			if(serviceCode.equals(headerMap.get("api_id"))){
+				logger.info("发起请求:" + requestName);
+				Map<String, String> querys = new HashMap<String, String>();
+				HttpResponse response = NetworkApi.doPost(url, "", headerMap, querys, body.toString());
+				
+				// 获取响应结果
+				HttpEntity httpEntity = response.getEntity();
+				if (httpEntity != null) {
+					InputStream instreams = httpEntity.getContent();
+					String str = CommonUtil.convertStreamToJson(instreams);
+					JSONObject responseJson = JSONObject.fromObject(str);
+					
+					if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
+						return responseJson.getJSONObject("output").toString();
+					}else{
+						throw new IcorePostException(responseJson.getJSONObject("sys").getString("erortx"));
+					}
+				}
+			}
 		}
 		return null;
 	}
 	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午4:04:25</li>
+	 *         <li>功能说明：向核心发起请求</li>
+	 *         </p>
+	 * @param postmanCollection
+	 * @param serviceCode
+	 * @param params
+	 * @return
+	 * @throws Exception
+	 */
+	public static String sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode) throws Exception{
+		return sunlineSendPostTrxnRequest(postmanCollection, serviceCode, null);
+	}
 	
 	
 	/**
@@ -2675,5 +2791,51 @@ public class SunlineUtil {
 		}catch(Exception e){
 			CommonUtil.printLogError(e, logger);
 		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午8:49:30</li>
+	 *         <li>功能说明：生成复合类型元素</li>
+	 *         </p>
+	 * @param fieldIdArray
+	 * @return
+	 */
+	public static String sunlineGenerateComplexElement(String... fieldIdArray){
+		StringBuffer buffer = new StringBuffer();
+		if(CommonUtil.isNotNull(fieldIdArray)){
+			for(String fieldId : fieldIdArray){
+				if(CommonUtil.isNotNull(fieldId)){
+					Dict dict = dictMap.get(fieldId);
+					buffer.append("<element id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictType()+"."+fieldId+"\" required=\"false\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>").append("\r\n");
+				}
+			}
+		}
+		return buffer.toString();
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月13日-下午9:06:32</li>
+	 *         <li>功能说明：生成flowtran类型元素</li>
+	 *         </p>
+	 * @param complexId
+	 * @return
+	 */
+	public static String sunlineGenerateFlowtranElement(String complexId){
+		StringBuffer buffer = new StringBuffer();
+		Element complex = sunlineGetComplexType(complexId);
+		List<Element> elementList = CommonUtil.searchTargetAllXmlElement(complex, "element");
+		
+		if(CommonUtil.isNotNull(elementList)){
+			for(Element e : elementList){
+				buffer.append("<field id=\""+e.attributeValue("id")+"\" type=\""+e.attributeValue("type")+"\" required=\"false\" multi=\"false\" array=\"false\" longname=\""+e.attributeValue("longname")+"\" ref=\""+e.attributeValue("ref")+"\"/>").append("\n");
+			}
+		}
+		return buffer.toString();
 	}
 }

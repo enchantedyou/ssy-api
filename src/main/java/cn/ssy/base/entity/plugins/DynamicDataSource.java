@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import cn.ssy.base.entity.mybatis.SppDatasource;
+
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mchange.v2.c3p0.PooledDataSource;
 
@@ -33,6 +35,8 @@ public class DynamicDataSource{
 	
 	private static final Map<String, ComboPooledDataSource> datasoucePoolMap = new HashMap<String, ComboPooledDataSource>();
 	
+	private static final Map<String, SppDatasource> dataSourceMap = new HashMap<String, SppDatasource>();
+	
 	private static String beforeDatasource;
 	
 	private static final ThreadLocal<String> dataSourceThreadLoacl = new InheritableThreadLocal<String>();
@@ -53,8 +57,9 @@ public class DynamicDataSource{
 		return datasoucePoolMap.get(getDataSourceKey());
     }
     
-    public static void putDatasourcePool(String dataSourceId,ComboPooledDataSource datasource){
-    	datasoucePoolMap.put(dataSourceId, datasource);
+    public static void putDatasourcePool(ComboPooledDataSource datasource, SppDatasource sppDatasource){
+    	datasoucePoolMap.put(sppDatasource.getDatasourceId(), datasource);
+    	putSppDatasource(sppDatasource);
     }
 
 	public static String getBeforeDatasourceKey() {
@@ -64,7 +69,14 @@ public class DynamicDataSource{
 	public static void setBeforeDatasource(String beforeDatasource) {
 		DynamicDataSource.beforeDatasource = beforeDatasource;
 	}
+
+	public static SppDatasource getSppDatasource(String datasourceKey) {
+		return dataSourceMap.get(datasourceKey);
+	}
 	
+	private static void putSppDatasource(SppDatasource datasource) {
+		dataSourceMap.put(datasource.getDatasourceId(), datasource);
+	}
 
 	public static void printC3p0PoolStatus(){
 		PooledDataSource pds = (PooledDataSource) getDataSource();  

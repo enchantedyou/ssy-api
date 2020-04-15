@@ -1,16 +1,14 @@
 package cn.ssy.api.core;
 
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import net.sf.json.JSONObject;
 
@@ -30,6 +28,9 @@ import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
+import cn.ssy.base.entity.mybatis.SppDatasource;
+import cn.ssy.base.entity.plugins.DynamicDataSource;
+import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -73,7 +74,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("prod_id");
+		SunlineUtil.sunlineSearchDict("prod_sale_status");
 	}
 	
 	/**
@@ -150,7 +151,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_CBS);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN_FAT);
 	}
 
 	
@@ -168,35 +169,32 @@ public class SimpleTest{
 		SunlineUtil.sunlineCtFlowtranValidation(E_ICOREMODULE.LN, "6011", E_LAYOUTTYPE.TABLE, "matInfos", path);
 	}
 	
+	
 	/**
-	 * @throws Exception 
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年9月6日-下午3:14:46</li>
-	 *         <li>功能说明：单次请求测试</li>
+	 *         <li>2020年4月13日-下午9:06:55</li>
+	 *         <li>功能说明：生成复合类型元素</li>
 	 *         </p>
+	 * @throws Exception
 	 */
 	@Test
 	public void test15() throws Exception{
-		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest("326020", CommonUtil.readFileContent("C:/Users/DELL/Desktop/ln/body_dev.json")));
+		System.out.println(SunlineUtil.sunlineGenerateComplexElement("cust_no","cust_name","prod_id","prod_name","ccy_code","loan_no","loan_amt"));
 	}
 	
 	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2019年9月6日-下午4:35:13</li>
-	 *         <li>功能说明：多线程测试</li>
+	 *         <li>2020年4月13日-下午9:07:11</li>
+	 *         <li>功能说明：生成flowtran类型元素</li>
 	 *         </p>
+	 * @throws Exception
 	 */
 	@Test
 	public void test14() throws Exception{
-		Method method = CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class,String.class);
-		Map<String, Object> returnMap = CommonUtil.multithreadingExecute(method, 5, 0, "326020",CommonUtil.readFileContent("C:/sunline/sunlineDeveloper/记事本/json/body_atp.json"));
-		for(String thread : returnMap.keySet()){
-			System.out.println("线程[" + thread + "]执行结果:");
-			System.out.println(returnMap.get(thread));
-		}
+		System.out.println(SunlineUtil.sunlineGenerateFlowtranElement("LnQueryLoanListOut"));
 	}
 	
 	
@@ -229,39 +227,6 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineTempBuildJsonControl("LnAccrualInfo"));
 	}
 	
-	
-	@Test
-	public void test18() throws Exception{
-		double crit = 0.3542;
-		double sunderArmor = 0.3538;
-		double critEffect = 1.76;
-		double initHarm = 25000;
-		
-		double totalHarm = 0;
-		Random rand = new Random();
-		System.out.println("会心:" + (crit * 100) + "%,破防:" + (sunderArmor * 100) + "%,会效:" + (critEffect * 100) + "%,初始伤害:" + initHarm);
-		System.out.println(CommonUtil.buildSplitLine(120));
-		
-		int cn = 0;
-		for(int i = 0;i < 10;i++){
-			double curHarm = 0;
-			if(rand.nextDouble() < crit){
-				curHarm = initHarm * critEffect * (1 + sunderArmor);
-				System.err.println("驱夜断愁·会心:" + curHarm);
-				cn++;
-			}else{
-				curHarm = initHarm * (1 + sunderArmor);
-				System.out.println("驱夜断愁:" + curHarm);
-			}
-			totalHarm += curHarm;
-		}
-		CommonUtil.systemPause(5);
-		System.out.println(CommonUtil.buildSplitLine(120));
-		System.out.println("伤害总计:" + totalHarm);
-		System.out.println("会心次数:"+cn);
-	}
-	
-	
 	@Test
 	public void test19() throws SQLException{
 		String dataSource = ApiConst.DATASOURCE_ICORE_LN;
@@ -288,7 +253,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN_FAT, E_ICOREMODULE.LN);
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_MK, E_ICOREMODULE.MK,"560020");
 	}
 	
 	
@@ -374,7 +339,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test27() throws Exception{
-		SunlineUtil.sunlineLnProductSync(ApiConst.DATASOURCE_ICORE_LN, ApiConst.DATASOURCE_ICORE_LN_DIT, false,"L0000003-A");
+		SunlineUtil.sunlineLnProductSync(ApiConst.DATASOURCE_ICORE_LN_FAT, ApiConst.DATASOURCE_ICORE_MK, false);
 	}
 	
 	
@@ -553,22 +518,16 @@ public class SimpleTest{
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年12月20日-上午10:51:16</li>
-	 *         <li>功能说明：多线程开户</li>
+	 *         <li>功能说明：多线程发起核心请求</li>
 	 *         </p>
 	 * @throws Exception
 	 */
 	@Test
 	public void test38() throws Exception{
-		String body = CommonUtil.readFileContent(SimpleTest.class.getResource("/json/6020.json").getPath());
-		final int concurrentNum = 10;
-		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 30000, "326020",body);
+		final int concurrentNum = 3;
+		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 30000, ApiConst.POSTMAN_LN_DEV, "326320");
 		for(String threadId : responseMap.keySet()){
-			JSONObject responseJson = JSONObject.fromObject(responseMap.get(threadId));
-			if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
-				System.out.println(responseJson.getJSONObject("output").getString("loan_no"));
-			}else{
-				System.err.println(threadId + ":" + responseJson.getJSONObject("sys").getString("erortx"));
-			}
+			System.out.println(responseMap.get(threadId));
 		}
 	}
 	
@@ -626,7 +585,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test41() throws Exception{
-		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql("5507", "326014", "3250", "贷款停息挂账", "/views/ln/business/ln_stop_accrual.json");
+		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql("D101", "560001", "3250", "产品基本信息查询", "/views/ln/business/ln_stop_accrual.json");
 		for(String sql : sqlList){
 			System.out.println(sql);
 		}
@@ -645,9 +604,9 @@ public class SimpleTest{
 		int dealCount = 0;
 		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
 		String key = "\"control\"";
-		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
+		Map<String, File> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
-			String filePath = fileMap.get(fileName);
+			String filePath = fileMap.get(fileName).getPath();
 			String fileContent = CommonUtil.readFileContent(filePath);
 			if(fileContent.contains(key)){
 				/** 批量替换json中的字段描述 **/
@@ -686,8 +645,8 @@ public class SimpleTest{
 	@Test
 	public void test44() throws Exception{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
-		String tableName = "tsp_param_version_info";
-		String dataSource = ApiConst.DATASOURCE_ICORE_LN_FAT;
+		String tableName = "spp_enum_priority";
+		String dataSource = ApiConst.DATASOURCE_LOCAL;
 		
 		String parseTableName = CommonUtil.parseHumpStr(tableName);
 		String output = outputPath  + parseTableName.substring(0, 1).toUpperCase() + parseTableName.substring(1) + ".java";
@@ -705,6 +664,45 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test45() throws Exception{
-		System.out.println(KeyEvent.VK_F8);
+		//"lnf_basic","lnf_drawdown","lnf_repayment","lnf_accrual","lnf_maturity",
+		String[] tableArray = new String[]{"lnf_field_control"};
+		List<String> whitelistColList = Arrays.asList(new String[]{"data_create_time","data_update_time","data_create_user","data_update_user","data_version"});
+		SppDatasource sourceDataSource = DynamicDataSource.getSppDatasource(ApiConst.DATASOURCE_ICORE_LN_FAT);
+		SppDatasource checkDataSource = DynamicDataSource.getSppDatasource(ApiConst.DATASOURCE_ICORE_MK);
+		
+		StringBuffer buffer = new StringBuffer();
+		for(String table : tableArray){
+			buffer.append("------------------------------稽核" + table + "开始------------------------------\r\n");
+			List<Map<String, Object>> sourceDataList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from " + table + " order by table_name,field_name,inherit_ind", sourceDataSource.getDatasourceId()));
+			List<Map<String, Object>> checkDataList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from " + table, checkDataSource.getDatasourceId()));
+			
+			int loopCount = sourceDataList.size() <= checkDataList.size() ? sourceDataList.size() : checkDataList.size();
+			for(int i = 0;i < loopCount;i++){
+				Map<String, Object> sourceDataMap = sourceDataList.get(i);
+				Map<String, Object> checkDataMap = checkDataList.get(i);
+				String prodId = String.valueOf(sourceDataMap.get("prod_id"));
+				
+				for(String colName : sourceDataMap.keySet()){
+					String sourceData = String.valueOf(sourceDataMap.get(colName));
+					String checkData = String.valueOf(checkDataMap.get(colName));
+					
+					if(!checkDataMap.containsKey(colName)){
+						buffer.append("["+checkDataSource.getDatasourceDesc()+"]缺失列->" + colName).append("\r\n");
+					}else if((CommonUtil.isNull(sourceData) && CommonUtil.isNull(checkData)) || whitelistColList.contains(colName)){
+						continue;
+					}else if(CommonUtil.compare(sourceData, checkData) != 0){
+						buffer.append("["+table+"-"+prodId+"]列["+colName+"]数据不一致:["+sourceDataSource.getDatasourceDesc()+"]["+sourceData+"]--->["+checkDataSource.getDatasourceDesc()+"]["+checkData+"]\r\n");
+					}
+				}
+			}
+			buffer.append("------------------------------稽核" + table + "结束------------------------------\r\n");
+		}
+		CommonUtil.writeFileContent(buffer.toString(), outputPath + "/脚本稽核.info");
+	}
+	
+	@Test
+	public void test46() throws Exception{
+		Params params = new Params();
+		//System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_DEV, "326320", params.add("cust_no", "123")));
 	}
 }	

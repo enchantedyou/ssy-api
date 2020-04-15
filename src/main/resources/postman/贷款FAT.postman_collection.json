@@ -1,0 +1,1012 @@
+{
+	"info": {
+		"_postman_id": "dde72047-bdbd-47e7-98f1-494e36e710a7",
+		"name": "贷款FAT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[6020]贷款开户",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326020"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326020"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202003181441085448223835"
+					},
+					{
+						"key": "callseqno",
+						"value": "202003181441174951534445"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"ccy_code\": \"IDR\",\n        \"calm_ind\": \"N\",\n        \"loan_tenor\": \"12M\",\n        \"rpym_account\": \"0258000003015\",\n        \"cust_no\": \"100000000209\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"rpym_account_ccy\": \"IDR\",\n        \"drawdown_account\": \"0258000003015\",\n        \"loan_amt\": \"100000\",\n        \"principal\": \"100000\",\n        \"prod_id\": \"L0000002\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326020\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"0700\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6020]冲正开户联调",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326020"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326020"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202003191021563913775465"
+					},
+					{
+						"key": "callseqno",
+						"value": "202003191021563913775465"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sys\": {\n        \"servicecode\": \"326020\",\n        \"prcscd\": \"326020\"\n    },\n    \"input\": {\n        \"joint_ind\": \"\",\n        \"auto_dwdn_ind\": \"\",\n        \"cycle_dwdn_amt\": \"\",\n        \"final_period_ind\": \"\",\n        \"balloon_periods\": \"\",\n        \"drawdown_exrate\": \"\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"busi_category\": \"\",\n        \"rpym_method\": \"EQUAL_INSTALLMENT\",\n        \"loan_purpose\": \"01\",\n        \"prod_id\": \"L0000001\",\n        \"accrual_rule\": \"\",\n        \"calm_amortization_method\": \"\",\n        \"rate_tenor\": \"\",\n        \"od_rate_ref_method\": \"\",\n        \"new_contract_ind\": \"Y\",\n        \"rate_change_cycle\": \"\",\n        \"od_rpym_cycle\": \"\",\n        \"cust_no\": \"100000000209\",\n        \"progress_int_period\": \"\",\n        \"start_period_no\": \"\",\n        \"lstUserDefinePhaseCycle\": [],\n        \"lstPledge\": [],\n        \"compound_interest_rate\": \"\",\n        \"pledge_ind\": \"\",\n        \"od_float_value\": \"\",\n        \"original_loan_no\": \"\",\n        \"dwdn_type\": \"SINGLE\",\n        \"start_inst_date\": \"20191107\",\n        \"loan_tenor\": \"12M\",\n        \"rpym_account\": \"0258000447242\",\n        \"partner_rate_id\": \"\",\n        \"limit_ind\": \"\",\n        \"prcp_cycle\": \"\",\n        \"lstDrawdownSchedule\": [],\n        \"cycle_dwdn_ind\": \"\",\n        \"cycle_dwdn_percent\": \"\",\n        \"dwdn_fund_method\": \"SELF\",\n        \"dwdn_cycle\": \"\",\n        \"specify_amt\": \"\",\n        \"normal_float_method\": \"\",\n        \"inrt_code\": \"\",\n        \"partner_exrate\": \"\",\n        \"calm_start_period\": \"\",\n        \"project_no\": \"\",\n        \"grace_period_ind\": \"\",\n        \"calm_ind\": \"N\",\n        \"advance_interest\": \"\",\n        \"rpym_account_ccy\": \"IDR\",\n        \"partner_guar_rate_id\": \"\",\n        \"compound_float_value\": \"\",\n        \"overdue_inrt\": \"\",\n        \"loan_object_sub\": \"\",\n        \"partner_guar_exrate\": \"\",\n        \"due_date_align\": \"\",\n        \"limit_code\": \"1911072481\",\n        \"project_ind\": \"\",\n        \"lstJointLoan\": [],\n        \"drawdown_account\": \"0258000447242\",\n        \"maturity_date\": \"\",\n        \"due_date_align_date\": \"\",\n        \"principal\": \"109999.99\",\n        \"rate_type\": \"\",\n        \"ccy_code\": \"IDR\",\n        \"calm_end_period\": \"\",\n        \"first_period_ind\": \"\",\n        \"auto_rpym_ind\": \"\",\n        \"normal_interest_rate\": \"\",\n        \"compound_rate_ref_method\": \"\",\n        \"rpym_cycle\": \"\",\n        \"lstUserDefinePhase\": [],\n        \"rate_change_method\": \"\",\n        \"multi_rate_ind\": \"N\",\n        \"normal_float_value\": \"\",\n        \"lstEntrust\": [],\n        \"contract_no\": \"\",\n        \"acct_branch\": \"\",\n        \"od_float_method\": \"\",\n        \"base_inrt\": \"\",\n        \"loan_no\": \"\",\n        \"accrual_ind\": \"\",\n        \"rate_change_align_date\": \"\",\n        \"drawdown_rate_id\": \"\",\n        \"loan_amt\": \"109999.99\",\n        \"compound_float_method\": \"\",\n        \"rpym_fund_method\": \"DEPOSIT\",\n        \"grace_period\": \"\",\n        \"lstIntrust\": [],\n        \"contract_amt\": \"109999.99\",\n        \"progressive_value\": \"\",\n        \"advance_interest_method\": \"\",\n        \"end_period_no\": \"\",\n        \"maturity_due_date_align\": \"\",\n        \"cycle_dwdn_method\": \"\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20191107\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"0700\",\n        \"total_count\": \"\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"102\",\n        \"device_no\": \"IOS342333481008\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"LN698394123997613658\",\n        \"terminal_os_type\": \"2\",\n        \"initiator_seq\": \"LN329211432596120132\",\n        \"busi_seq\": \"LN497361787744785795\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"LN893724300726679303\",\n        \"trxn_seq\": \"LN703053607942923922\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6028]贷款合同查询",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326028"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326028"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"contract_no\":\"02IDR02019000301\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326028\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6009]贷款还款计划维护",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326009"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326009"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"effect_date\": \"20191207\",\n        \"due_date_align\": \"I\",\n        \"loan_holiday_rule\": \"N\",\n        \"loan_no\": \"025IDR0201911070659\",\n        \"data_operate_type\": \"A\",\n        \"rpym_method\": \"USER_DEFINED\",\n        \"maturity_date\": \"20201107\",\n        \"accrual_rule\": \"PERIOD\",\n        \"period_no\": \"2\",\n        \"rpym_cycle\": \"1M\",\n        \"handling_status\": \"0\",\n        \"lstMainUserDefinePhase\": [\n            {\n                \"phase_no\": \"1\",\n                \"end_date\": \"20201107\",\n                \"prcp_cycle\": \"1M\",\n                \"phase_rpym_method\": \"SPECIAL_INSTALLMENT\",\n                \"rpym_cycle\": \"1M\",\n                \"start_date\": \"20191207\"\n            }\n        ]\n    },\n    \"sys\": {\n        \"servicecode\": \"326009\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6041]贷款还款(提前结清)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911075544\",\n\t\t\"rpym_type\":\"S\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326041\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6041]贷款还款(归还欠款)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202003161350344017132148"
+					},
+					{
+						"key": "callseqno",
+						"value": "202003161350344017132148"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"loan_no\": \"025IDR0201911075652\",\n        \"rpym_type\": \"N\",\n        \"rpym_amt\": \"300\",\n        \"rpym_fund_method\":\"DEPOSIT\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326041\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6044]贷款形态转移",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326044"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326044"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911073285\",\n\t\t\"loan_classification\":\"5\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326044\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6045]贷款核销",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326045"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326045"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911073285\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326045\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6046]贷款核销收回",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326046"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326046"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"loan_no\": \"025IDR0201911073285\",\n        \"rpym_fund_method\": \"DEPOSIT\",\n        \"rpym_account\": \"0258000003015\",\n        \"rpym_account_ccy\": \"IDR\",\n        \"rpym_amt\": \"200\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326046\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6110]贷款还款计划试算",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326110"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326110"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sys\": {\n        \"servicecode\": \"326110\",\n        \"prcscd\": \"326110\"\n    },\n    \"input\": {\n        \"loan_holiday_rule\": \"N\",\n        \"final_period_ind\": \"N\",\n        \"balloon_periods\": \"\",\n        \"rpym_method\": \"EQUAL_INSTALLMENT\",\n        \"maturity_date\": \"20200417\",\n        \"final_method\": \"\",\n        \"accrual_rule\": \"DAY\",\n        \"calm_amortization_method\": \"SPECIFIC\",\n        \"due_date_align_date\": \"\",\n        \"phase_no\": \"\",\n        \"ccy_code\": \"IDR\",\n        \"calm_end_period\": \"1\",\n        \"first_method\": \"\",\n        \"cust_type\": \"1\",\n        \"first_period_ind\": \"N\",\n        \"normal_interest_rate\": \"0.5\",\n        \"start_period_no\": \"2\",\n        \"progress_int_period\": \"\",\n        \"rpym_cycle\": \"1M\",\n        \"lstPhase\": [\n            {\n                \"end_date\": \"\",\n                \"data_version\": \"\",\n                \"prcp_cycle\": \"1M\",\n                \"phase_rpym_method\": \"\",\n                \"rpym_cycle\": \"1M\",\n                \"specify_amt\": \"\",\n                \"start_date\": \"\"\n            }\n        ],\n        \"accrual_base_day\": \"360\",\n        \"start_inst_date\": \"20191107\",\n        \"prcp_cycle\": \"6M\",\n        \"loan_amt\": \"100000\",\n        \"grace_period\": \"\",\n        \"specify_amt\": \"\",\n        \"calm_start_period\": \"1\",\n        \"progressive_value\": \"\",\n        \"cross_threshold\": \"\",\n        \"calm_ind\": \"Y\",\n        \"end_period_no\": \"3\",\n        \"last_period_no\": \"\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20191107\",\n        \"initiator_system\": \"100\",\n        \"trxn_branch\": \"0700\",\n        \"total_count\": \"\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"device_no\": \"IOS647014724610\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW4635807678861\",\n        \"terminal_os_type\": \"2\",\n        \"initiator_seq\": \"YW3811644132135\",\n        \"busi_seq\": \"YW274199973467\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW7321230233521\",\n        \"trxn_seq\": \"YW1177553990381\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6153]贷款借新还旧",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326153"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326153"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sys\": {\n        \"prcscd\": \"326153\",\n        \"servicecode\": \"326153\"\n    },\n    \"input\": {\n        \"final_period_ind\": \"\",\n        \"balloon_periods\": \"\",\n        \"lstOriginalLoan\": [\n            {\n                \"loan_status\": \"\",\n                \"due_date_align\": \"\",\n                \"loan_no\": \"025IDR0201911075865\",\n                \"rpym_method\": \"\",\n                \"selected_ind\": \"Y\",\n                \"loan_amt\": \"\",\n                \"maturity_date\": \"\",\n                \"due_date_align_date\": \"\",\n                \"ccy_code\": \"IDR\",\n                \"wrof_ind\": \"\",\n                \"loan_classification\": \"\",\n                \"cust_no\": \"100000039024\",\n                \"cust_name\": \"\",\n                \"loan_object\": \"\"\n            }\n        ],\n        \"drawdown_exrate\": \"\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"rpym_method\": \"BOTH_MRTY\",\n        \"final_method\": \"\",\n        \"loan_purpose\": \"\",\n        \"prod_id\": \"L0000002\",\n        \"accrual_rule\": \"\",\n        \"rate_tenor\": \"\",\n        \"summary_code\": \"\",\n        \"od_rate_ref_method\": \"NORMAL\",\n        \"new_contract_ind\": \"\",\n        \"renew_method\": \"NORMAL\",\n        \"first_method\": \"\",\n        \"rate_change_cycle\": \"\",\n        \"od_rpym_cycle\": \"1M\",\n        \"cust_no\": \"100000039024\",\n        \"compound_interest_rate\": \"\",\n        \"od_float_value\": \"\",\n        \"start_inst_date\": \"\",\n        \"loan_tenor\": \"12M\",\n        \"rpym_account\": \"0258000332856\",\n        \"limit_ind\": \"\",\n        \"prcp_cycle\": \"\",\n        \"dwdn_fund_method\": \"\",\n        \"specify_amt\": \"\",\n        \"normal_float_method\": \"\",\n        \"inrt_code\": \"\",\n        \"grace_period_ind\": \"\",\n        \"cross_threshold\": \"\",\n        \"advance_interest\": \"\",\n        \"rpym_account_ccy\": \"\",\n        \"compound_float_value\": \"\",\n        \"overdue_inrt\": \"\",\n        \"loan_object_sub\": \"\",\n        \"due_date_align\": \"\",\n        \"limit_code\": \"\",\n        \"rpym_type\": \"N\",\n        \"drawdown_account\": \"0258000332856\",\n        \"maturity_date\": \"\",\n        \"due_date_align_date\": \"\",\n        \"principal\": \"100000\",\n        \"rate_type\": \"\",\n        \"ccy_code\": \"IDR\",\n        \"due_align_level\": \"\",\n        \"first_period_ind\": \"\",\n        \"auto_rpym_ind\": \"\",\n        \"normal_interest_rate\": \"\",\n        \"compound_rate_ref_method\": \"\",\n        \"cust_name\": \"MatrRVSC\",\n        \"rpym_cycle\": \"\",\n        \"lstUserDefinePhase\": [],\n        \"rate_change_method\": \"NO\",\n        \"normal_float_value\": \"\",\n        \"contract_no\": \"\",\n        \"acct_branch\": \"\",\n        \"od_float_method\": \"\",\n        \"base_inrt\": \"\",\n        \"loan_no\": \"\",\n        \"accrual_ind\": \"\",\n        \"rate_change_align_date\": \"\",\n        \"drawdown_rate_id\": \"\",\n        \"loan_amt\": \"100000\",\n        \"amortization_cycle\": \"\",\n        \"compound_float_method\": \"\",\n        \"rpym_fund_method\": \"DEPOSIT\",\n        \"grace_period\": \"\",\n        \"contract_amt\": \"\",\n        \"oldi_amortization_method\": \"\",\n        \"advance_interest_method\": \"NO\",\n        \"maturity_due_date_align\": \"I\",\n        \"oldi_amortization_value\": \"\",\n        \"rpym_amt\": \"\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20191107\",\n        \"initiator_system\": \"100\",\n        \"trxn_branch\": \"0700\",\n        \"total_count\": \"\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"device_no\": \"IOS361270846242\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW631880916096\",\n        \"terminal_os_type\": \"2\",\n        \"initiator_seq\": \"YW476336729940\",\n        \"busi_seq\": \"YW186604941691\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW370789498456\",\n        \"trxn_seq\": \"YW124456811260\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6160]卡券积分还款",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326160"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326160"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202003061405268724215440"
+					},
+					{
+						"key": "callseqno",
+						"value": "202003061405268724215440"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"loan_no\":\"025IDR0201911074991\",\n        \"rpym_type\":\"N\",\n        \"card_coupon_acct_no\":\"AS000001\",\n        \"card_coupon_ccy_code\":\"IDR\",\n        \"card_coupon_branch_id\":\"0700\",\n        \"card_coupon_trxn_amt\":\"12\",\n        \"card_coupon_code\":\"app\",\n        \"integral_acct_no\":\"AS000001\",\n        \"integral_trxn_amt\":\"13\",\n        \"rpym_amt\":\"30\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326160\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6320]贷款开户(简化接口)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326320"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326320"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000333333322132"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000333333322132"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"ccy_code\": \"IDR\",\n        \"loan_tenor\": \"12M\",\n        \"cust_no\": \"100000000209\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"drawdown_account\": \"0258000003015\",\n        \"loan_amt\": \"100000\",\n        \"prod_id\": \"L0000008\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326320\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6341]贷款还款(提前结清) (简化接口)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326341"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326341"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911072352\",\n\t\t\"rpym_type\":\"S\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326341\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[9999]贷款冲正服务",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "329999"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "329999"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n    \t\"orig_initiator_seq\":\"2019110702510200000010975\"\n    },\n    \"sys\": {\n        \"servicecode\": \"329999\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "JSON",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "329999"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "329999"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"code\": \"200\",\n    \"data\": {\n        \"return_advance_interest\": null,\n        \"loan_rpym_amt\": \"100050.00\",\n        \"accrual_penalty_interest\": \"0\",\n        \"rpym_method\": \"EQUAL_INSTALLMENT\",\n        \"early_rpym_principal\": null,\n        \"additional_interest\": \"0\",\n        \"accrual_comp_interest\": \"0\",\n        \"accrual_interest\": \"0\",\n        \"advance_rpym_fee\": \"50.00\",\n        \"ccy_code\": \"IDR\",\n        \"cust_no\": \"100000002905\",\n        \"cust_name\": \"Ryana618288\",\n        \"trxn_seq\": \"2021050402580000000025241\",\n        \"due_interest\": \"0\",\n        \"rpym_fail_fee\": \"0\",\n        \"overpayment_amt\": \"0\",\n        \"loan_no\": \"025IDR0202105040035\",\n        \"loan_amt\": \"100000.00\",\n        \"due_prcp\": \"0.00\",\n        \"deduct_chrg_amt\": \"50.00\",\n        \"early_rpym_interest_method\": null,\n        \"due_comp_interest\": \"0\",\n        \"overdue_rpym_fee\": \"0\",\n        \"outstanding_prcp\": \"100000.00\",\n        \"due_penalty_interest\": \"0\",\n        \"rpym_amt\": \"100050.00\"\n    },\n    \"comm_rsp\": {\n        \"auth_reason\": [],\n        \"sys_erorcd\": \"0000\",\n        \"initiator_seq\": \"YW15791529259782934102531H\",\n        \"sys_erortx\": \"交易成功\",\n        \"trxn_seq\": \"2021050402580000000025241\"\n    },\n    \"message\": \"交易成功\"\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6044]贷款形态转移",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326044"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326044"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0202001060001\",\n\t\t\"loan_classification\":\"3\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326044\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.46:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"46"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

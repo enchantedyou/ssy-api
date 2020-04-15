@@ -1,0 +1,540 @@
+{
+	"info": {
+		"_postman_id": "f7a0f489-acaf-440d-b48a-6e76611a56ac",
+		"name": "贷款DIT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[6020]贷款开户",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326020"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326020"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202001091426526633222222"
+					},
+					{
+						"key": "callseqno",
+						"value": "202001091426526633222222"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"ccy_code\": \"IDR\",\n        \"calm_ind\": \"N\",\n        \"loan_tenor\": \"12M\",\n        \"rpym_account\": \"0258000001035\",\n        \"cust_no\": \"100000000113\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"drawdown_account\": \"0258000001035\",\n        \"rpym_account_ccy\": \"IDR\",\n        \"loan_amt\": \"100000\",\n        \"principal\": \"100000\",\n        \"prod_id\": \"L0000002\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326020\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6040]贷款放款",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326040"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326040"
+					},
+					{
+						"key": "busiseqno",
+						"value": "11222222222222222"
+					},
+					{
+						"key": "callseqno",
+						"value": "11222222222222222"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"principal\":\"100000\",\n        \"ccy_code\":\"IDR\",\n        \"loan_no\":\"025IDR0201911071059\",\n        \"onl_batch_ind\":\"1\",\n        \"drawdown_mode\":\"NORMAL\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326040\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6009]贷款还款计划维护",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326009"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326009"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"effect_date\": \"20191207\",\n        \"due_date_align\": \"I\",\n        \"loan_holiday_rule\": \"N\",\n        \"loan_no\": \"02IDR020191107998\",\n        \"data_operate_type\": \"A\",\n        \"rpym_method\": \"USER_DEFINED\",\n        \"maturity_date\": \"20201107\",\n        \"accrual_rule\": \"PERIOD\",\n        \"period_no\": \"2\",\n        \"rpym_cycle\": \"1M\",\n        \"handling_status\": \"0\",\n        \"lstMainUserDefinePhase\": [\n            {\n                \"phase_no\": \"1\",\n                \"end_date\": \"20201107\",\n                \"prcp_cycle\": \"1M\",\n                \"phase_rpym_method\": \"SPECIAL_INSTALLMENT\",\n                \"rpym_cycle\": \"1M\",\n                \"start_date\": \"20191207\"\n            }\n        ]\n    },\n    \"sys\": {\n        \"servicecode\": \"326009\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6028]贷款合同查询",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326028"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326028"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"contract_no\":\"02IDR02019000202\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326028\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6041]贷款还款(提前结清)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911071112\",\n\t\t\"rpym_type\":\"S\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326041\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6041]贷款还款(部分提前还)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"02IDR020191107994\",\n\t\t\"rpym_account\":\"0258000006030\",\n\t\t\"rpym_type\":\"E\",\n\t\t\"early_rpym_principal\":\"1000\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326041\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6160]卡券积分还款",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326160"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326160"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0201911070055\",\n\t\t\"card_coupon_acct_no\":\"07003600000000101049\",\n\t\t\"card_coupon_ccy_code\":\"IDR\",\n\t\t\"card_coupon_trxn_amt\":\"3\",\n\t\t\"card_coupon_branch_id\":\"0700\",\n\t\t\"card_coupon_code\":\"AABACCD\",\n\t\t\"rpym_type\":\"N\",\n\t\t\"rpym_amt\":\"10\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326160\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6341]贷款还款(提前结清) (简化接口)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n\t\t\"loan_no\":\"025IDR0202105010015\",\n\t\t\"rpym_type\":\"S\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326041\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.46:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"46"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[9999]贷款冲正服务",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1021"
+					},
+					{
+						"key": "dserviceid",
+						"value": "329999"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "329999"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2020010914260847632256734"
+					},
+					{
+						"key": "callseqno",
+						"value": "2020010914260847632256734"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n    \t\"orig_initiator_seq\":\"2019110702580000000005335\"\n    },\n    \"sys\": {\n        \"servicecode\": \"329999\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"102\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.12.85:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"12",
+						"85"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

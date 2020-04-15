@@ -50,13 +50,19 @@ public class JDBCUtils {
 			Map<String, String> configMap = CommonUtil.readPropertiesSettings(JDBCUtils.class.getClassLoader().getResource("db.properties").getPath());
 			
 			//装载本地数据源
-			loadDynamicDatasource(ApiConst.DATASOURCE_LOCAL, configMap.get("driverClass"), configMap.get("jdbcUrl"), configMap.get("user"), configMap.get("password"));
-			logger.info("本地装载数据源:" + ApiConst.DATASOURCE_LOCAL);
+			SppDatasource localDatasource = new SppDatasource();
+			localDatasource.setDatasourceId(ApiConst.DATASOURCE_LOCAL);
+			localDatasource.setDatasourceDriver(configMap.get("driverClass"));
+			localDatasource.setDatasourceUrl(configMap.get("jdbcUrl"));
+			localDatasource.setDatasourceUser(configMap.get("user"));
+			localDatasource.setDatasourcePwd(configMap.get("password"));
+			loadDynamicDatasource(localDatasource);
+			logger.info("本地装载数据源:" +localDatasource.getDatasourceId());
 			
 			//装载动态数据源
 			List<SppDatasource> dataSourceList = CommonUtil.mappingResultSetList(executeQuery("select * from spp_datasource", ApiConst.DATASOURCE_LOCAL), SppDatasource.class);
 			for(SppDatasource dataSource : dataSourceList){
-				loadDynamicDatasource(dataSource.getDatasourceId(), dataSource.getDatasourceDriver(), dataSource.getDatasourceUrl(), dataSource.getDatasourceUser(), dataSource.getDatasourcePwd());
+				loadDynamicDatasource(dataSource);
 				logger.info("装载动态数据源:" + dataSource.getDatasourceId());
 			}
 		}catch(Exception e){ 
@@ -79,14 +85,14 @@ public class JDBCUtils {
 	 * @param pwd
 	 * @throws PropertyVetoException
 	 */
-	private static void loadDynamicDatasource(String datasourceId,String driver,String url,String user,String pwd) throws PropertyVetoException{
+	private static void loadDynamicDatasource(SppDatasource datasource) throws PropertyVetoException{
 		//实例化c3p0数据源
 		ComboPooledDataSource c3p0Datasource = new ComboPooledDataSource();
 		//装载本地数据源
-		c3p0Datasource.setDriverClass(driver);
-		c3p0Datasource.setJdbcUrl(url);
-		c3p0Datasource.setUser(user);
-		c3p0Datasource.setPassword(pwd);
+		c3p0Datasource.setDriverClass(datasource.getDatasourceDriver());
+		c3p0Datasource.setJdbcUrl(datasource.getDatasourceUrl());
+		c3p0Datasource.setUser(datasource.getDatasourceUser());
+		c3p0Datasource.setPassword(datasource.getDatasourcePwd());
 		
 		//设置c3p0特殊属性
 		c3p0Datasource.setInitialPoolSize(ApiConst.INITIAL_POOL_SIZE);
@@ -100,7 +106,7 @@ public class JDBCUtils {
 		c3p0Datasource.setMaxConnectionAge(ApiConst.MAX_CONNECTION_AGE);
 		c3p0Datasource.setMaxIdleTime(ApiConst.MAX_IDLE_TIME);
 		//存储数据源
-		DynamicDataSource.putDatasourcePool(datasourceId,c3p0Datasource);
+		DynamicDataSource.putDatasourcePool(c3p0Datasource, datasource);
 	}
 	
 	

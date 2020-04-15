@@ -1,5 +1,6 @@
 package cn.ssy.base.entity.consts;
 
+
 /**
  * <p>
  * 文件功能说明：
@@ -22,6 +23,8 @@ public class ApiConst {
 	public static final String DATASOURCE_YF = "YFDIT";
 	//3.0贷款数据源
 	public static final String DATASOURCE_ICORE_LN = "ICORE3.0LN";
+	//营销中心开发环境
+	public static final String DATASOURCE_ICORE_MK = "ICORE3.0MK";
 	//本地数据源
 	public static final String DATASOURCE_LOCAL = "LOCAL";
 	//KTBPOC数据源
@@ -34,6 +37,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_LN_DIT = "ICORE3.0LN_DIT";
 	//贷款研发FAT环境
 	public static final String DATASOURCE_ICORE_LN_FAT = "ICORE3.0LN_FAT";
+	//公共研发FAT还款
+	public static final String DATASOURCE_ICORE_CM_FAT = "ICORE3.0CM_FAT";
 	//内管研发测试环境
 	public static final String DATASOURCE_ICORE_CT_DIT = "ICORE3.0CT_DIT";
 	//内管研发FAT环境
@@ -42,6 +47,15 @@ public class ApiConst {
 	public static final String DATASOURCE_LOCAL_CHECK = "LOCALCHECK";
 	//3.0集中式数据库
 	public static final String DATASOURCE_ICORE_CBS = "ICORE3.0CBS";
+	
+	//贷款DEV环境报文json
+	public static final String POSTMAN_LN_DEV = "/postman/贷款DEV.postman_collection.json";
+	//贷款DIT环境报文json
+	public static final String POSTMAN_LN_DIT = "/postman/贷款DIT.postman_collection.json";
+	//贷款FAT环境报文json
+	public static final String POSTMAN_LN_FAT = "/postman/贷款FAT.postman_collection.json";
+	//贷款CBS集中式环境网关
+	public static final String POSTMAN_CBS = "/postman/ICORE3.0集中式.postman_collection.json";
 	
 	//c3p0初始线程数
 	public static final int INITIAL_POOL_SIZE = 20;
@@ -79,4 +93,7 @@ public class ApiConst {
 	public static final String REDIS_CT_DICT_KEY = "ctDict";
 	//redis默认过期时间(一天)
 	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24;
+	
+	//默认通配符
+	public static final String DEFAULT_WILDCARD = "*";
 }

@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "6f938241-c21a-46e9-b666-6e2a02ba0a60",
+		"name": "ICORE3.0集中式",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[326020]贷款开户",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1001"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326020"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326020"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202004091613348290510008"
+					},
+					{
+						"key": "callseqno",
+						"value": "202004091613348290510008"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"ccy_code\": \"IDR\",\n        \"loan_tenor\": \"12M\",\n        \"cust_no\": \"100000000402\",\n        \"drawdown_ccy_code\": \"IDR\",\n        \"drawdown_account\": \"0258000003024\",\n        \"loan_amt\": \"100000\",\n        \"principal\":\"100000\",\n        \"dwdn_fund_method\":\"SELF\",\n        \"prod_id\": \"L0000002\",\n        \"rpym_fund_method\":\"DEPOSIT\",\n        \"rpym_account\":\"0258000003024\",\n        \"calm_ind\":\"N\"\n    },\n    \"sys\": {\n        \"servicecode\": \"326020\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"100\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"202004091613348290510008\",\n        \"initiator_seq\": \"202004091613348290510008\",\n        \"busi_seq\": \"202004091613348290510008\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"202004091613348290510008\",\n        \"trxn_seq\": \"202004091613348290510008\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.47:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"47"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[326041]贷款还款(提前结清)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "1001"
+					},
+					{
+						"key": "dserviceid",
+						"value": "326041"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "326041"
+					},
+					{
+						"key": "busiseqno",
+						"value": "202002031540480178333333"
+					},
+					{
+						"key": "callseqno",
+						"value": "202002031540480178333333"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"input\": {\r\n\t\t\"loan_no\":\"025IDR0201911070013\",\r\n\t\t\"rpym_type\":\"S\"\r\n    },\r\n    \"sys\": {\r\n        \"servicecode\": \"326041\"\r\n    },\r\n    \"comm_req\": {\r\n        \"initiator_date\": \"20190414\",\r\n        \"initiator_system\": \"100\",\r\n        \"trxn_branch\": \"1234\",\r\n        \"total_count\": \"10\",\r\n        \"trxn_teller\": \"88881234\",\r\n        \"sponsor_system\": \"100\",\r\n        \"busi_org_id\": \"025\",\r\n        \"auth_user_id\": \"88881234\",\r\n        \"trxn_desc\": \"\",\r\n        \"busiseqno\": \"YW409072529748\",\r\n        \"initiator_seq\": \"YW251689462999\",\r\n        \"busi_seq\": \"YW741247155999\",\r\n        \"page_start\": \"0\",\r\n        \"callseqno\": \"YW360454054999\",\r\n        \"trxn_seq\": \"YW9266265201493\",\r\n        \"channel_id\": \"CAB\",\r\n        \"page_size\": \"10\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.47:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"47"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

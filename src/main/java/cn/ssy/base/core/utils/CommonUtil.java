@@ -1148,6 +1148,33 @@ public class CommonUtil {
 		return new String();
 	}
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午4:25:36</li>
+	 *         <li>功能说明：通过输入流读取文件内容</li>
+	 *         </p>
+	 * @param filePath
+	 * @return
+	 */
+	public static String readFileContent(InputStream inputStream){
+		try{
+			return convertStreamToJson(inputStream);
+		}catch(Exception e){
+			printLogError(e, logger);
+		}finally{
+			if(inputStream != null){
+				try {
+					inputStream.close();
+				}
+				catch (IOException e) {
+					printLogError(e, logger);
+				}
+			}
+		}
+		return null;
+	}
+	
 	
 	/**
 	 * @Author sunshaoyu
@@ -1956,7 +1983,6 @@ public class CommonUtil {
 					for(String colName : colList){
 						resultMap.put(colName, resultSet.getObject(colName));
 					}
-					
 					resultList.add(resultMap);
 				}
 			}
@@ -2246,7 +2272,7 @@ public class CommonUtil {
 		threadPool.shutdown();
 		long start = System.currentTimeMillis();
 		while(!threadPool.isTerminated()){
-			if((System.currentTimeMillis() - start) > timeout){
+			if(timeout != 0 && (System.currentTimeMillis() - start) > timeout){
 				threadPool.shutdownNow();
 				return false;
 			}
@@ -2284,8 +2310,8 @@ public class CommonUtil {
 	 * @param path	目录路径
 	 * @return	返回以文件名为key,文件路径为value的map
 	 */
-	public static Map<String, String> loadPathAllFiles(String path){
-		Map<String, String> fileMap = new LinkedHashMap<>();
+	public static Map<String, File> loadPathAllFiles(String path){
+		Map<String, File> fileMap = new LinkedHashMap<>();
 		loadPathAllFilesSub(new File(path), fileMap);
 		return fileMap;
 	}
@@ -2299,14 +2325,14 @@ public class CommonUtil {
 	 * @param file
 	 * @param fileMap
 	 */
-	private static void loadPathAllFilesSub(File file, Map<String, String> fileMap){
+	private static void loadPathAllFilesSub(File file, Map<String, File> fileMap){
 		if (file.isDirectory()) {
 			File[] list = file.listFiles();
-			for (int i = 0; i < list.length; i++) {
+			for (int i = 0; isNotNull(list) && i < list.length; i++) {
 				loadPathAllFilesSub(list[i], fileMap);
 			}
 		} else {
-			fileMap.put(file.getName(), file.getPath());
+			fileMap.put(file.getName(), file);
 		}
 	}
 	
@@ -2412,13 +2438,13 @@ public class CommonUtil {
 	}
 	
 	public static void encrypt(String path){
-		Map<String, String> fileMap = CommonUtil.loadPathAllFiles(path);
+		Map<String, File> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
-			byte[] buffer = CommonUtil.readFile(fileMap.get(fileName));
+			byte[] buffer = CommonUtil.readFile(fileMap.get(fileName).getPath());
 			for(int i = 0;i < buffer.length;i++){
 				buffer[i] = (byte) (buffer[i] ^ 981130 ^ 971213);
 			}
-			CommonUtil.writeFile(buffer, fileMap.get(fileName));
+			CommonUtil.writeFile(buffer, fileMap.get(fileName).getPath());
 		}
 	}
 }
