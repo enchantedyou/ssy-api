@@ -58,6 +58,8 @@ import cn.ssy.base.exception.ConfigSettingException;
 import cn.ssy.base.exception.IcorePostException;
 import cn.ssy.base.exception.NullParmException;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * <p>
  * 文件功能说明：
@@ -260,6 +262,7 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void checkPrioritySetting() throws SQLException{
+		logger.info("字典枚举优先级校验>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		loadDictEnumPriority();
 		//检查字典优先级设置
 		for(String dictType : dictPriorityMap.keySet()){
@@ -335,6 +338,10 @@ public class SunlineUtil {
 								//获取字典优先级
 								SppEnumPriority curEnumPriority = enumPriorityMap.get(curEnumType.getEnumLocation());
 								SppEnumPriority beforeEnumPriority = enumPriorityMap.get(beforeEnumType.getEnumLocation());
+								
+								if(curEnumType.getEnumLocation().equals("MsEnumType") && !isMsAsFirst){
+									continue;
+								}
 								
 								if(CommonUtil.isNull(curEnumPriority)){
 									throw new IllegalArgumentException("未找到["+curEnumType.getEnumLocation()+"]对应的枚举优先级配置");
@@ -436,6 +443,7 @@ public class SunlineUtil {
 	 *         <li>功能说明：加载项目字典</li>
 	 *         </p>
 	 */
+	@SuppressWarnings("unchecked")
 	private static void loadProjectDict(){
 		if(CommonUtil.isNotNull(projectFileMap)){
 			dictMap.clear();
@@ -443,41 +451,48 @@ public class SunlineUtil {
 				//从字典中解析
 				if(CommonUtil.isRegexMatches("^.*?Dict.*.xml$", fileName)){
 					Element root = CommonUtil.getXmlRootElement(projectFileMap.get(fileName));
-					List<Element> elementList = CommonUtil.searchXmlElementList(root, "complexType");
-					
-					if(CommonUtil.isNull(elementList)){
+					List<Element> complexTypeList = root.elements();
+					if(CommonUtil.isNull(complexTypeList)){
 						continue;
 					}
-					for(Element element : elementList){
-						String type = element.attributeValue("type");
-						String dictType = CommonUtil.getFirstDotLeftStr(fileName);
-						String id = element.attributeValue("id");
-						Dict beforeDictInfo = dictMap.get(id);
-						Dict dictInfo = new Dict(id, dictType, element.attributeValue("longname"), type, element.attributeValue("desc"));
-						
-						if(CommonUtil.isNotNull(beforeDictInfo)){
-							//获取字典优先级
-							SppDictPriority curDictPriority = dictPriorityMap.get(dictType);
-							SppDictPriority beforeDictPriority = dictPriorityMap.get(beforeDictInfo.getDictType());
+					
+					for(Element complexType : complexTypeList){
+						List<Element> elementList = complexType.elements();
+						for(Element element : elementList){
+							String type = element.attributeValue("type");
+							String dictType = CommonUtil.getFirstDotLeftStr(fileName);
+							String id = element.attributeValue("id");
+							Dict beforeDictInfo = dictMap.get(id);
+							Dict dictInfo = new Dict(id, dictType, element.attributeValue("longname"), type, dictType + "." + complexType.attributeValue("id") + "." + id, element.attributeValue("desc"));
 							
-							if(CommonUtil.isNull(curDictPriority)){
-								throw new IllegalArgumentException("未找到["+dictType+"]对应的字典优先级配置");
-							}else if(CommonUtil.isNull(beforeDictPriority)){
-								throw new IllegalArgumentException("未找到["+beforeDictPriority.getDictType()+"]对应的字典优先级配置");
-							}
-							
-							if(!ApiConst.DEFAULT_WILDCARD.equals(curDictPriority.getGroupId()) 
-							&& !ApiConst.DEFAULT_WILDCARD.equals(beforeDictPriority.getGroupId())
-							&& CommonUtil.compare(curDictPriority.getGroupId(), beforeDictPriority.getGroupId()) != 0){
-								continue;
-							}
-						}
-						
-						//字典重复性校验
-						if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(dictPriorityMap.get(dictType).getDictPriority(),dictPriorityMap.get(beforeDictInfo.getDictType()).getDictPriority()) < 0){
-							dictMap.put(id, dictInfo);
 							if(CommonUtil.isNotNull(beforeDictInfo)){
-								logger.warn("字典["+beforeDictInfo.getDictType()+"."+id+"]优先级低于["+dictType+"."+id+"],应当被移除");
+								//获取字典优先级
+								SppDictPriority curDictPriority = dictPriorityMap.get(dictType);
+								SppDictPriority beforeDictPriority = dictPriorityMap.get(beforeDictInfo.getDictType());
+								
+								if(dictType.equals("MsDict") && !isMsAsFirst){
+									continue;
+								}
+								
+								if(CommonUtil.isNull(curDictPriority)){
+									throw new IllegalArgumentException("未找到["+dictType+"]对应的字典优先级配置");
+								}else if(CommonUtil.isNull(beforeDictPriority)){
+									throw new IllegalArgumentException("未找到["+beforeDictPriority.getDictType()+"]对应的字典优先级配置");
+								}
+								
+								if(!ApiConst.DEFAULT_WILDCARD.equals(curDictPriority.getGroupId()) 
+								&& !ApiConst.DEFAULT_WILDCARD.equals(beforeDictPriority.getGroupId())
+								&& CommonUtil.compare(curDictPriority.getGroupId(), beforeDictPriority.getGroupId()) != 0){
+									continue;
+								}
+							}
+							
+							//字典重复性校验
+							if(CommonUtil.isNull(beforeDictInfo) || CommonUtil.compare(dictPriorityMap.get(dictType).getDictPriority(),dictPriorityMap.get(beforeDictInfo.getDictType()).getDictPriority()) < 0){
+								dictMap.put(id, dictInfo);
+								if(CommonUtil.isNotNull(beforeDictInfo)){
+									logger.warn("字典["+beforeDictInfo.getDictType()+"."+id+"]优先级低于["+dictType+"."+id+"],应当被移除");
+								}
 							}
 						}
 					}
@@ -1018,6 +1033,22 @@ public class SunlineUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
+	 *         <li>2020年4月17日-上午11:01:16</li>
+	 *         <li>功能说明：获取flowtran模型根元素</li>
+	 *         </p>
+	 * @param flowtranId
+	 * @return
+	 */
+	public static Element sunlineGetFlowtranModelType(String flowtranId){
+		if(CommonUtil.isNotNull(flowtranId)){
+			return CommonUtil.getXmlRootElement(projectFileMap.get(flowtranId+".flowtrans.xml"));
+		}
+		return null;
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
 	 *         <li>2020年4月13日-下午7:17:08</li>
 	 *         <li>功能说明：获取枚举模型的根元素</li>
 	 *         </p>
@@ -1250,20 +1281,22 @@ public class SunlineUtil {
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月16日-上午9:32:15</li>
 	 *         <li>功能说明：接口文档校验</li>
 	 *         </p>
 	 */
-	public static void sunlineIntfExcelValidation(E_ICOREMODULE module,String flowtranId,String intfExcelPath,String outputPath){
-		if(CommonUtil.isNull(module) || CommonUtil.isNull(flowtranId) || CommonUtil.isNull(intfExcelPath)){
+	public static void sunlineIntfExcelValidation(String dataSource,String flowtranId,String intfExcelPath,String outputPath) throws SQLException{
+		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(flowtranId) || CommonUtil.isNull(intfExcelPath)){
 			return;
 		}
-		File[] fileArr = new File(intfExcelPath).listFiles();
-		for(File file : fileArr){
-			if(file.getName().contains(String.valueOf(flowtranId))){
-				intfExcelPath = file.getPath();
+		TspServiceIn serviceIn = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from tsp_service_in where inner_service_code like '%"+flowtranId+"'", dataSource), TspServiceIn.class);
+		Map<String, File> excelMap = CommonUtil.loadPathAllFiles(intfExcelPath);
+		for(String fileName : excelMap.keySet()){
+			if(fileName.contains(serviceIn.getInnerServiceCode()) || fileName.contains(serviceIn.getOutServiceCode())){
+				intfExcelPath = excelMap.get(fileName).getPath();
 			}
 		}
 		
@@ -1275,13 +1308,13 @@ public class SunlineUtil {
 		List<Map<String, Object>> outputRowMapList = intfExcelTwotuple.getSecond();
 		
 		//获取flowtran配置
-		Document doc = sunlineSearchFlowtran(module, flowtranId);
-		if(CommonUtil.isNull(doc)){
+		if(CommonUtil.isNull(serviceIn)){
 			logger.error("未搜索到相关flowtran");
 		}else{
+			Element root = sunlineGetFlowtranModelType(serviceIn.getInnerServiceCode());
 			//获取输入输出字段
-			Element input = CommonUtil.searchXmlElement(doc.getRootElement(), "input");
-			Element output = CommonUtil.searchXmlElement(doc.getRootElement(), "output");
+			Element input = CommonUtil.searchXmlElement(root, "input");
+			Element output = CommonUtil.searchXmlElement(root, "output");
 			
 			buffer.append("\r\n" + CommonUtil.buildSplitLine(100) + "\r\n");
 			buffer.append("输入接口校验开始\r\n");
@@ -1343,7 +1376,7 @@ public class SunlineUtil {
 			
 			logger.info(buffer.toString());
 			if(CommonUtil.isNotNull(outputPath)){
-				CommonUtil.writeFileContent(buffer.toString(), outputPath + File.separator + module.getId() + flowtranId + "接口校验.txt");
+				CommonUtil.writeFileContent(buffer.toString(), outputPath + File.separator + serviceIn.getInnerServiceCode() + "接口校验.txt");
 			}
 		}
 	}
@@ -1397,6 +1430,7 @@ public class SunlineUtil {
 				//获取字段基础信息
 				String type = field.attributeValue("type");
 				String id = field.attributeValue("id");
+				
 				String defaultDesc = CommonUtil.isNull(dictMap.get(id)) ? field.attributeValue("desc") : dictMap.get(id).getDesc();
 				String realType = CommonUtil.getRealType(type);
 				
@@ -1414,7 +1448,7 @@ public class SunlineUtil {
 				/*if(ruleMap.get("required").equals(true)){
 					ruleMap.put("message", "请输入" + desc);
 				}*/
-				fieldValueMap.put("width", "150px");
+				//fieldValueMap.put("width", "150px");
 				
 				//枚举处理
 				if(CommonUtil.isNotNull(type) && type.contains(".E_")){
@@ -1590,7 +1624,6 @@ public class SunlineUtil {
 			String command = resultSet.getString("command");
 			String id = resultSet.getString("id");
 			
-			
 			if("Sleep".equals(command)){
 				processMap.put(id, command);
 			}
@@ -1697,14 +1730,15 @@ public class SunlineUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode, Params params) throws Exception{
+	public static TwoTuple<String, String> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode, Params params) throws Exception{
 		if(CommonUtil.isNull(serviceCode) || CommonUtil.isNull(postmanCollection)){
 			throw new NullParmException("报文集", "交易服务码");
 		}
 		//读取报文集数据
 		String json = CommonUtil.readFileContent(SunlineUtil.class.getResourceAsStream(postmanCollection));
 		JSONArray item = JSONObject.fromObject(json).getJSONArray("item");
-
+		boolean isPostSend = false;
+		
 		for(int i = 0;i < item.size();i++){
 			JSONObject trxn = item.getJSONObject(i);
 			String requestName = trxn.getString("name");
@@ -1714,16 +1748,25 @@ public class SunlineUtil {
 			
 			//封装请求头
 			Map<String, String> headerMap = new HashMap<String, String>();
+			String trxnSeq = CommonUtil.buildTrxnSeq(24);
 			for(int j = 0;j < headers.size();j++){
 				JSONObject header = headers.getJSONObject(j);
 				String key = header.getString("key");
 				String value = header.getString("value");
-				if("busiseqno".equals("key") || "callseqno".equals("key")){
-					headerMap.put(key, CommonUtil.buildTrxnSeq(24));
+				if("busiseqno".equals(key) || "callseqno".equals(key)){
+					headerMap.put(key, trxnSeq);
 				}else{
 					headerMap.put(key, value);
 				}
 			}
+			
+			//公共请求区
+			JSONObject commReq = body.getJSONObject("comm_req");
+			commReq.put("busiseqno", trxnSeq);
+			commReq.put("initiator_seq", trxnSeq);
+			commReq.put("busi_seq", trxnSeq);
+			commReq.put("callseqno", trxnSeq);
+			commReq.put("trxn_seq", trxnSeq);
 			
 			//自定义参数
 			JSONObject input = body.getJSONObject("input");
@@ -1735,7 +1778,8 @@ public class SunlineUtil {
 			
 			//发起请求
 			if(serviceCode.equals(headerMap.get("api_id"))){
-				logger.info("发起请求:" + requestName);
+				logger.info("发起请求:" + requestName +",请求头:" + headerMap + ",请求报文:" + body);
+				isPostSend = true;
 				Map<String, String> querys = new HashMap<String, String>();
 				HttpResponse response = NetworkApi.doPost(url, "", headerMap, querys, body.toString());
 				
@@ -1744,15 +1788,21 @@ public class SunlineUtil {
 				if (httpEntity != null) {
 					InputStream instreams = httpEntity.getContent();
 					String str = CommonUtil.convertStreamToJson(instreams);
-					JSONObject responseJson = JSONObject.fromObject(str);
-					
+					com.alibaba.fastjson.JSONObject responseJson = JSON.parseObject(str);
 					if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
-						return responseJson.getJSONObject("output").toString();
+						return new TwoTuple<String, String>(responseJson.getJSONObject("comm_res").getString("trxn_seq"), responseJson.getJSONObject("output").toString());
 					}else{
-						throw new IcorePostException(responseJson.getJSONObject("sys").getString("erortx"));
+						String erortx = responseJson.getJSONObject("sys").getString("erortx");
+						logger.error(erortx);
+						throw new IcorePostException(erortx);
 					}
 				}
 			}
+		}
+		
+		//交易码的请求报文未配置
+		if(!isPostSend){
+			throw new IllegalArgumentException("核心服务码["+serviceCode+"]的请求报文未配置");
 		}
 		return null;
 	}
@@ -1770,7 +1820,7 @@ public class SunlineUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode) throws Exception{
+	public static TwoTuple<String, String> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode) throws Exception{
 		return sunlineSendPostTrxnRequest(postmanCollection, serviceCode, null);
 	}
 	
@@ -2073,6 +2123,7 @@ public class SunlineUtil {
 			logger.info("删除产品["+id+"]的缺省值属性:" + JDBCUtils.executeUpdate("delete from lnf_field_control where prod_id = ?", new String[]{id}, dataSource));
 			CommonUtil.printSplitLine(150);
 		}
+		logger.info("刷新缓存:" + (JDBCUtils.executeUpdate("update tsp_param_version_info set param_version = param_version + 1;", dataSource) > 0));
 	}
 	
 	
@@ -2098,6 +2149,7 @@ public class SunlineUtil {
 		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_accrual", isCheckUnlinked,prodId);
 		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_maturity", isCheckUnlinked,prodId);
 		sunlineLnProductSync(fromDataSource, toDataSource, "lnf_field_control", isCheckUnlinked,prodId);
+		logger.info("刷新缓存" + JDBCUtils.executeUpdate("update tsp_param_version_info set param_version = param_version + 1;", toDataSource));
 	}
 	
 	
@@ -2439,21 +2491,60 @@ public class SunlineUtil {
 	 * @param isList
 	 * @return
 	 */
-	public static List<String> sunlineGenerateMenuSql(String menuCode, String serviceCode, String menuUpperId, String menuDesc, String pageId, String... isList){
+	public static List<String> sunlineGenerateMenuSql(E_ICOREMODULE module, String menuCode, String serviceCode, String menuUpperId, String menuDesc, String pageId, String... isList){
 		List<String> sqlList = new LinkedList<>();
 		sqlList.add("-- "+menuCode+"-"+menuDesc+" --");
 		sqlList.add("delete from ctp_menu where menu_code = '" + menuCode + "';");
-		sqlList.add("delete from ctp_trxn_mapping where ct_trxn_code = '" + serviceCode + "';");
-		
 		sqlList.add("INSERT INTO `ctp_menu` (`menu_code`, `menu_id`, `menu_upper_id`, `menu_group`, `menu_default_ind`, `menu_desc`, `page_id`, `page_display_scene`, `output_page_id`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+menuCode+"', '"+serviceCode+"', '"+menuUpperId+"', 'LN', 'N', '"+menuDesc+"', '"+pageId+"', NULL, NULL, 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
-		sqlList.add("INSERT INTO `ctp_trxn_mapping` (`ct_trxn_code`, `trxn_code_name`, `backend_trxn_code`, `trxn_control_ind`, `cumulative_limit_ind`, `service_executor_id`, `package_mapping_id`, `register_server_id`, `external_scene_id`, `trxn_version`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+serviceCode+"', '"+menuDesc+"', '"+serviceCode+"', 'N', NULL, 'rpc', NULL, 'ln', '01', '1.0', 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
+		
 		sqlList.add("-- "+serviceCode+"-"+menuDesc+" --");
+		sqlList.add("delete from ctp_trxn_mapping where ct_trxn_code = '" + serviceCode + "';");
+		sqlList.add("INSERT INTO `ctp_trxn_mapping` (`ct_trxn_code`, `trxn_code_name`, `backend_trxn_code`, `trxn_control_ind`, `cumulative_limit_ind`, `service_executor_id`, `package_mapping_id`, `register_server_id`, `external_scene_id`, `trxn_version`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+serviceCode+"', '"+menuDesc+"', '"+serviceCode+"', 'N', NULL, 'rpc', NULL, '"+module.getId()+"', '01', '1.0', 'S####', '20170301 09:30:11 233', NULL, NULL, '0');");
 		sqlList.add("delete from smp_sys_trans where trans_cd = '" + serviceCode + "';");
 		
 		String outList = CommonUtil.isNull(isList) ? "NULL" : "'"+isList[0]+"'";
-		sqlList.add("INSERT INTO smp_sys_trans(`trans_cd`, `trans_name`, `service_cd`, `encap_cd`, `trans_status`, `deal_cnt`, `scene_id`, `dcn_id`, `version_id`, `app_id`, `timeout`, `group_id`, `isrecord`, `islist`, `system_id`, `is_approval`) VALUES ('"+serviceCode+"', '"+menuDesc+"', 'sunflow', '"+serviceCode+"', 'Y', '0', '01', 'adm', '1.0', '1021', '120000', 'LN', NULL, "+outList+", NULL, 'false');");
+		sqlList.add("INSERT INTO smp_sys_trans(`trans_cd`, `trans_name`, `service_cd`, `encap_cd`, `trans_status`, `deal_cnt`, `scene_id`, `dcn_id`, `version_id`, `app_id`, `timeout`, `group_id`, `isrecord`, `islist`, `system_id`, `is_approval`) VALUES ('"+serviceCode+"', '"+menuDesc+"', 'sunflow', '"+serviceCode+"', 'Y', '0', '01', 'adm', '1.0', '"+module.getSubSysCode()+"', '120000', '"+module.getUpperId()+"', NULL, "+outList+", NULL, 'false');");
 		sqlList.add("commit;");
 		return sqlList;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月17日-上午10:53:01</li>
+	 *         <li>功能说明：构建新交易的服务sql脚本</li>
+	 *         </p>
+	 * @param flowtranIdArray
+	 * @return
+	 * @throws SQLException 
+	 */
+	public static String sunlineGenerateTrxnSql(E_ICOREMODULE module, String... flowtranIdArray) throws SQLException{
+		StringBuffer buffer = new StringBuffer();
+		if(CommonUtil.isNotNull(flowtranIdArray) && CommonUtil.isNotNull(module)){
+			Map<String, Element> flowtranMap = new HashMap<String, Element>();
+			for(String flowtranId : flowtranIdArray){
+				flowtranMap.put(flowtranId, sunlineGetFlowtranModelType(flowtranId));
+			}
+			
+			buffer.append("-- build msp_transaction sql --").append("\r\n");
+			for(String flowtranId : flowtranMap.keySet()){
+				Element flowtran = flowtranMap.get(flowtranId);
+				buffer.append("delete from msp_transaction where trxn_code = '"+flowtranId+"';\r\n");
+				buffer.append("INSERT INTO `msp_transaction` (`trxn_code`, `trxn_type`, `trxn_desc`, `allow_reversal`, `flow_trxn_id`, `register_packet_ind`, `over_time`, `log_level`, `enable_ind`, `global_parm_mntn_ind`, `reversal_ind`, `register_trxn_ind`, `db_trxn_spread_type`, `read_write_separait`, `force_commit`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+flowtranId+"', '"+flowtran.attributeValue("kind")+"', '"+flowtran.attributeValue("longname")+"', 'N', '"+flowtranId+"', 'Y', '250000', 'error', 'Y', 'N', 'N', 'N', 'Required', 'N', NULL, '20991231', '20991231', 'S####', 'S####', '1');\r\n");
+			}
+			buffer.append("commit;");
+			
+			buffer.append("\r\n-- build tsp_service_in sql --").append("\r\n");
+			for(String flowtranId : flowtranMap.keySet()){
+				Element flowtran = flowtranMap.get(flowtranId);
+				buffer.append("delete from tsp_service_in where inner_service_code = '"+flowtranId+"';\r\n");
+				buffer.append("INSERT INTO `tsp_service_in` (`system_code`, `sub_system_code`, `out_service_code`, `inner_service_code`, `inner_service_impl_code`, `description`, `service_category`, `route_keys`, `service_type`, `protocol_id`, `is_enable`, `transaction_mode`, `log_level`, `timeout`, `alias_mapping`, `force_unused_odb_cache`, `register_mode`) VALUES ('"+module.getSysCode()+"', '"+module.getSubSysCode()+"', '"+module.getSrvSign() + flowtranId.substring(2) +"', '"+flowtranId+"', '', '"+flowtran.attributeValue("longname")+"', 'T', '', 'try', 'rpc', '1', 'A', '', '0', '0', '0', '0');\r\n");
+			}
+			buffer.append("commit;");
+		}
+		
+		return buffer.toString();
 	}
 	
 	
@@ -2808,8 +2899,38 @@ public class SunlineUtil {
 		if(CommonUtil.isNotNull(fieldIdArray)){
 			for(String fieldId : fieldIdArray){
 				if(CommonUtil.isNotNull(fieldId)){
-					Dict dict = dictMap.get(fieldId);
-					buffer.append("<element id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictType()+"."+fieldId+"\" required=\"false\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>").append("\r\n");
+					Dict dict = dictMap.get(fieldId.trim());
+					if(CommonUtil.isNull(dict)){
+						logger.info("字段["+fieldId+"]对应的字典信息不存在");
+					}else{
+						buffer.append("<element id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictRef()+"\" required=\"false\" desc=\""+dict.getDesc()+"\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>").append("\r\n");
+					}
+				}
+			}
+		}
+		return buffer.toString();
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月16日-下午7:49:29</li>
+	 *         <li>功能说明：生成表类型元素</li>
+	 *         </p>
+	 * @param fieldIdArray
+	 * @return
+	 */
+	public static String sunlineGenerateTableElement(String... fieldIdArray){
+		StringBuffer buffer = new StringBuffer();
+		if(CommonUtil.isNotNull(fieldIdArray)){
+			for(String fieldId : fieldIdArray){
+				if(CommonUtil.isNotNull(fieldId)){
+					Dict dict = dictMap.get(fieldId.trim());
+					if(CommonUtil.isNull(dict)){
+						logger.info("字段["+fieldId+"]对应的字典信息不存在");
+					}else{
+						buffer.append("<field id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictRef()+"\" desc=\""+dict.getDesc()+"\" primarykey=\"false\" final=\"false\" nullable=\"true\" identity=\"false\" allowSubType=\"true\"/>").append("\r\n");
+					}
 				}
 			}
 		}
@@ -2833,7 +2954,7 @@ public class SunlineUtil {
 		
 		if(CommonUtil.isNotNull(elementList)){
 			for(Element e : elementList){
-				buffer.append("<field id=\""+e.attributeValue("id")+"\" type=\""+e.attributeValue("type")+"\" required=\"false\" multi=\"false\" array=\"false\" longname=\""+e.attributeValue("longname")+"\" ref=\""+e.attributeValue("ref")+"\"/>").append("\n");
+				buffer.append("<field id=\""+e.attributeValue("id")+"\" type=\""+e.attributeValue("type")+"\" required=\"false\" desc=\""+e.attributeValue("desc")+"\" multi=\"false\" array=\"false\" longname=\""+e.attributeValue("longname")+"\" ref=\""+e.attributeValue("ref")+"\"/>").append("\n");
 			}
 		}
 		return buffer.toString();

@@ -25,13 +25,17 @@ public enum E_ICOREMODULE {
 	
 	LN("ln","Ln",32,"贷款","Loan","102","1021"),
 	
+	CL("cl","Cl",59,"额度","Credit limit","204","2041"),
+	
 	CC("cc","Cc",34,"类信用卡","Credit Card","105","1051"),
 	
 	CM("cm","Cm",35,"公共","Common","103","1031"),
 	
 	GL("gl","Gl",38,"总账","General ledger","104","1041"),
 	
-	MK("mk","MK",50,"营销","Marketing","203","2031");
+	MK("mk","MK",50,"营销","Marketing","203","2031"),
+	
+	PF("pf","PF",56,"产品工厂","Product factory","203","2031");
 	
 	private String id;
 	

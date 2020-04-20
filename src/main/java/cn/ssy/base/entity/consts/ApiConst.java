@@ -23,6 +23,8 @@ public class ApiConst {
 	public static final String DATASOURCE_YF = "YFDIT";
 	//3.0贷款数据源
 	public static final String DATASOURCE_ICORE_LN = "ICORE3.0LN";
+	//额度开发环境
+	public static final String DATASOURCE_CL = "ICORE3.0CL";
 	//营销中心开发环境
 	public static final String DATASOURCE_ICORE_MK = "ICORE3.0MK";
 	//本地数据源
@@ -43,6 +45,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_CT_DIT = "ICORE3.0CT_DIT";
 	//内管研发FAT环境
 	public static final String DATASOURCE_ICORE_CT_FAT = "ICORE3.0CT_FAT";
+	//中台营销FAT环境
+	public static final String DATASOURCE_ICORE_MK_FAT = "ICORE3.0MK_FAT";
 	//本地稽核数据库
 	public static final String DATASOURCE_LOCAL_CHECK = "LOCALCHECK";
 	//3.0集中式数据库

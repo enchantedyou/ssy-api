@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +27,6 @@ import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
-import cn.ssy.base.entity.mybatis.SppDatasource;
-import cn.ssy.base.entity.plugins.DynamicDataSource;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
@@ -74,7 +71,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("prod_sale_status");
+		SunlineUtil.sunlineSearchDict("rpym_method");
 	}
 	
 	/**
@@ -104,7 +101,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnScheduleMaintenanceType"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -117,7 +114,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test37(){
-		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("oldi_amortization_method", true, false,"amort_amt"));
+		System.out.println(SunlineUtil.sunlineBuildCtEventsJson("dd_td_ind", true, false,"share_confirm_date","share_confirm_date_type","share_confirm_days"));
 	}
 	
 	/**
@@ -151,7 +148,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN_FAT);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_MK);
 	}
 
 	
@@ -180,7 +177,9 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test15() throws Exception{
-		System.out.println(SunlineUtil.sunlineGenerateComplexElement("cust_no","cust_name","prod_id","prod_name","ccy_code","loan_no","loan_amt"));
+		String fieldStr = CommonUtil.readFileContent(outputPath + "/f.txt");
+		String result = SunlineUtil.sunlineGenerateComplexElement(CommonUtil.parseStringToArray(fieldStr, "\r\n"));
+		System.out.println(result);
 	}
 	
 	
@@ -194,9 +193,26 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test14() throws Exception{
-		System.out.println(SunlineUtil.sunlineGenerateFlowtranElement("LnQueryLoanListOut"));
+		System.out.println(SunlineUtil.sunlineGenerateFlowtranElement("PfFinancialProdMntIn"));
 	}
 	
+	
+	/**
+	 * 
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月16日-下午7:56:41</li>
+	 *         <li>功能说明：生成table类型元素</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test14p() throws Exception{
+		String fieldStr = CommonUtil.readFileContent(outputPath + "/f.txt");
+		String result = SunlineUtil.sunlineGenerateTableElement(CommonUtil.parseStringToArray(fieldStr, "\n"));
+		System.out.println(result);
+		//CommonUtil.writeFileContent(result, outputPath + "r.txt");
+	}
 	
 	/**
 	 * @Author sunshaoyu
@@ -253,7 +269,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_MK, E_ICOREMODULE.MK,"560020");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_CL, E_ICOREMODULE.CL,"598889","598890");
 	}
 	
 	
@@ -284,11 +300,12 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("ln6020", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("pf0054", outputPath);
 	}
 	
 	
 	/**
+	 * @throws SQLException 
 	 * @Author sunshaoyu
 	 *         <p>
 	 *         <li>2019年8月16日-下午2:24:21</li>
@@ -296,8 +313,8 @@ public class SimpleTest{
 	 *         </p>
 	 */
 	@Test
-	public void test6(){
-		SunlineUtil.sunlineIntfExcelValidation(E_ICOREMODULE.LN, "6047", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/LN-贷款/传统接口/", "C:/Users/DELL/Desktop/");
+	public void test6() throws SQLException{
+		SunlineUtil.sunlineIntfExcelValidation(ApiConst.DATASOURCE_ICORE_MK_FAT, "0054", "D:/Sunline/SunlineDocument/icore3.x/99-共享文档/04接口清单/", "C:/Users/DELL/Desktop/");
 	}
 	
 	
@@ -325,7 +342,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test26() throws IOException, SQLException{
-		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN, "L0000002-G");
+		SunlineUtil.sunlineDeleteLnProduct(ApiConst.DATASOURCE_ICORE_LN_FAT, "L0000001-1");
 	}
 	
 	
@@ -524,10 +541,10 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test38() throws Exception{
-		final int concurrentNum = 3;
+		final int concurrentNum = 1;
 		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 30000, ApiConst.POSTMAN_LN_DEV, "326320");
 		for(String threadId : responseMap.keySet()){
-			System.out.println(responseMap.get(threadId));
+			System.out.println(threadId + "->" + responseMap.get(threadId));
 		}
 	}
 	
@@ -585,7 +602,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test41() throws Exception{
-		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql("D101", "560001", "3250", "产品基本信息查询", "/views/ln/business/ln_stop_accrual.json");
+		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql(E_ICOREMODULE.PF, "XXX", "560054", "XX", "理财产品维护", "/views/");
 		for(String sql : sqlList){
 			System.out.println(sql);
 		}
@@ -602,7 +619,7 @@ public class SimpleTest{
 	@Test
 	public void test42() throws Exception{
 		int dealCount = 0;
-		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
+		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/pf";
 		String key = "\"control\"";
 		Map<String, File> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
@@ -617,7 +634,7 @@ public class SimpleTest{
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
 				String result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(!JSONObject.fromObject(result).equals(JSONObject.fromObject(fileContent))){
-					CommonUtil.writeFileContent(result, filePath);
+					CommonUtil.writeFileContent(result, outputPath + "/ln/sump/" + fileName);
 					dealCount++;
 				}
 				/** 加载字段名和字段描述的映射 **/
@@ -645,64 +662,39 @@ public class SimpleTest{
 	@Test
 	public void test44() throws Exception{
 		String javaPackage = "cn.ssy.base.entity.mybatis";
-		String tableName = "spp_enum_priority";
-		String dataSource = ApiConst.DATASOURCE_LOCAL;
+		String tableName = "ctp_language_packet";
+		String dataSource = ApiConst.DATASOURCE_ICORE_CT_FAT;
 		
 		String parseTableName = CommonUtil.parseHumpStr(tableName);
 		String output = outputPath  + parseTableName.substring(0, 1).toUpperCase() + parseTableName.substring(1) + ".java";
 		CommonUtil.generateTableJava(javaPackage, tableName, dataSource, output);
 	}
 
-	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2020年3月28日-下午12:52:37</li>
-	 *         <li>功能说明：</li>
+	 *         <li>2020年4月15日-下午7:12:38</li>
+	 *         <li>功能说明：向核心发起请求</li>
 	 *         </p>
 	 * @throws Exception
 	 */
 	@Test
-	public void test45() throws Exception{
-		//"lnf_basic","lnf_drawdown","lnf_repayment","lnf_accrual","lnf_maturity",
-		String[] tableArray = new String[]{"lnf_field_control"};
-		List<String> whitelistColList = Arrays.asList(new String[]{"data_create_time","data_update_time","data_create_user","data_update_user","data_version"});
-		SppDatasource sourceDataSource = DynamicDataSource.getSppDatasource(ApiConst.DATASOURCE_ICORE_LN_FAT);
-		SppDatasource checkDataSource = DynamicDataSource.getSppDatasource(ApiConst.DATASOURCE_ICORE_MK);
-		
-		StringBuffer buffer = new StringBuffer();
-		for(String table : tableArray){
-			buffer.append("------------------------------稽核" + table + "开始------------------------------\r\n");
-			List<Map<String, Object>> sourceDataList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from " + table + " order by table_name,field_name,inherit_ind", sourceDataSource.getDatasourceId()));
-			List<Map<String, Object>> checkDataList = CommonUtil.resolveResultSetToList(JDBCUtils.executeQuery("select * from " + table, checkDataSource.getDatasourceId()));
-			
-			int loopCount = sourceDataList.size() <= checkDataList.size() ? sourceDataList.size() : checkDataList.size();
-			for(int i = 0;i < loopCount;i++){
-				Map<String, Object> sourceDataMap = sourceDataList.get(i);
-				Map<String, Object> checkDataMap = checkDataList.get(i);
-				String prodId = String.valueOf(sourceDataMap.get("prod_id"));
-				
-				for(String colName : sourceDataMap.keySet()){
-					String sourceData = String.valueOf(sourceDataMap.get(colName));
-					String checkData = String.valueOf(checkDataMap.get(colName));
-					
-					if(!checkDataMap.containsKey(colName)){
-						buffer.append("["+checkDataSource.getDatasourceDesc()+"]缺失列->" + colName).append("\r\n");
-					}else if((CommonUtil.isNull(sourceData) && CommonUtil.isNull(checkData)) || whitelistColList.contains(colName)){
-						continue;
-					}else if(CommonUtil.compare(sourceData, checkData) != 0){
-						buffer.append("["+table+"-"+prodId+"]列["+colName+"]数据不一致:["+sourceDataSource.getDatasourceDesc()+"]["+sourceData+"]--->["+checkDataSource.getDatasourceDesc()+"]["+checkData+"]\r\n");
-					}
-				}
-			}
-			buffer.append("------------------------------稽核" + table + "结束------------------------------\r\n");
-		}
-		CommonUtil.writeFileContent(buffer.toString(), outputPath + "/脚本稽核.info");
-	}
-	
-	@Test
 	public void test46() throws Exception{
 		Params params = new Params();
-		//System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_DEV, "326320", params.add("cust_no", "123")));
+		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_DEV, "326320", params));
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午7:13:17</li>
+	 *         <li>功能说明：生成交易参数脚本</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test47() throws Exception{
+		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.PF, "pf0051","pf0052","pf0053","pf0054"));
 	}
 }	

@@ -861,6 +861,20 @@ public class CommonUtil {
 		return list;
 	}
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月16日-下午8:01:24</li>
+	 *         <li>功能说明：根据分隔符将字符串转数组</li>
+	 *         </p>
+	 * @param sourceStr
+	 * @param splitStr
+	 * @return
+	 */
+	public static String[] parseStringToArray(String sourceStr,String splitStr){
+		return parseStringToList(sourceStr, splitStr).toArray(new String[]{});
+	}
+	
 	
 	/**
 	 * @Author sunshaoyu
@@ -2106,7 +2120,7 @@ public class CommonUtil {
 						returnObj = method.invoke(method.getDeclaringClass().newInstance(), args);
 						successInd = true;
 					}catch (Exception e) {
-						printLogError(e, logger);
+						returnObj = e.getCause().getMessage();
 					}
 					
 					logger.info("线程[" + Thread.currentThread() + "]执行完成,耗时:" + (System.currentTimeMillis() - start) + "ms");
@@ -2435,6 +2449,36 @@ public class CommonUtil {
 		toStringBuffer.append("]\";\r\n\t}\r\n}");
 		String javaFileContent = fieldBuffer.append(getsetBuffer).append(toStringBuffer).toString();
 		writeFileContent(javaFileContent, outputPath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午7:23:45</li>
+	 *         <li>功能说明：获取两个值中较大的一个</li>
+	 *         </p>
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static <T extends Comparable<T>> T getMax(T a, T b){
+		return compare(a, b) > 0 ? a : b;
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午7:24:05</li>
+	 *         <li>功能说明：获取两个值中较小的一个</li>
+	 *         </p>
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static <T extends Comparable<T>> T getMin(T a, T b){
+		return compare(a, b) < 0 ? a : b;
 	}
 	
 	public static void encrypt(String path){

@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -371,8 +372,7 @@ public class JDBCUtils {
 	 * @param ps
 	 * @param ct
 	 */
-	public static void close(ResultSet res, PreparedStatement ps,
-			Connection ct) {
+	public synchronized static void close(ResultSet res, PreparedStatement ps, Connection ct) {
 		if (res != null) {
 			try {
 				res.close();
@@ -429,5 +429,32 @@ public class JDBCUtils {
 			}
 			ct = null;
 		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月15日-下午7:14:20</li>
+	 *         <li>功能说明：获取表的主键名列表</li>
+	 *         </p>
+	 * @param dataSource	数据源
+	 * @param tableName	表名
+	 * @return
+	 * @throws SQLException
+	 */
+	public static List<String> getPrimaryKeyList(String dataSource, String tableName) throws SQLException {
+		res = getConnection(dataSource).getMetaData().getPrimaryKeys(null, null, tableName);
+		List<String> pkList = new ArrayList<String>();
+		try{
+			while(res.next()){
+				pkList.add(res.getString("COLUMN_NAME"));
+			}
+		}catch(SQLException e){
+			CommonUtil.printLogError(e, logger);
+		}finally{
+			close();
+		}
+		return pkList;
 	}
 }

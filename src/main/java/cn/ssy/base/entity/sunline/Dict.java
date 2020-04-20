@@ -30,18 +30,21 @@ public class Dict implements Serializable{
 	
 	private String refType;
 	
+	private String dictRef;
+	
 	private String desc;
 	
 	public Dict(){
 		
 	}
 	
-	public Dict(String id, String dictType, String longname, String refType, String desc) {
+	public Dict(String id, String dictType, String longname, String refType, String dictRef, String desc) {
 		super();
 		this.id = id;
 		this.dictType = dictType;
 		this.longname = longname;
 		this.refType = refType;
+		this.dictRef = dictRef;
 		this.desc = desc;
 	}
 
@@ -85,8 +88,20 @@ public class Dict implements Serializable{
 		this.desc = desc;
 	}
 
+	public String getDictRef() {
+		return dictRef;
+	}
+
+	public void setDictRef(String dictRef) {
+		this.dictRef = dictRef;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
 	@Override
 	public String toString() {
-		return "[字典]id:" + id + ",字典类型:" + dictType + ",引用类型:" + refType + ",中文描述:" + desc + ",英文描述:" + longname;
+		return "[字典]id:" + id + ",字典类型:" + dictType + ",引用类型:" + refType + ",引用:" + dictRef + ",中文描述:" + desc + ",英文描述:" + longname;
 	}
 }
