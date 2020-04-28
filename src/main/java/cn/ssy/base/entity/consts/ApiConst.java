@@ -60,6 +60,8 @@ public class ApiConst {
 	public static final String POSTMAN_LN_FAT = "/postman/贷款FAT.postman_collection.json";
 	//贷款CBS集中式环境网关
 	public static final String POSTMAN_CBS = "/postman/ICORE3.0集中式.postman_collection.json";
+	//额度FAT环境报文json
+	public static final String POSTMAN_CL_FAT = "/postman/额度FAT.postman_collection.json";
 	
 	//c3p0初始线程数
 	public static final int INITIAL_POOL_SIZE = 20;

@@ -537,7 +537,7 @@ public class CommonUtil {
 	 *         </p>
 	 * @return	返回交易流水
 	 */
-	public static String buildTrxnSeq(int len){
+	public synchronized static String buildTrxnSeq(int len){
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 		len = len - 17 >= 0 ? len - 17 : 0;
 		return sdf.format(new Date()) + randStr(len,1);
@@ -1836,7 +1836,7 @@ public class CommonUtil {
 		catch (Exception e) {
 			printLogError(e, logger);
 		}finally{
-			JDBCUtils.close(resultSet);
+			JDBCUtils.close();
 		}
 		return null;
 	}
@@ -1872,7 +1872,7 @@ public class CommonUtil {
 		catch (Exception e) {
 			printLogError(e, logger);
 		}finally{
-			JDBCUtils.close(resultSet);
+			JDBCUtils.close();
 		}
 		return null;
 	}
@@ -1933,7 +1933,7 @@ public class CommonUtil {
 		}catch(Exception e){
 			printLogError(e, logger);
 		}finally{
-			JDBCUtils.close(resultSet);
+			JDBCUtils.close();
 		}
 		return null;
 	}

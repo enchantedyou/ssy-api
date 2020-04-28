@@ -2,6 +2,7 @@ package cn.ssy.api.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("rpym_method");
+		SunlineUtil.sunlineSearchDict("accrual_base_day");
 	}
 	
 	/**
@@ -101,7 +102,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnScheduleListQueryIn"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -134,7 +135,7 @@ public class SimpleTest{
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnMaturityInfo"));
 		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnFieldControlInfo"));
 		*/
-		System.out.println(SunlineUtil.sunlineBuildCtTabJson("ClBaseInfo"));
+		System.out.println(SunlineUtil.sunlineBuildCtTabJson("LnScheduleListQueryIn"));
 	}
 	
 	
@@ -148,7 +149,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_MK);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
 	}
 
 	
@@ -541,8 +542,12 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test38() throws Exception{
+		final Params params = new Params();
+		params.add("loan_amt", "100");
+		params.add("prod_id", "L0000002");
 		final int concurrentNum = 1;
-		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class), concurrentNum, 30000, ApiConst.POSTMAN_LN_DEV, "326320");
+		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class, Params.class), concurrentNum, 50000, ApiConst.POSTMAN_LN_DEV, "326320", params);
+		
 		for(String threadId : responseMap.keySet()){
 			System.out.println(threadId + "->" + responseMap.get(threadId));
 		}
@@ -680,8 +685,11 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test46() throws Exception{
-		Params params = new Params();
-		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_DEV, "326320", params));
+		//开额度
+		com.alibaba.fastjson.JSONObject output = SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_CL_FAT, "592000").getSecond();
+		//贷款开户
+		Params params = new Params().add("prod_id", "L0000001").add("limit_code", output.getString("limit_code")).add("cust_no", output.getString("cust_no"));
+		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_FAT, "326320", params));
 	}
 	
 	
@@ -696,5 +704,38 @@ public class SimpleTest{
 	@Test
 	public void test47() throws Exception{
 		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.PF, "pf0051","pf0052","pf0053","pf0054"));
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年4月23日-上午11:26:05</li>
+	 *         <li>功能说明：清库</li>
+	 *         </p>
+	 * @throws Exception
+	 */
+	@Test
+	public void test48() throws Exception{
+		String path = "D:/Sunline/sunlineDeveloper/记事本/工具脚本/ln_clear.sql";
+		String fullSql = CommonUtil.readFileContent(path);
+		logger.info("生效记录数:" + JDBCUtils.executeUpdate(CommonUtil.parseStringToList(fullSql, "\r\n"), ApiConst.DATASOURCE_ICORE_LN));
+	}
+	
+	
+	@Test
+	public void test49() throws Exception{
+		BigDecimal rate = new BigDecimal((double)5/366*30);
+		int periods = 12;
+		BigDecimal principal = new BigDecimal(100000);
+		
+		// 计算公式：P*I*(1+I)^N/[(1+I)^N - 1]=P*I*S/[S-1]
+		BigDecimal i = rate.multiply(new BigDecimal("0.01"));
+		BigDecimal y = i.add(new BigDecimal("1")); // 1+I
+		BigDecimal s = y.pow(periods);// (1+I)^N
+		BigDecimal d = s.subtract(BigDecimal.ONE);// [(1+I)^N - 1]
+		BigDecimal installment = principal.multiply(i).multiply(s).divide(d, 30, BigDecimal.ROUND_HALF_UP);
+		
+		System.out.println(installment);
 	}
 }	

@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "a127c6ae-a1d8-454b-abf5-b298af4560ab",
+		"name": "额度FAT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[592000]新建客户综合额度",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "dapplication",
+						"value": "2041"
+					},
+					{
+						"key": "dserviceid",
+						"value": "592000"
+					},
+					{
+						"key": "dgroup",
+						"value": "01"
+					},
+					{
+						"key": "dversion",
+						"value": "1.0"
+					},
+					{
+						"key": "api_id",
+						"value": "592000"
+					},
+					{
+						"key": "busiseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "callseqno",
+						"value": "2019000000000000000000000111"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": {\n        \"limit_code_desc\": \"新建单个额度测试\",\n        \"prod_id\": \"19010111\",\n        \"cust_no\": \"100000000114\",\n        \"effect_date\": \"20191107\",\n         \"leaf_node_ind\": \"B\",\n        \"one_off_ind\": \"N\",\n        \"recolving_ind\": \"Y\",\n        \"exc_shr_flag\": \"A\",\n        \"limit_usable_date\": \"\",\n        \"due_date\": \"20301231\",\n        \"ccy_code\": \"IDR\",\n        \"init_limit_amt\": \"200000.00\",\n        \"limit_remark\": \"test\",\n        \"limit_hierarchy\": \"1\",\n        \"limit_type\": \"I\"\n    },\n    \"sys\": {\n        \"servicecode\": \"592000\"\n    },\n    \"comm_req\": {\n        \"initiator_date\": \"20190414\",\n        \"initiator_system\": \"204\",\n        \"trxn_branch\": \"1234\",\n        \"total_count\": \"10\",\n        \"trxn_teller\": \"88881234\",\n        \"sponsor_system\": \"100\",\n        \"busi_org_id\": \"025\",\n        \"auth_user_id\": \"88881234\",\n        \"trxn_desc\": \"\",\n        \"busiseqno\": \"YW409072529748\",\n        \"initiator_seq\": \"YW251689462999\",\n        \"busi_seq\": \"YW741247155999\",\n        \"page_start\": \"0\",\n        \"callseqno\": \"YW360454054999\",\n        \"trxn_seq\": \"YW9266265201493\",\n        \"channel_id\": \"APP\",\n        \"page_size\": \"10\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://10.22.62.45:9009/gateway",
+					"protocol": "http",
+					"host": [
+						"10",
+						"22",
+						"62",
+						"45"
+					],
+					"port": "9009",
+					"path": [
+						"gateway"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import org.apache.log4j.Logger;
+import org.springframework.util.StopWatch;
 
 import cn.ssy.base.entity.mybatis.AppDate;
 import cn.ssy.base.entity.mybatis.TspFlowStepController;
@@ -99,7 +100,7 @@ public class BatTaskUtil {
 		if(resultSet.next()){
 			tranFlowId = resultSet.getString("tran_flow_id");
 		}
-		JDBCUtils.close(resultSet);
+		JDBCUtils.close();
 		return tranFlowId;
 	}
 	
@@ -107,12 +108,33 @@ public class BatTaskUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
-	 *         <li>2020年3月16日-下午4:42:54</li>
-	 *         <li>功能说明：尝试启动贷款批量,优先取队列中的任务</li>
+	 *         <li>2020年4月26日-上午11:03:50</li>
+	 *         <li>功能说明：</li>
 	 *         </p>
-	 * @param tranCode
-	 * @param stepId
-	 * @param taskNum
+	 * @param days
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
+	 * @throws SQLException 
+	 */
+	public static void tryStartupTask(int days) throws SQLException, InterruptedException, ExecutionException{
+		int totalDays = days;
+		while(days-- > 0){
+			long start = System.currentTimeMillis();
+			BatTaskUtil.tryStartupTask();
+			long end = System.currentTimeMillis();
+			
+			logger.info("\r\n" + CommonUtil.buildSplitLine(50) + "第["+(totalDays - days)+"]天批量任务执行完成,耗时:" + (end - start) + "ms" + CommonUtil.buildSplitLine(50) + "\r\n");
+			CommonUtil.systemPause(1000);
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年3月16日-下午4:42:54</li>
+	 *         <li>功能说明：尝试启动贷款批量</li>
+	 *         </p>
 	 * @throws SQLException 
 	 * @throws ExecutionException 
 	 * @throws InterruptedException 
@@ -222,7 +244,7 @@ public class BatTaskUtil {
 		if(resultSet.next()){
 			appDate = resultSet.getString("trxn_date");
 		}
-		JDBCUtils.close(resultSet);
+		JDBCUtils.close();
 		logger.info("交易日期:"+appDate+",批量["+tspTaskExecution.getTaskNum()+"]执行结果:" + tspTaskExecution.getTranState());
 		if(isFailure){
 			logger.info("错误信息:" + tspTaskExecution.getErrorMessage());

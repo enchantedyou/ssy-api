@@ -99,7 +99,7 @@ public class SunlineUtil {
 	//字段引用字典校验缓存
 	private static final StringBuffer fieldRefReportBuffer = new StringBuffer();
 	//是否以MS为最高优先级
-	private static final boolean isMsAsFirst = false;
+	private static final boolean isMsAsFirst = true;
 	
 	
 	
@@ -339,9 +339,9 @@ public class SunlineUtil {
 								SppEnumPriority curEnumPriority = enumPriorityMap.get(curEnumType.getEnumLocation());
 								SppEnumPriority beforeEnumPriority = enumPriorityMap.get(beforeEnumType.getEnumLocation());
 								
-								if(curEnumType.getEnumLocation().equals("MsEnumType") && !isMsAsFirst){
+								/*if(curEnumType.getEnumLocation().equals("MsEnumType") && !isMsAsFirst){
 									continue;
-								}
+								}*/
 								
 								if(CommonUtil.isNull(curEnumPriority)){
 									throw new IllegalArgumentException("未找到["+curEnumType.getEnumLocation()+"]对应的枚举优先级配置");
@@ -470,9 +470,9 @@ public class SunlineUtil {
 								SppDictPriority curDictPriority = dictPriorityMap.get(dictType);
 								SppDictPriority beforeDictPriority = dictPriorityMap.get(beforeDictInfo.getDictType());
 								
-								if(dictType.equals("MsDict") && !isMsAsFirst){
+								/*if(dictType.equals("MsDict") && !isMsAsFirst){
 									continue;
-								}
+								}*/
 								
 								if(CommonUtil.isNull(curDictPriority)){
 									throw new IllegalArgumentException("未找到["+dictType+"]对应的字典优先级配置");
@@ -1730,7 +1730,7 @@ public class SunlineUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static TwoTuple<String, String> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode, Params params) throws Exception{
+	public static TwoTuple<String, com.alibaba.fastjson.JSONObject> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode, Params params) throws Exception{
 		if(CommonUtil.isNull(serviceCode) || CommonUtil.isNull(postmanCollection)){
 			throw new NullParmException("报文集", "交易服务码");
 		}
@@ -1790,7 +1790,7 @@ public class SunlineUtil {
 					String str = CommonUtil.convertStreamToJson(instreams);
 					com.alibaba.fastjson.JSONObject responseJson = JSON.parseObject(str);
 					if(CommonUtil.isNotNull(responseJson) && "0000".equals(responseJson.getJSONObject("sys").getString("erorcd"))){
-						return new TwoTuple<String, String>(responseJson.getJSONObject("comm_res").getString("trxn_seq"), responseJson.getJSONObject("output").toString());
+						return new TwoTuple<>(responseJson.getJSONObject("comm_res").getString("trxn_seq"), responseJson.getJSONObject("output"));
 					}else{
 						String erortx = responseJson.getJSONObject("sys").getString("erortx");
 						logger.error(erortx);
@@ -1820,7 +1820,7 @@ public class SunlineUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static TwoTuple<String, String> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode) throws Exception{
+	public static TwoTuple<String, com.alibaba.fastjson.JSONObject> sunlineSendPostTrxnRequest(String postmanCollection, String serviceCode) throws Exception{
 		return sunlineSendPostTrxnRequest(postmanCollection, serviceCode, null);
 	}
 	
