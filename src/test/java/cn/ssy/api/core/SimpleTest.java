@@ -2,7 +2,6 @@ package cn.ssy.api.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
 import cn.ssy.base.entity.plugins.Params;
+import cn.ssy.base.entity.sunline.ComplexElement;
 import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
@@ -72,7 +72,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("accrual_base_day");
+		SunlineUtil.sunlineSearchDict("extend_cancel_ind");
 	}
 	
 	/**
@@ -85,7 +85,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7() throws Exception{
-		BatTaskUtil.tryStartupTask();
+		BatTaskUtil.tryStartupTask(2);
 	}
 	
 	
@@ -102,7 +102,7 @@ public class SimpleTest{
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnLoanNormalOpenIn"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnQueryLoanInfoOut"));
 		//System.out.println(SunlineUtil.sunlineBuildCtFormJson("IoLnWriteOffRepaymentIn"));
-		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnScheduleListQueryIn"));
+		System.out.println(SunlineUtil.sunlineBuildCtFormJson("LnProdInfoType"));
 		//LnQueryLoanInfoOut
 	}
 	
@@ -179,8 +179,10 @@ public class SimpleTest{
 	@Test
 	public void test15() throws Exception{
 		String fieldStr = CommonUtil.readFileContent(outputPath + "/f.txt");
-		String result = SunlineUtil.sunlineGenerateComplexElement(CommonUtil.parseStringToArray(fieldStr, "\r\n"));
-		System.out.println(result);
+		List<ComplexElement> resultList = SunlineUtil.sunlineGenerateComplexElement(CommonUtil.parseStringToArray(fieldStr, "\r\n"));
+		for(ComplexElement e : resultList){
+			System.out.println(e);
+		}
 	}
 	
 	
@@ -270,7 +272,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_CL, E_ICOREMODULE.CL,"598889","598890");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326343");
 	}
 	
 	
@@ -301,7 +303,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test23() throws Exception{
-		SunlineUtil.sunlineIntfDocumentGenerate("pf0054", outputPath);
+		SunlineUtil.sunlineIntfDocumentGenerate("ln6020", outputPath);
 	}
 	
 	
@@ -543,7 +545,7 @@ public class SimpleTest{
 	@Test
 	public void test38() throws Exception{
 		final Params params = new Params();
-		params.add("loan_amt", "100");
+		params.add("loan_amt", "50000");
 		params.add("prod_id", "L0000002");
 		final int concurrentNum = 1;
 		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class, Params.class), concurrentNum, 50000, ApiConst.POSTMAN_LN_DEV, "326320", params);
@@ -607,7 +609,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test41() throws Exception{
-		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql(E_ICOREMODULE.PF, "XXX", "560054", "XX", "理财产品维护", "/views/");
+		List<String> sqlList = SunlineUtil.sunlineGenerateMenuSql(E_ICOREMODULE.LN, "5406", "326074", "3240", "贷款预约展期", "/views/ln/restructure/ln_precontract_extend.json");
 		for(String sql : sqlList){
 			System.out.println(sql);
 		}
@@ -624,7 +626,7 @@ public class SimpleTest{
 	@Test
 	public void test42() throws Exception{
 		int dealCount = 0;
-		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/pf";
+		String path = "D:/JavaDevelop/MyEclipseWorkSpace/sump-vue/src/views/ln";
 		String key = "\"control\"";
 		Map<String, File> fileMap = CommonUtil.loadPathAllFiles(path);
 		for(String fileName : fileMap.keySet()){
@@ -639,7 +641,7 @@ public class SimpleTest{
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
 				String result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(!JSONObject.fromObject(result).equals(JSONObject.fromObject(fileContent))){
-					CommonUtil.writeFileContent(result, outputPath + "/ln/sump/" + fileName);
+					CommonUtil.writeFileContent(result, filePath);
 					dealCount++;
 				}
 				/** 加载字段名和字段描述的映射 **/
@@ -686,10 +688,10 @@ public class SimpleTest{
 	@Test
 	public void test46() throws Exception{
 		//开额度
-		com.alibaba.fastjson.JSONObject output = SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_CL_FAT, "592000").getSecond();
+		//com.alibaba.fastjson.JSONObject output = SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_CL_FAT, "592000").getSecond();
 		//贷款开户
-		Params params = new Params().add("prod_id", "L0000001").add("limit_code", output.getString("limit_code")).add("cust_no", output.getString("cust_no"));
-		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_FAT, "326320", params));
+		Params params = new Params().add("prod_id", "L0000002-A").add("specify_amt", "1000");
+		System.out.println(SunlineUtil.sunlineSendPostTrxnRequest(ApiConst.POSTMAN_LN_DEV, "326320", params));
 	}
 	
 	
@@ -703,7 +705,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test47() throws Exception{
-		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.PF, "pf0051","pf0052","pf0053","pf0054"));
+		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.LN, "ln6343"));
 	}
 	
 	
@@ -719,23 +721,52 @@ public class SimpleTest{
 	public void test48() throws Exception{
 		String path = "D:/Sunline/sunlineDeveloper/记事本/工具脚本/ln_clear.sql";
 		String fullSql = CommonUtil.readFileContent(path);
+		System.out.println(fullSql);
 		logger.info("生效记录数:" + JDBCUtils.executeUpdate(CommonUtil.parseStringToList(fullSql, "\r\n"), ApiConst.DATASOURCE_ICORE_LN));
 	}
 	
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月12日-下午1:50:06</li>
+	 *         <li>功能说明：快速开发模型生成</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
-	public void test49() throws Exception{
-		BigDecimal rate = new BigDecimal((double)5/366*30);
-		int periods = 12;
-		BigDecimal principal = new BigDecimal(100000);
+	public void test49() throws Exception {
+		/**
+		 * 生成复合类型
+		 */
+		String[] inFieldArray = CommonUtil.parseStringToArray(CommonUtil.readFileContent(outputPath + "/in.txt"), "\r\n");
+		String[] outFieldArray = CommonUtil.parseStringToArray(CommonUtil.readFileContent(outputPath + "/out.txt"), "\r\n");
+		final String complexTypeName = "ComLnViceAccount";
+		final String complexTypeId = "TestId";
+		final String complexLongname = "test longname";
+		SunlineUtil.sunlineWriteComplex(inFieldArray, complexTypeName, complexTypeId + "In", complexLongname + " input");
+		SunlineUtil.sunlineWriteComplex(outFieldArray, complexTypeName, complexTypeId + "Out", complexLongname + " output");
 		
-		// 计算公式：P*I*(1+I)^N/[(1+I)^N - 1]=P*I*S/[S-1]
-		BigDecimal i = rate.multiply(new BigDecimal("0.01"));
-		BigDecimal y = i.add(new BigDecimal("1")); // 1+I
-		BigDecimal s = y.pow(periods);// (1+I)^N
-		BigDecimal d = s.subtract(BigDecimal.ONE);// [(1+I)^N - 1]
-		BigDecimal installment = principal.multiply(i).multiply(s).divide(d, 30, BigDecimal.ROUND_HALF_UP);
-		
-		System.out.println(installment);
+		/**
+		 * 生成服务
+		 */
+		final String serviceTypeName = "SrvLnViceRpymAccount";
+		final String serviceId = "testSrv";
+		final String serviceLongname = "test service longname";
+		final String variableName = "doSomething";
+		SunlineUtil.sunlineWriteServiceType(complexTypeName, complexTypeId, complexLongname, serviceTypeName, serviceId, serviceLongname, variableName);
+	
+		/**
+		 * 生成flowtran
+		 */
+		final String flowtranId = "ln6999";
+		final String kind = "Q";
+		SunlineUtil.sunlineWriteFlowtran(inFieldArray, outFieldArray, serviceTypeName, serviceId, serviceLongname, variableName, flowtranId, kind);
+	}
+	
+	@Test
+	public void test50() throws Exception {
+		//BatTaskUtil.tryStartupTask(2);
+		System.out.println("20200515163538732912010103".length());
 	}
 }	

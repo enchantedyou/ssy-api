@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import org.apache.log4j.Logger;
-import org.springframework.util.StopWatch;
 
 import cn.ssy.base.entity.mybatis.AppDate;
 import cn.ssy.base.entity.mybatis.TspFlowStepController;
@@ -132,6 +131,31 @@ public class BatTaskUtil {
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
+	 *         <li>2020年5月11日-下午1:08:10</li>
+	 *         <li>功能说明：</li>
+	 *         </p>
+	 * @param endDate
+	 * @throws SQLException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public static void tryStartupTask(String endDate) throws SQLException, InterruptedException, ExecutionException{
+		AppDate appDate = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), AppDate.class);
+		while(CommonUtil.compare(appDate.getTrxnDate(), endDate) <= 0){
+			appDate = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), AppDate.class);
+			long start = System.currentTimeMillis();
+			BatTaskUtil.tryStartupTask();
+			long end = System.currentTimeMillis();
+			
+			logger.info("\r\n" + CommonUtil.buildSplitLine(50) + "交易日期["+appDate.getTrxnDate()+"]的批量任务执行完成,耗时:" + (end - start) + "ms" + CommonUtil.buildSplitLine(50) + "\r\n");
+			appDate = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), AppDate.class);
+			CommonUtil.systemPause(1000);
+		}
+	}
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
 	 *         <li>2020年3月16日-下午4:42:54</li>
 	 *         <li>功能说明：尝试启动贷款批量</li>
 	 *         </p>
@@ -145,7 +169,7 @@ public class BatTaskUtil {
 			AppDate appDate = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from app_date", batSettingMap.get("datasource")), AppDate.class);
 			//日切前判断
 			if("Switch".equals(tspFlowStepController.getTranFlowId())){
-				List<TspTask> taskList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_task where transaction_date = ? and tran_state = 'failure'", new String[]{appDate.getTrxnDate()}, batSettingMap.get("datasource")), TspTask.class);
+				List<TspTask> taskList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_task where transaction_date = ? and tran_state = 'failure' and tran_group_id in (select tran_group_id from tsp_tran_group_controller)", new String[]{appDate.getTrxnDate()}, batSettingMap.get("datasource")), TspTask.class);
 				//当天有失败的批量,不日切
 				if(CommonUtil.isNotNull(taskList)){
 					logger.info(CommonUtil.buildSplitLine(30) + "交易日期["+ appDate.getTrxnDate() +"]存在执行失败的批量,不进行日切" + CommonUtil.buildSplitLine(30));

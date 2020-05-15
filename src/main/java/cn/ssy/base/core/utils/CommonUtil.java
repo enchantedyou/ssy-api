@@ -1063,19 +1063,22 @@ public class CommonUtil {
 	 * @param root
 	 * @param outputPath
 	 */
-	public static void writeDocumentXml(Document doc,String outputPath,String formatIdent){
+	public static void writeDocumentXml(Document doc,String outputPath){
 		if(isNull(doc) || isNull(outputPath)){
 			throw new NullParmException("Document对象","格式化标识");
 		}
-		OutputFormat format = new OutputFormat(formatIdent, false, "UTF-8");
+		OutputFormat format = OutputFormat.createPrettyPrint();
+		format.setEncoding("UTF-8");
+		format.setIndent("\t");
 		XMLWriter writer = null;
+		
 		try{
 			File xmlFile = new File(outputPath);
 			if(!xmlFile.exists()){
 				xmlFile.createNewFile();
 			}
 			writer = new XMLWriter(new FileOutputStream(xmlFile), format);
-			writer.write(doc);
+		    writer.write(doc);  
 			logger.info("输出文件:" + xmlFile.getName());
 		}catch(Exception e){
 			printLogError(e, logger);
@@ -1089,22 +1092,6 @@ public class CommonUtil {
 			}
 		}
 	}
-	
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年8月3日-上午11:34:33</li>
-	 *         <li>功能说明：写入xml配置的document</li>
-	 *         </p>
-	 * @param doc
-	 * @param outputPath
-	 */
-	public static void writeDocumentXml(Document doc,String outputPath){
-		writeDocumentXml(doc, outputPath, "");
-	}
-	
 	
 	/**
 	 * @Author sunshaoyu
@@ -2488,7 +2475,23 @@ public class CommonUtil {
 			for(int i = 0;i < buffer.length;i++){
 				buffer[i] = (byte) (buffer[i] ^ 981130 ^ 971213);
 			}
-			CommonUtil.writeFile(buffer, fileMap.get(fileName).getPath());
+			writeFile(buffer, fileMap.get(fileName).getPath());
+		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月12日-上午11:06:27</li>
+	 *         <li>功能说明：检查对象是否为空,如果为空则抛出异常</li>
+	 *         </p>
+	 * @param obj	对象
+	 * @param objDesc	对象描述
+	 */
+	public static void checkObjIsNull(Object obj, String objDesc){
+		if(isNull(obj)){
+			throw new RuntimeException("[" + objDesc + "]不存在");
 		}
 	}
 }

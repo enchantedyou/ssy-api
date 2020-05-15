@@ -47,10 +47,10 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_CT_FAT = "ICORE3.0CT_FAT";
 	//中台营销FAT环境
 	public static final String DATASOURCE_ICORE_MK_FAT = "ICORE3.0MK_FAT";
-	//本地稽核数据库
-	public static final String DATASOURCE_LOCAL_CHECK = "LOCALCHECK";
 	//3.0集中式数据库
 	public static final String DATASOURCE_ICORE_CBS = "ICORE3.0CBS";
+	//3.0贷款日终批量环境
+	public static final String DATASOURCE_ICORE_LN_BAT = "ICORE3.0LN_BAT";
 	
 	//贷款DEV环境报文json
 	public static final String POSTMAN_LN_DEV = "/postman/贷款DEV.postman_collection.json";

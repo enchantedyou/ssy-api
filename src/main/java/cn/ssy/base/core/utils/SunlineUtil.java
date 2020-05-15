@@ -45,9 +45,11 @@ import cn.ssy.base.entity.mybatis.TspServiceIn;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.plugins.TwoTuple;
 import cn.ssy.base.entity.sunline.BaseType;
+import cn.ssy.base.entity.sunline.ComplexElement;
 import cn.ssy.base.entity.sunline.Dict;
 import cn.ssy.base.entity.sunline.EnumElement;
 import cn.ssy.base.entity.sunline.EnumType;
+import cn.ssy.base.entity.sunline.FormatVueJsonCode;
 import cn.ssy.base.entity.sunline.Max;
 import cn.ssy.base.entity.sunline.Required;
 import cn.ssy.base.enums.E_ICOREMODULE;
@@ -1467,7 +1469,7 @@ public class SunlineUtil {
 				}
 				//金额处理
 				else if("U_MONEY".equals(realType) || "U_INTERESTRATE".equals(realType) || "U_INTEREST".equals(realType)){
-					fieldValueMap.put("decimal", 2);
+					fieldValueMap.put("decimal", baseTypeMap.get(realType).getFractionDigits());
 					fieldValueMap.put("thousand", ",");
 					fieldValueMap.put("control", "currency");
 				}
@@ -2531,7 +2533,7 @@ public class SunlineUtil {
 			for(String flowtranId : flowtranMap.keySet()){
 				Element flowtran = flowtranMap.get(flowtranId);
 				buffer.append("delete from msp_transaction where trxn_code = '"+flowtranId+"';\r\n");
-				buffer.append("INSERT INTO `msp_transaction` (`trxn_code`, `trxn_type`, `trxn_desc`, `allow_reversal`, `flow_trxn_id`, `register_packet_ind`, `over_time`, `log_level`, `enable_ind`, `global_parm_mntn_ind`, `reversal_ind`, `register_trxn_ind`, `db_trxn_spread_type`, `read_write_separait`, `force_commit`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+flowtranId+"', '"+flowtran.attributeValue("kind")+"', '"+flowtran.attributeValue("longname")+"', 'N', '"+flowtranId+"', 'Y', '250000', 'error', 'Y', 'N', 'N', 'N', 'Required', 'N', NULL, '20991231', '20991231', 'S####', 'S####', '1');\r\n");
+				buffer.append("INSERT INTO `msp_transaction` (`trxn_code`, `trxn_type`, `trxn_desc`, `allow_reversal`, `flow_trxn_id`, `register_packet_ind`, `over_time`, `log_level`, `enable_ind`, `global_parm_mntn_ind`, `reversal_ind`, `register_trxn_ind`, `db_trxn_spread_type`, `read_write_separait`, `force_commit`, `data_create_time`, `data_update_time`, `data_create_user`, `data_update_user`, `data_version`) VALUES ('"+flowtranId+"', '"+flowtran.attributeValue("kind")+"', '"+flowtran.attributeValue("longname")+"', 'N', '"+flowtranId+"', 'Y', NULL, 'error', 'Y', 'N', 'N', 'N', 'Required', 'N', NULL, '20991231', '20991231', 'S####', 'S####', '1');\r\n");
 			}
 			buffer.append("commit;");
 			
@@ -2539,7 +2541,7 @@ public class SunlineUtil {
 			for(String flowtranId : flowtranMap.keySet()){
 				Element flowtran = flowtranMap.get(flowtranId);
 				buffer.append("delete from tsp_service_in where inner_service_code = '"+flowtranId+"';\r\n");
-				buffer.append("INSERT INTO `tsp_service_in` (`system_code`, `sub_system_code`, `out_service_code`, `inner_service_code`, `inner_service_impl_code`, `description`, `service_category`, `route_keys`, `service_type`, `protocol_id`, `is_enable`, `transaction_mode`, `log_level`, `timeout`, `alias_mapping`, `force_unused_odb_cache`, `register_mode`) VALUES ('"+module.getSysCode()+"', '"+module.getSubSysCode()+"', '"+module.getSrvSign() + flowtranId.substring(2) +"', '"+flowtranId+"', '', '"+flowtran.attributeValue("longname")+"', 'T', '', 'try', 'rpc', '1', 'A', '', '0', '0', '0', '0');\r\n");
+				buffer.append("INSERT INTO `tsp_service_in` (`system_code`, `sub_system_code`, `out_service_code`, `inner_service_code`, `inner_service_impl_code`, `description`, `service_category`, `route_keys`, `service_type`, `protocol_id`, `is_enable`, `transaction_mode`, `log_level`, `timeout`, `alias_mapping`, `force_unused_odb_cache`, `register_mode`) VALUES ('"+module.getSysCode()+"', '"+module.getSubSysCode()+"', '"+module.getSrvSign() + flowtranId.substring(2) +"', '"+flowtranId+"', '*', '"+flowtran.attributeValue("longname")+"', 'T', '', 'try', 'rpc', '1', 'A', '', '0', '0', '0', '0');\r\n");
 			}
 			buffer.append("commit;");
 		}
@@ -2600,7 +2602,7 @@ public class SunlineUtil {
 	/**
 	 * <字段id,二元组:control,label>
 	 */
-	private static Map<String, TwoTuple<String, String>> keyControlMap = new HashMap<>();
+	private static Map<String, FormatVueJsonCode> keyControlMap = new HashMap<>();
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -2695,8 +2697,16 @@ public class SunlineUtil {
 		boolean isContainsControl = fieldJson.containsKey("control");
 		String control = null;
 		if(isContainsControl){
+			Dict dict = dictMap.get(key);
+			BaseType baseType = null;
+			if(CommonUtil.isNotNull(dict)){
+				if(dict.getRefType().contains("BaseType")){
+					baseType = baseTypeMap.get(dict.getRefType().split("\\.")[1]);
+				}
+			}
+			
 			control = fieldJson.getString("control");
-			keyControlMap.put(String.valueOf(key), new TwoTuple<String, String>(control, fieldJson.getString("label")));
+			keyControlMap.put(String.valueOf(key), new FormatVueJsonCode(control, fieldJson.getString("label"), baseType));
 			return control.equals("inputNumber") || control.equals("select") || control.equals("dateTimePicker") || control.equals("currency");
 		}
 		return false;
@@ -2753,17 +2763,24 @@ public class SunlineUtil {
 			logger.info("字段json未查找到control属性:" + fieldJson);
 			return;
 		}
-		final String control = keyControlMap.get(key).getFirst();
-		final String message = ("select".equals(control) ||  "lookup".equals(control) ? "请选择" : "请输入") + keyControlMap.get(key).getSecond();
+		final String control = keyControlMap.get(key).getControl();
+		final String message = ("select".equals(control) ||  "lookup".equals(control) ? "请选择" : "请输入") + keyControlMap.get(key).getLabel();
 		
 		//currency控件格式纠正
-		if("currency".equals(keyControlMap.get(key).getFirst())){
+		if("currency".equals(keyControlMap.get(key).getControl())){
+			//小数位
+			BaseType baseType = keyControlMap.get(key).getBaseType();
+			int fractionDigits = 2;
+			if(CommonUtil.isNotNull(baseType) && CommonUtil.isNotNull(baseType.getFractionDigits())){
+				fractionDigits = Integer.parseInt(baseType.getFractionDigits());
+			}
+			
 			//移除format
 			if(fieldJson.containsKey("format")){
 				fieldJson.remove("format");
 			}
 			//重置千位分隔符
-			fieldJson.put("decimal", 2);
+			fieldJson.put("decimal", fractionDigits);
 			fieldJson.put("thousand", ",");
 			
 			//currency新增最大长度属性
@@ -2815,7 +2832,7 @@ public class SunlineUtil {
 						required = Boolean.parseBoolean(String.valueOf(requiredObj));
 					}
 					
-					if(!message.equals(String.valueOf(ruleObj.get("message"))) && required){
+					if(!message.equals(String.valueOf(ruleObj.get("message"))) && required && !"hidden".equals(control)){
 						logger.info("字段["+key+"]必输信息新增或改变:" + ruleObj.get("message") + "->" + message);
 						ruleObj.put("required", required);
 						ruleObj.put("message", message);
@@ -2894,21 +2911,21 @@ public class SunlineUtil {
 	 * @param fieldIdArray
 	 * @return
 	 */
-	public static String sunlineGenerateComplexElement(String... fieldIdArray){
-		StringBuffer buffer = new StringBuffer();
+	public static List<ComplexElement> sunlineGenerateComplexElement(String... fieldIdArray){
+		List<ComplexElement> complexElementList = new ArrayList<>();
 		if(CommonUtil.isNotNull(fieldIdArray)){
 			for(String fieldId : fieldIdArray){
 				if(CommonUtil.isNotNull(fieldId)){
 					Dict dict = dictMap.get(fieldId.trim());
 					if(CommonUtil.isNull(dict)){
-						logger.info("字段["+fieldId+"]对应的字典信息不存在");
+						throw new RuntimeException("字段["+fieldId+"]对应的字典信息不存在");
 					}else{
-						buffer.append("<element id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictRef()+"\" required=\"false\" desc=\""+dict.getDesc()+"\" multi=\"false\" range=\"false\" array=\"false\" final=\"false\" override=\"false\" allowSubType=\"true\"/>").append("\r\n");
+						complexElementList.add(new ComplexElement(dict.getId(), dict.getLongname(), dict.getRefType(), dict.getDictRef(), dict.getDesc()));
 					}
 				}
 			}
 		}
-		return buffer.toString();
+		return complexElementList;
 	}
 	
 	/**
@@ -2927,7 +2944,7 @@ public class SunlineUtil {
 				if(CommonUtil.isNotNull(fieldId)){
 					Dict dict = dictMap.get(fieldId.trim());
 					if(CommonUtil.isNull(dict)){
-						logger.info("字段["+fieldId+"]对应的字典信息不存在");
+						throw new RuntimeException("字段["+fieldId+"]对应的字典信息不存在");
 					}else{
 						buffer.append("<field id=\""+dict.getId()+"\" longname=\""+dict.getLongname()+"\" type=\""+dict.getRefType()+"\" ref=\""+dict.getDictRef()+"\" desc=\""+dict.getDesc()+"\" primarykey=\"false\" final=\"false\" nullable=\"true\" identity=\"false\" allowSubType=\"true\"/>").append("\r\n");
 					}
@@ -2958,5 +2975,209 @@ public class SunlineUtil {
 			}
 		}
 		return buffer.toString();
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月12日-下午1:11:30</li>
+	 *         <li>功能说明：写入复合类型</li>
+	 *         </p>
+	 * @param fieldArray
+	 * @param complexTypeName
+	 * @param complexTypeId
+	 * @param complexLongname
+	 */
+	public static void sunlineWriteComplex(String[] fieldArray, final String complexTypeName, final String complexTypeId, final String complexLongname) {
+		String complexTypePath = projectFileMap.get(complexTypeName + ".c_schema.xml");
+		CommonUtil.checkObjIsNull(complexTypePath, "复合类型模型路径");
+		Document complexTypeDocument = CommonUtil.getXmlDocument(complexTypePath);
+		
+		Element addComplexType = complexTypeDocument.getRootElement().addElement("complexType");
+		addComplexType.addAttribute("id", complexTypeId);
+		addComplexType.addAttribute("longname", complexLongname);
+		addComplexType.addAttribute("dict", "false");
+		addComplexType.addAttribute("abstract", "false");
+		addComplexType.addAttribute("introduct", "false");
+		
+		List<ComplexElement> complexElementList = SunlineUtil.sunlineGenerateComplexElement(fieldArray);
+		for(ComplexElement cp : complexElementList){
+			Element addComplexTypeElement = addComplexType.addElement("element");
+			addComplexTypeElement.addAttribute("id", cp.getId());
+			addComplexTypeElement.addAttribute("longname", cp.getLongname());
+			addComplexTypeElement.addAttribute("type", cp.getType());
+			addComplexTypeElement.addAttribute("ref", cp.getRef());
+			
+			addComplexTypeElement.addAttribute("required", cp.getRequired());
+			addComplexTypeElement.addAttribute("desc", cp.getDesc());
+			addComplexTypeElement.addAttribute("multi", cp.getMulti());
+			addComplexTypeElement.addAttribute("range", cp.getRange());
+			
+			addComplexTypeElement.addAttribute("array", cp.getArray());
+			addComplexTypeElement.addAttribute("final", cp.get_final());
+			addComplexTypeElement.addAttribute("override", cp.getOverride());
+			addComplexTypeElement.addAttribute("allowSubType", cp.getAllowSubType());
+		}
+		CommonUtil.writeDocumentXml(complexTypeDocument, complexTypePath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月12日-下午1:41:51</li>
+	 *         <li>功能说明：写入服务类型</li>
+	 *         </p>
+	 * @param complexTypeName
+	 * @param complexTypeId
+	 * @param complexLongname
+	 * @param serviceTypeName
+	 * @param serviceId
+	 * @param serviceLongname
+	 * @param variableName
+	 */
+	public static void sunlineWriteServiceType(final String complexTypeName, final String complexTypeId, final String complexLongname, final String serviceTypeName,
+			final String serviceId, final String serviceLongname, final String variableName) {
+		String serviceTypePath = projectFileMap.get(serviceTypeName + ".serviceType.xml");
+		CommonUtil.checkObjIsNull(serviceTypePath, "服务类型模型路径");
+		Document serviceTypeDocument = CommonUtil.getXmlDocument(serviceTypePath);
+		
+		Element addServiceType = serviceTypeDocument.getRootElement().addElement("service");
+		addServiceType.addAttribute("id", serviceId);
+		addServiceType.addAttribute("name", serviceId);
+		addServiceType.addAttribute("longname", serviceLongname);
+		
+		Element addInterface = addServiceType.addElement("interface");
+		Element input = addInterface.addElement("input");
+		input.addAttribute("packMode", "false");
+		Element inputField = input.addElement("field");
+		
+		inputField.addAttribute("id", variableName + "In");
+		inputField.addAttribute("type", complexTypeName + "." + complexTypeId + "In");
+		inputField.addAttribute("required", "false");
+		inputField.addAttribute("multi", "false");
+		inputField.addAttribute("array", "false");
+		inputField.addAttribute("longname", complexLongname + " input");
+		
+		Element output = addInterface.addElement("output");
+		output.addAttribute("packMode", "false");
+		output.addAttribute("asParm", "false");
+		Element outputField = output.addElement("field");
+		
+		outputField.addAttribute("id", variableName + "Out");
+		outputField.addAttribute("type", complexTypeName + "." + complexTypeId + "Out");
+		outputField.addAttribute("required", "false");
+		outputField.addAttribute("multi", "false");
+		outputField.addAttribute("array", "false");
+		outputField.addAttribute("longname", complexLongname + " output");
+		
+		Element property = addInterface.addElement("property");
+		property.addAttribute("packMode", "false");
+		Element printer = addInterface.addElement("printer");
+		printer.addAttribute("packMode", "true");
+	
+		CommonUtil.writeDocumentXml(serviceTypeDocument, serviceTypePath);
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月12日-下午3:25:54</li>
+	 *         <li>功能说明：写入flowtran</li>
+	 *         </p>
+	 * @param inFieldArray
+	 * @param outFieldArray
+	 * @param serviceTypeName
+	 * @param serviceId
+	 * @param serviceLongname
+	 * @param variableName
+	 * @param flowtranId
+	 * @param kind
+	 */
+	public static void sunlineWriteFlowtran(String[] inFieldArray, String[] outFieldArray, final String serviceTypeName, final String serviceId, final String serviceLongname,
+			final String variableName, final String flowtranId, final String kind) {
+		String modelName = "ln6341.flowtrans.xml";
+		String modelPath = SunlineUtil.projectFileMap.get(modelName);
+		String flowtranPath = modelPath.split(modelName)[0];
+		String newFlowtranPath = flowtranPath + File.separator + flowtranId + ".flowtrans.xml";
+		CommonUtil.writeFileContent(CommonUtil.readFileContent(modelPath), newFlowtranPath);
+		Document flowtranDocument = CommonUtil.getXmlDocument(newFlowtranPath);
+		
+		Element root = flowtranDocument.getRootElement();
+		root.attribute("id").setValue(flowtranId);
+		root.attribute("longname").setValue(serviceLongname);;
+		root.attribute("kind").setValue(kind);
+		root.clearContent();
+		
+		Element flowtranInterface = root.addElement("interface");
+		flowtranInterface.addAttribute("package", "cn.sunline.icore.ln.tran.trans.loan.intf");
+		Element input = flowtranInterface.addElement("input");
+		input.addAttribute("packMode", "true");
+		
+		List<ComplexElement> inElementList = SunlineUtil.sunlineGenerateComplexElement(inFieldArray);
+		for(ComplexElement inCp : inElementList){
+			Element inputField = input.addElement("field");
+			inputField.addAttribute("id", inCp.getId());
+			inputField.addAttribute("type", inCp.getType());
+			inputField.addAttribute("required", inCp.getRequired());
+			inputField.addAttribute("multi", inCp.getMulti());
+			inputField.addAttribute("array", inCp.getArray());
+			inputField.addAttribute("longname", inCp.getLongname());
+			inputField.addAttribute("ref", inCp.getRef());
+			inputField.addAttribute("desc", inCp.getDesc());
+		}
+		
+		Element output = flowtranInterface.addElement("output");
+		output.addAttribute("packMode", "true");
+		output.addAttribute("asParm", "true");
+		List<ComplexElement> outElementList = SunlineUtil.sunlineGenerateComplexElement(outFieldArray);
+		for(ComplexElement outCp : outElementList){
+			Element outputField = output.addElement("field");
+			outputField.addAttribute("id", outCp.getId());
+			outputField.addAttribute("type", outCp.getType());
+			outputField.addAttribute("required", outCp.getRequired());
+			outputField.addAttribute("multi", outCp.getMulti());
+			outputField.addAttribute("array", outCp.getArray());
+			outputField.addAttribute("longname", outCp.getLongname());
+			outputField.addAttribute("ref", outCp.getRef());
+			outputField.addAttribute("desc", outCp.getDesc());
+		}
+		Element property = flowtranInterface.addElement("property");
+		property.addAttribute("packMode", "true");
+		Element printer = flowtranInterface.addElement("printer");
+		printer.addAttribute("packMode", "true");
+		
+		Element flow = root.addElement("flow");
+		Element service = flow.addElement("service");
+		service.addAttribute("mappingToProperty", "false");
+		service.addAttribute("id", serviceTypeName + "." + serviceId);
+		service.addAttribute("serviceName", serviceTypeName + "." + serviceId);
+		service.addAttribute("longname", serviceLongname);
+		
+		Element inMappings = service.addElement("in_mappings");
+		inMappings.addAttribute("by_interface", "true");
+		for(ComplexElement inCp : inElementList){
+			Element mapping = inMappings.addElement("mapping");
+			mapping.addAttribute("src", inCp.getId());
+			mapping.addAttribute("dest", variableName + "In." + inCp.getId());
+			mapping.addAttribute("by_interface", "true");
+			mapping.addAttribute("on_top", "true");
+		}
+		
+		Element outMappings = service.addElement("out_mappings");
+		outMappings.addAttribute("by_interface", "true");
+		for(ComplexElement outCp : outElementList){
+			Element mapping = outMappings.addElement("mapping");
+			mapping.addAttribute("src", variableName + "Out." + outCp.getId());
+			mapping.addAttribute("dest", outCp.getId());
+			mapping.addAttribute("by_interface", "true");
+			mapping.addAttribute("on_top", "true");
+		}
+		root.addElement("outMapping");
+		root.addElement("propertyToPrinterMapping");
+		root.addElement("outToPrinterMapping");
+		CommonUtil.writeDocumentXml(flowtranDocument, newFlowtranPath);
 	}
 }
