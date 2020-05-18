@@ -2348,8 +2348,13 @@ public class CommonUtil {
 	 * @return
 	 */
 	public static String fastjsonFormat(String jsonString) {
-		com.alibaba.fastjson.JSONObject fastjsonObj = com.alibaba.fastjson.JSONObject.parseObject(jsonString, Feature.OrderedField);
-	    return JSON.toJSONString(fastjsonObj, true);
+		if(isJsonArray(jsonString)){
+			com.alibaba.fastjson.JSONArray fastjsonArray = com.alibaba.fastjson.JSONArray.parseArray(jsonString);
+		    return JSON.toJSONString(fastjsonArray, true);
+		}else{
+			com.alibaba.fastjson.JSONObject fastjsonObj = com.alibaba.fastjson.JSONObject.parseObject(jsonString, Feature.OrderedField);
+		    return JSON.toJSONString(fastjsonObj, true);
+		}
 	}
 	
 	

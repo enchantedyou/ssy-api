@@ -36,7 +36,7 @@ import cn.ssy.base.enums.E_STRUCTMODULE;
 
 public class SimpleTest{
 	
-	final public String outputPath = "C:/Users/DELL/Desktop/";
+	final public static String outputPath = "C:/Users/DELL/Desktop/";
 	
 	//log4j日志
 	private static final Logger logger = Logger.getLogger(SimpleTest.class);
@@ -72,7 +72,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("extend_cancel_ind");
+		SunlineUtil.sunlineSearchDict("padding_mode");
 	}
 	
 	/**
@@ -85,7 +85,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test7() throws Exception{
-		BatTaskUtil.tryStartupTask(2);
+		BatTaskUtil.tryStartupTask();
 	}
 	
 	
@@ -272,7 +272,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test20() throws Exception{
-		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326343");
+		SunlineUtil.sunlineGatewayApiRelease(ApiConst.DATASOURCE_ICORE_LN, E_ICOREMODULE.LN,"326999");
 	}
 	
 	
@@ -547,7 +547,7 @@ public class SimpleTest{
 		final Params params = new Params();
 		params.add("loan_amt", "50000");
 		params.add("prod_id", "L0000002");
-		final int concurrentNum = 1;
+		final int concurrentNum = 2;
 		Map<String, Object> responseMap = CommonUtil.multithreadingExecute(CommonUtil.getReflectMethod(SunlineUtil.class, "sunlineSendPostTrxnRequest", String.class, String.class, Params.class), concurrentNum, 50000, ApiConst.POSTMAN_LN_DEV, "326320", params);
 		
 		for(String threadId : responseMap.keySet()){
@@ -705,7 +705,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test47() throws Exception{
-		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.LN, "ln6343"));
+		System.out.println(SunlineUtil.sunlineGenerateTrxnSql(E_ICOREMODULE.LN, "ln6999"));
 	}
 	
 	
@@ -741,32 +741,47 @@ public class SimpleTest{
 		 */
 		String[] inFieldArray = CommonUtil.parseStringToArray(CommonUtil.readFileContent(outputPath + "/in.txt"), "\r\n");
 		String[] outFieldArray = CommonUtil.parseStringToArray(CommonUtil.readFileContent(outputPath + "/out.txt"), "\r\n");
-		final String complexTypeName = "ComLnViceAccount";
-		final String complexTypeId = "TestId";
-		final String complexLongname = "test longname";
+		final String complexTypeName = "ComLnBatch";
+		final String complexTypeId = "LnBatStartup";
+		final String complexLongname = "loan batch launcher ";
 		SunlineUtil.sunlineWriteComplex(inFieldArray, complexTypeName, complexTypeId + "In", complexLongname + " input");
 		SunlineUtil.sunlineWriteComplex(outFieldArray, complexTypeName, complexTypeId + "Out", complexLongname + " output");
 		
 		/**
 		 * 生成服务
 		 */
-		final String serviceTypeName = "SrvLnViceRpymAccount";
-		final String serviceId = "testSrv";
-		final String serviceLongname = "test service longname";
-		final String variableName = "doSomething";
+		final String serviceTypeName = "SrvLnBatch";
+		final String serviceId = "startupBatch";
+		final String serviceLongname = "Startup Batch";
+		final String variableName = "batLauncher";
 		SunlineUtil.sunlineWriteServiceType(complexTypeName, complexTypeId, complexLongname, serviceTypeName, serviceId, serviceLongname, variableName);
 	
 		/**
 		 * 生成flowtran
 		 */
 		final String flowtranId = "ln6999";
-		final String kind = "Q";
+		final String kind = "F";
 		SunlineUtil.sunlineWriteFlowtran(inFieldArray, outFieldArray, serviceTypeName, serviceId, serviceLongname, variableName, flowtranId, kind);
 	}
 	
 	@Test
 	public void test50() throws Exception {
 		//BatTaskUtil.tryStartupTask(2);
-		System.out.println("20200515163538732912010103".length());
+		
+		System.out.println(CommonUtil.compare("1000", "999"));
+		
+		/*final int threadNum = 3;
+		ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
+		for(int i = 0;i < threadNum;i++){
+			threadPool.submit(new Runnable() {
+				
+				@Override
+				public void run() {
+					SunlineBat.exe();
+				}
+			});
+		}
+		CommonUtil.awaitThreadPoolFinish(threadPool, 0);
+		while(true);*/
 	}
 }	

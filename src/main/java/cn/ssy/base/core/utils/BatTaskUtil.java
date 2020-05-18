@@ -205,7 +205,7 @@ public class BatTaskUtil {
 			return;
 		}
 		long timestamp = System.currentTimeMillis();
-		String dataArea = "{\"input\":{},\"sys\":{\"tran_flow_id\":\"CoreEOD\",\"servicecode\":\"onTimeSyscRemoteDirectory\",\"error_id\":null,\"pljypich\":\"onTimeSyscRemoteDirectorybatch.5B7C307FF6D44EDA97B596A794118898\"},\"comm_req\":{\"initiator_system\":\""+batSettingMap.get("systemCode")+"\",\"trxn_branch\":\""+batSettingMap.get("trxnBranch")+"\",\"trxn_teller\":\"S####\",\"sponsor_system\":\""+batSettingMap.get("systemCode")+"\",\"timerName\":\"onTimeSyscRemoteDirectory\",\"jiaoyirq\":\""+trxnDate+"\",\"busi_org_id\":\""+batSettingMap.get("tenantId")+"\",\"channel_id\":\""+batSettingMap.get("channelId")+"\"}}";
+		String dataArea = "{\"comm_req\":{\"initiator_system\":\""+batSettingMap.get("systemCode")+"\",\"trxn_branch\":\""+batSettingMap.get("trxnBranch")+"\",\"trxn_teller\":\"S####\",\"sponsor_system\":\""+batSettingMap.get("systemCode")+"\",\"busi_org_id\":\""+batSettingMap.get("tenantId")+"\",\"channel_id\":\""+batSettingMap.get("channelId")+"\"}}";
 		logger.info("当前批量任务标识:" + taskNum);
 		String dateformatDate = trxnDate.substring(0, 4) + "-" + trxnDate.substring(4,6) + "-" + trxnDate.substring(6);
 		
