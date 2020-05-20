@@ -13,11 +13,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import cn.ssy.base.entity.config.C3p0Config;
+import cn.ssy.base.entity.config.DBConfig;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.context.Application;
 import cn.ssy.base.entity.mybatis.SppDatasource;
 import cn.ssy.base.entity.plugins.DynamicDataSource;
 
@@ -48,15 +50,15 @@ public class JDBCUtils {
 	public static void jdbcInitialize(){
 		try {
 			//加载数据源配置
-			Map<String, String> configMap = CommonUtil.readPropertiesSettings(JDBCUtils.class.getClassLoader().getResource("db.properties").getPath());
+			DBConfig dbConfig = Application.getContext().getDatabase();
 			
 			//装载本地数据源
 			SppDatasource localDatasource = new SppDatasource();
 			localDatasource.setDatasourceId(ApiConst.DATASOURCE_LOCAL);
-			localDatasource.setDatasourceDriver(configMap.get("driverClass"));
-			localDatasource.setDatasourceUrl(configMap.get("jdbcUrl"));
-			localDatasource.setDatasourceUser(configMap.get("user"));
-			localDatasource.setDatasourcePwd(configMap.get("password"));
+			localDatasource.setDatasourceDriver(dbConfig.getDriverClass());
+			localDatasource.setDatasourceUrl(dbConfig.getJdbcUrl());
+			localDatasource.setDatasourceUser(dbConfig.getUser());
+			localDatasource.setDatasourcePwd(dbConfig.getPassword());
 			loadDynamicDatasource(localDatasource);
 			logger.info("本地装载数据源:" +localDatasource.getDatasourceId());
 			
@@ -87,6 +89,8 @@ public class JDBCUtils {
 	 * @throws PropertyVetoException
 	 */
 	private static void loadDynamicDatasource(SppDatasource datasource) throws PropertyVetoException{
+		C3p0Config c3p0Config = Application.getContext().getC3p0();
+		
 		//实例化c3p0数据源
 		ComboPooledDataSource c3p0Datasource = new ComboPooledDataSource();
 		//装载本地数据源
@@ -96,16 +100,16 @@ public class JDBCUtils {
 		c3p0Datasource.setPassword(datasource.getDatasourcePwd());
 		
 		//设置c3p0特殊属性
-		c3p0Datasource.setInitialPoolSize(ApiConst.INITIAL_POOL_SIZE);
-		c3p0Datasource.setMaxPoolSize(ApiConst.MAX_POOL_SIZE);
-		c3p0Datasource.setCheckoutTimeout(ApiConst.CHECK_TIME_OUT);
-		c3p0Datasource.setAutoCommitOnClose(true);
+		c3p0Datasource.setInitialPoolSize(c3p0Config.getInitialPoolSize());
+		c3p0Datasource.setMaxPoolSize(c3p0Config.getMaxPoolSize());
+		c3p0Datasource.setCheckoutTimeout(c3p0Config.getCheckoutTimeout());
+		c3p0Datasource.setAutoCommitOnClose(c3p0Config.isAutoCommitOnClose());
 		
-		c3p0Datasource.setPreferredTestQuery("select 1");
-		c3p0Datasource.setTestConnectionOnCheckin(true);
+		c3p0Datasource.setPreferredTestQuery(c3p0Config.getPreferredTestQuery());
+		c3p0Datasource.setTestConnectionOnCheckin(c3p0Config.isTestConnectionOnCheckin());
 		//c3p0连接回收配置
-		c3p0Datasource.setMaxConnectionAge(ApiConst.MAX_CONNECTION_AGE);
-		c3p0Datasource.setMaxIdleTime(ApiConst.MAX_IDLE_TIME);
+		c3p0Datasource.setMaxConnectionAge(c3p0Config.getMaxConnectionAge());
+		c3p0Datasource.setMaxIdleTime(c3p0Config.getMaxIdleTime());
 		//存储数据源
 		DynamicDataSource.putDatasourcePool(c3p0Datasource, datasource);
 	}

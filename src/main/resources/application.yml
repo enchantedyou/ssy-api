@@ -1,0 +1,54 @@
+﻿# 批量参数设置
+batch:
+  ln:
+    systemCode: 102
+    subSystemId: 1022
+    busiOrgId: 025
+    channelId: BAT
+    trxnBranch: 1234
+    datasource: ICORE3.0LN
+    module: ln
+    serverIp: 10.22.12.43
+    fetchStatusDelay: 1000
+    enable: true
+  dp:
+    systemCode: 100
+    subSystemId: 1002
+    busiOrgId: 025
+    channelId: BAT
+    trxnBranch: 1234
+    datasource: ICORE3.0DP
+    module: dp
+    serverIp: 10.22.12.42
+    fetchStatusDelay: 1000
+    enable: false
+  
+# 本地数据库
+database:
+  driverClass: com.mysql.cj.jdbc.Driver
+  jdbcUrl: jdbc:mysql://127.0.0.1:3306/sdp?serverTimezone=UTC
+  user: root
+  password: 7779
+
+# redis缓存配置
+redis:
+  maxIdle: 300
+  minIdle: 100
+  maxWaitMillis: 10000
+  testOnBorrow: true
+  maxTotal: 1000
+  host: 127.0.0.1
+  password: 7779
+  port: 6379
+  connectionTimeout: 5000
+  
+#c3p0数据源特殊配置
+c3p0:
+  initialPoolSize: 20
+  maxPoolSize: 1000
+  checkoutTimeout: 30000
+  autoCommitOnClose: true
+  preferredTestQuery: select 1
+  testConnectionOnCheckin: true
+  maxConnectionAge: 300
+  maxIdleTime: 30000

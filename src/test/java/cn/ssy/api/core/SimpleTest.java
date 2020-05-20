@@ -26,6 +26,7 @@ import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.context.Application;
 import cn.ssy.base.entity.mybatis.LnaLoan;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.sunline.ComplexElement;
@@ -72,7 +73,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test12() throws SQLException, IOException{
-		SunlineUtil.sunlineSearchDict("padding_mode");
+		SunlineUtil.sunlineSearchDict("Insf_rpym_method");
 	}
 	
 	/**
@@ -149,7 +150,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_DP_BAT);
 	}
 
 	
@@ -429,7 +430,7 @@ public class SimpleTest{
 	@Test
 	public void test31() throws Exception{
 		File file = new File("C:/Users/DELL/Desktop/" + ApiConst.FULLSQL_MAINDIR_NAME);
-		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_ICORE_LN);
+		SunlineUtil.sunlineExecuteFullSql(file, ApiConst.DATASOURCE_ICORE_LN_BAT);
 	}
 	
 	
@@ -722,7 +723,7 @@ public class SimpleTest{
 		String path = "D:/Sunline/sunlineDeveloper/记事本/工具脚本/ln_clear.sql";
 		String fullSql = CommonUtil.readFileContent(path);
 		System.out.println(fullSql);
-		logger.info("生效记录数:" + JDBCUtils.executeUpdate(CommonUtil.parseStringToList(fullSql, "\r\n"), ApiConst.DATASOURCE_ICORE_LN));
+		logger.info("生效记录数:" + JDBCUtils.executeUpdate(CommonUtil.parseStringToList(fullSql, "\r\n"), ApiConst.DATASOURCE_ICORE_LN_BAT));
 	}
 	
 	
@@ -766,22 +767,6 @@ public class SimpleTest{
 	
 	@Test
 	public void test50() throws Exception {
-		//BatTaskUtil.tryStartupTask(2);
-		
-		System.out.println(CommonUtil.compare("1000", "999"));
-		
-		/*final int threadNum = 3;
-		ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
-		for(int i = 0;i < threadNum;i++){
-			threadPool.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					SunlineBat.exe();
-				}
-			});
-		}
-		CommonUtil.awaitThreadPoolFinish(threadPool, 0);
-		while(true);*/
+		System.out.println(Application.getContext().getC3p0());
 	}
 }	

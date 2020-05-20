@@ -37,7 +37,7 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 	private String taskNum;
 	private String trxnDate;
 	private String tranId;
-	private long delay = CommonUtil.isNull(BatTaskUtil.batSettingMap.get("fetchStatusDelay")) ? 2000L : Long.parseLong(BatTaskUtil.batSettingMap.get("fetchStatusDelay"));
+	private long delay = CommonUtil.nvl(BatTaskUtil.batConfig.getFetchStatusDelay(), 2000L);
 	
 	public BatchProcessThread(String taskNum, String trxnDate,String tranId) {
 		super();
@@ -48,7 +48,7 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 
 	@Override
 	public TspTaskExecution call() throws Exception {
-		String sql = "select * from tsp_task_execution where system_code = '"+BatTaskUtil.batSettingMap.get("systemCode")+"' and corporate_code = '"+BatTaskUtil.batSettingMap.get("tenantId")+"' and task_num = ? and tran_id = ? and sub_system_code = '"+BatTaskUtil.batSettingMap.get("subSystemId")+"' order by tran_start_time desc limit 0,1";
+		String sql = "select * from tsp_task_execution where system_code = '"+BatTaskUtil.batConfig.getSystemCode()+"' and corporate_code = '"+BatTaskUtil.batConfig.getBusiOrgId()+"' and task_num = ? and tran_id = ? and sub_system_code = '"+BatTaskUtil.batConfig.getSubSystemId()+"' order by tran_start_time desc limit 0,1";
 		List<TspTranController> taskList = BatTaskUtil.getBatTaskList();
 		Map<String, TwoTuple<TspTranController, Integer>> taskMap = new LinkedHashMap<String, TwoTuple<TspTranController, Integer>>();
 		
@@ -67,7 +67,7 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 		TspTaskExecution tspTaskExecution = null;
 		do{
 			//DynamicDataSource.printC3p0PoolStatus();
-			tspTaskExecution = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery(sql, new String[]{taskNum,tranId}, BatTaskUtil.batSettingMap.get("datasource")), TspTaskExecution.class);
+			tspTaskExecution = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery(sql, new String[]{taskNum,tranId}, BatTaskUtil.batConfig.getDatasource()), TspTaskExecution.class);
 			if(CommonUtil.isNotNull(tspTaskExecution)){
 				String taskGetStr = tspTaskExecution.getCurrentTranGroupId() + "-" + tspTaskExecution.getCurrentStep();
 				if(CommonUtil.isNotNull(taskMap.get(taskGetStr))){

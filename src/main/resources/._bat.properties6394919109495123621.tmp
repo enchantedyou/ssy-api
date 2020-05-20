@@ -1,0 +1,10 @@
+#贷款批量参数设置
+systemCode=102
+subSystemId=1022
+tenantId=025
+channelId=BAT
+trxnBranch=1234
+datasource=ICORE3.0LN
+module=ln
+serverIp=10.22.12.43
+fetchStatusDelay=1000

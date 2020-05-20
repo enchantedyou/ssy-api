@@ -19,6 +19,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 
+import cn.ssy.base.entity.config.RedisConfig;
+import cn.ssy.base.entity.context.Application;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
 
@@ -52,24 +54,24 @@ public class RedisOperateUtil {
 	 *         </p>
 	 */
 	public void initRedisTemplate(){
-		Map<String, String> redisConfigMap = CommonUtil.readPropertiesSettings(RedisOperateUtil.class.getResource("/redis.properties").getPath());
+		RedisConfig redisConfig = Application.getContext().getRedis();
 
 		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-		jedisPoolConfig.setMaxIdle(Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("maxIdle"), "300")));
-		jedisPoolConfig.setMinIdle(Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("minIdle"), "100")));
-		jedisPoolConfig.setMaxWaitMillis(Long.parseLong(CommonUtil.nvl(redisConfigMap.get("maxWaitMillis"), "10000")));
+		jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
+		jedisPoolConfig.setMinIdle(redisConfig.getMinIdle());
+		jedisPoolConfig.setMaxWaitMillis(redisConfig.getMaxWaitMillis());
 		
-		jedisPoolConfig.setMaxTotal(Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("maxTotal"), "1000")));
+		jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
 		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(jedisPoolConfig);
-		jedisConnectionFactory.setHostName(redisConfigMap.get("host"));
-		jedisConnectionFactory.setPort(Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("port"), "6379")));
+		jedisConnectionFactory.setHostName(redisConfig.getHost());
+		jedisConnectionFactory.setPort(redisConfig.getPort());
 		
 		jedisConnectionFactory.setUsePool(true);
-		jedisConnectionFactory.setPassword(redisConfigMap.get("password"));
-		JedisShardInfo jedisShardInfo = new JedisShardInfo(redisConfigMap.get("host"), Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("port"), "6379")));
-		jedisShardInfo.setConnectionTimeout(Integer.parseInt(CommonUtil.nvl(redisConfigMap.get("connectionTimeout"), "5000")));
+		jedisConnectionFactory.setPassword(redisConfig.getPassword());
+		JedisShardInfo jedisShardInfo = new JedisShardInfo(redisConfig.getHost(), redisConfig.getPort());
+		jedisShardInfo.setConnectionTimeout(redisConfig.getConnectionTimeout());
 		
-		jedisShardInfo.setPassword(redisConfigMap.get("password"));
+		jedisShardInfo.setPassword(redisConfig.getPassword());
 		jedisConnectionFactory.setShardInfo(jedisShardInfo);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
