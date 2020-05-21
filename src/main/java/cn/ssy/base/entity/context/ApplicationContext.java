@@ -36,7 +36,7 @@ public class ApplicationContext {
 		this.redis = redis;
 		this.c3p0 = c3p0;
 	}
-	
+
 	public ApplicationContext(){
 		
 	}

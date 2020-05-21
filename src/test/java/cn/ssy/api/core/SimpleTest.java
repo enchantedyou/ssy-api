@@ -767,6 +767,6 @@ public class SimpleTest{
 	
 	@Test
 	public void test50() throws Exception {
-		System.out.println(Application.getContext().getC3p0());
+		System.out.println(Application.getContext());
 	}
 }	

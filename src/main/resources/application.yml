@@ -42,7 +42,7 @@ redis:
   port: 6379
   connectionTimeout: 5000
   
-#c3p0数据源特殊配置
+# c3p0数据源特殊配置
 c3p0:
   initialPoolSize: 20
   maxPoolSize: 1000
