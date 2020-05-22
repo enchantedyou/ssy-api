@@ -1,151 +1,164 @@
 package cn.ssy.base.entity.mybatis;
 
-
-
 public class CtpMenu {
+    private String menuCode;
 
-	private String menuCode;
+    private String menuId;
 
-	private String menuId;
+    private String menuUpperId;
 
-	private String menuUpperId;
+    private String menuGroup;
 
-	private String menuGroup;
+    private String menuDefaultInd;
 
-	private String menuDefaultInd;
+    private String menuDesc;
 
-	private String menuDesc;
+    private String pageId;
 
-	private String pageId;
+    private String pageDisplayScene;
 
-	private String pageDisplayScene;
+    private String outputPageId;
 
-	private String outputPageId;
+    private String dataCreateTime;
 
-	private String dataCreateTime;
+    private String dataUpdateTime;
 
-	private String dataUpdateTime;
+    private String dataCreateUser;
 
-	private String dataCreateUser;
+    private String dataUpdateUser;
 
-	private String dataUpdateUser;
+    private Long dataVersion;
 
-	private Long dataVersion;
+    public CtpMenu(String menuCode, String menuId, String menuUpperId, String menuGroup, String menuDefaultInd, String menuDesc, String pageId, String pageDisplayScene, String outputPageId, String dataCreateTime, String dataUpdateTime, String dataCreateUser, String dataUpdateUser, Long dataVersion) {
+        this.menuCode = menuCode;
+        this.menuId = menuId;
+        this.menuUpperId = menuUpperId;
+        this.menuGroup = menuGroup;
+        this.menuDefaultInd = menuDefaultInd;
+        this.menuDesc = menuDesc;
+        this.pageId = pageId;
+        this.pageDisplayScene = pageDisplayScene;
+        this.outputPageId = outputPageId;
+        this.dataCreateTime = dataCreateTime;
+        this.dataUpdateTime = dataUpdateTime;
+        this.dataCreateUser = dataCreateUser;
+        this.dataUpdateUser = dataUpdateUser;
+        this.dataVersion = dataVersion;
+    }
 
-	public String getMenuCode() {
-		return menuCode;
-	}
+    public CtpMenu() {
+        super();
+    }
 
-	public void setMenuCode(String menuCode) {
-		this.menuCode = menuCode;
-	}
+    public String getMenuCode() {
+        return menuCode;
+    }
 
-	public String getMenuId() {
-		return menuId;
-	}
+    public void setMenuCode(String menuCode) {
+        this.menuCode = menuCode == null ? null : menuCode.trim();
+    }
 
-	public void setMenuId(String menuId) {
-		this.menuId = menuId;
-	}
+    public String getMenuId() {
+        return menuId;
+    }
 
-	public String getMenuUpperId() {
-		return menuUpperId;
-	}
+    public void setMenuId(String menuId) {
+        this.menuId = menuId == null ? null : menuId.trim();
+    }
 
-	public void setMenuUpperId(String menuUpperId) {
-		this.menuUpperId = menuUpperId;
-	}
+    public String getMenuUpperId() {
+        return menuUpperId;
+    }
 
-	public String getMenuGroup() {
-		return menuGroup;
-	}
+    public void setMenuUpperId(String menuUpperId) {
+        this.menuUpperId = menuUpperId == null ? null : menuUpperId.trim();
+    }
 
-	public void setMenuGroup(String menuGroup) {
-		this.menuGroup = menuGroup;
-	}
+    public String getMenuGroup() {
+        return menuGroup;
+    }
 
-	public String getMenuDefaultInd() {
-		return menuDefaultInd;
-	}
+    public void setMenuGroup(String menuGroup) {
+        this.menuGroup = menuGroup == null ? null : menuGroup.trim();
+    }
 
-	public void setMenuDefaultInd(String menuDefaultInd) {
-		this.menuDefaultInd = menuDefaultInd;
-	}
+    public String getMenuDefaultInd() {
+        return menuDefaultInd;
+    }
 
-	public String getMenuDesc() {
-		return menuDesc;
-	}
+    public void setMenuDefaultInd(String menuDefaultInd) {
+        this.menuDefaultInd = menuDefaultInd == null ? null : menuDefaultInd.trim();
+    }
 
-	public void setMenuDesc(String menuDesc) {
-		this.menuDesc = menuDesc;
-	}
+    public String getMenuDesc() {
+        return menuDesc;
+    }
 
-	public String getPageId() {
-		return pageId;
-	}
+    public void setMenuDesc(String menuDesc) {
+        this.menuDesc = menuDesc == null ? null : menuDesc.trim();
+    }
 
-	public void setPageId(String pageId) {
-		this.pageId = pageId;
-	}
+    public String getPageId() {
+        return pageId;
+    }
 
-	public String getPageDisplayScene() {
-		return pageDisplayScene;
-	}
+    public void setPageId(String pageId) {
+        this.pageId = pageId == null ? null : pageId.trim();
+    }
 
-	public void setPageDisplayScene(String pageDisplayScene) {
-		this.pageDisplayScene = pageDisplayScene;
-	}
+    public String getPageDisplayScene() {
+        return pageDisplayScene;
+    }
 
-	public String getOutputPageId() {
-		return outputPageId;
-	}
+    public void setPageDisplayScene(String pageDisplayScene) {
+        this.pageDisplayScene = pageDisplayScene == null ? null : pageDisplayScene.trim();
+    }
 
-	public void setOutputPageId(String outputPageId) {
-		this.outputPageId = outputPageId;
-	}
+    public String getOutputPageId() {
+        return outputPageId;
+    }
 
-	public String getDataCreateTime() {
-		return dataCreateTime;
-	}
+    public void setOutputPageId(String outputPageId) {
+        this.outputPageId = outputPageId == null ? null : outputPageId.trim();
+    }
 
-	public void setDataCreateTime(String dataCreateTime) {
-		this.dataCreateTime = dataCreateTime;
-	}
+    public String getDataCreateTime() {
+        return dataCreateTime;
+    }
 
-	public String getDataUpdateTime() {
-		return dataUpdateTime;
-	}
+    public void setDataCreateTime(String dataCreateTime) {
+        this.dataCreateTime = dataCreateTime == null ? null : dataCreateTime.trim();
+    }
 
-	public void setDataUpdateTime(String dataUpdateTime) {
-		this.dataUpdateTime = dataUpdateTime;
-	}
+    public String getDataUpdateTime() {
+        return dataUpdateTime;
+    }
 
-	public String getDataCreateUser() {
-		return dataCreateUser;
-	}
+    public void setDataUpdateTime(String dataUpdateTime) {
+        this.dataUpdateTime = dataUpdateTime == null ? null : dataUpdateTime.trim();
+    }
 
-	public void setDataCreateUser(String dataCreateUser) {
-		this.dataCreateUser = dataCreateUser;
-	}
+    public String getDataCreateUser() {
+        return dataCreateUser;
+    }
 
-	public String getDataUpdateUser() {
-		return dataUpdateUser;
-	}
+    public void setDataCreateUser(String dataCreateUser) {
+        this.dataCreateUser = dataCreateUser == null ? null : dataCreateUser.trim();
+    }
 
-	public void setDataUpdateUser(String dataUpdateUser) {
-		this.dataUpdateUser = dataUpdateUser;
-	}
+    public String getDataUpdateUser() {
+        return dataUpdateUser;
+    }
 
-	public Long getDataVersion() {
-		return dataVersion;
-	}
+    public void setDataUpdateUser(String dataUpdateUser) {
+        this.dataUpdateUser = dataUpdateUser == null ? null : dataUpdateUser.trim();
+    }
 
-	public void setDataVersion(Long dataVersion) {
-		this.dataVersion = dataVersion;
-	}
+    public Long getDataVersion() {
+        return dataVersion;
+    }
 
-	@Override
-	public String toString() {
-		return "CtpMenu [menuCode=" + menuCode + ", menuId=" + menuId + ", menuUpperId=" + menuUpperId + ", menuGroup=" + menuGroup + ", menuDefaultInd=" + menuDefaultInd + ", menuDesc=" + menuDesc + ", pageId=" + pageId + ", pageDisplayScene=" + pageDisplayScene + ", outputPageId=" + outputPageId + ", dataCreateTime=" + dataCreateTime + ", dataUpdateTime=" + dataUpdateTime + ", dataCreateUser=" + dataCreateUser + ", dataUpdateUser=" + dataUpdateUser + ", dataVersion=" + dataVersion + "]";
-	}
+    public void setDataVersion(Long dataVersion) {
+        this.dataVersion = dataVersion;
+    }
 }

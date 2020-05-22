@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ssy.base.dao.mapper.SppEnumPriorityMapper">
+  <resultMap id="BaseResultMap" type="cn.ssy.base.entity.mybatis.SppEnumPriority">
+    <constructor>
+      <idArg column="enum_type" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="enum_priority" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="is_enabled" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="group_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    enum_type, enum_priority, is_enabled, group_id
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from spp_enum_priority
+    where enum_type = #{enumType,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from spp_enum_priority
+    where enum_type = #{enumType,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.ssy.base.entity.mybatis.SppEnumPriority">
+    insert into spp_enum_priority (enum_type, enum_priority, is_enabled, 
+      group_id)
+    values (#{enumType,jdbcType=VARCHAR}, #{enumPriority,jdbcType=INTEGER}, #{isEnabled,jdbcType=BIT}, 
+      #{groupId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.ssy.base.entity.mybatis.SppEnumPriority">
+    insert into spp_enum_priority
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="enumType != null">
+        enum_type,
+      </if>
+      <if test="enumPriority != null">
+        enum_priority,
+      </if>
+      <if test="isEnabled != null">
+        is_enabled,
+      </if>
+      <if test="groupId != null">
+        group_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="enumType != null">
+        #{enumType,jdbcType=VARCHAR},
+      </if>
+      <if test="enumPriority != null">
+        #{enumPriority,jdbcType=INTEGER},
+      </if>
+      <if test="isEnabled != null">
+        #{isEnabled,jdbcType=BIT},
+      </if>
+      <if test="groupId != null">
+        #{groupId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.ssy.base.entity.mybatis.SppEnumPriority">
+    update spp_enum_priority
+    <set>
+      <if test="enumPriority != null">
+        enum_priority = #{enumPriority,jdbcType=INTEGER},
+      </if>
+      <if test="isEnabled != null">
+        is_enabled = #{isEnabled,jdbcType=BIT},
+      </if>
+      <if test="groupId != null">
+        group_id = #{groupId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where enum_type = #{enumType,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.ssy.base.entity.mybatis.SppEnumPriority">
+    update spp_enum_priority
+    set enum_priority = #{enumPriority,jdbcType=INTEGER},
+      is_enabled = #{isEnabled,jdbcType=BIT},
+      group_id = #{groupId,jdbcType=VARCHAR}
+    where enum_type = #{enumType,jdbcType=VARCHAR}
+  </update>
+</mapper>

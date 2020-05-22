@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ssy.base.dao.mapper.SmpSysTransMapper">
+  <resultMap id="BaseResultMap" type="cn.ssy.base.entity.mybatis.SmpSysTrans">
+    <constructor>
+      <arg column="trans_cd" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="trans_name" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="service_cd" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="encap_cd" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="trans_status" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="deal_cnt" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="scene_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="dcn_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="version_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="app_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="timeout" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="group_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="isrecord" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="islist" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="system_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="is_approval" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </constructor>
+  </resultMap>
+  <insert id="insert" parameterType="cn.ssy.base.entity.mybatis.SmpSysTrans">
+    insert into smp_sys_trans (trans_cd, trans_name, service_cd, 
+      encap_cd, trans_status, deal_cnt, 
+      scene_id, dcn_id, version_id, 
+      app_id, timeout, group_id, 
+      isrecord, islist, system_id, 
+      is_approval)
+    values (#{transCd,jdbcType=VARCHAR}, #{transName,jdbcType=VARCHAR}, #{serviceCd,jdbcType=VARCHAR}, 
+      #{encapCd,jdbcType=VARCHAR}, #{transStatus,jdbcType=VARCHAR}, #{dealCnt,jdbcType=BIGINT}, 
+      #{sceneId,jdbcType=VARCHAR}, #{dcnId,jdbcType=VARCHAR}, #{versionId,jdbcType=VARCHAR}, 
+      #{appId,jdbcType=VARCHAR}, #{timeout,jdbcType=INTEGER}, #{groupId,jdbcType=VARCHAR}, 
+      #{isrecord,jdbcType=VARCHAR}, #{islist,jdbcType=VARCHAR}, #{systemId,jdbcType=VARCHAR}, 
+      #{isApproval,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.ssy.base.entity.mybatis.SmpSysTrans">
+    insert into smp_sys_trans
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="transCd != null">
+        trans_cd,
+      </if>
+      <if test="transName != null">
+        trans_name,
+      </if>
+      <if test="serviceCd != null">
+        service_cd,
+      </if>
+      <if test="encapCd != null">
+        encap_cd,
+      </if>
+      <if test="transStatus != null">
+        trans_status,
+      </if>
+      <if test="dealCnt != null">
+        deal_cnt,
+      </if>
+      <if test="sceneId != null">
+        scene_id,
+      </if>
+      <if test="dcnId != null">
+        dcn_id,
+      </if>
+      <if test="versionId != null">
+        version_id,
+      </if>
+      <if test="appId != null">
+        app_id,
+      </if>
+      <if test="timeout != null">
+        timeout,
+      </if>
+      <if test="groupId != null">
+        group_id,
+      </if>
+      <if test="isrecord != null">
+        isrecord,
+      </if>
+      <if test="islist != null">
+        islist,
+      </if>
+      <if test="systemId != null">
+        system_id,
+      </if>
+      <if test="isApproval != null">
+        is_approval,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="transCd != null">
+        #{transCd,jdbcType=VARCHAR},
+      </if>
+      <if test="transName != null">
+        #{transName,jdbcType=VARCHAR},
+      </if>
+      <if test="serviceCd != null">
+        #{serviceCd,jdbcType=VARCHAR},
+      </if>
+      <if test="encapCd != null">
+        #{encapCd,jdbcType=VARCHAR},
+      </if>
+      <if test="transStatus != null">
+        #{transStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="dealCnt != null">
+        #{dealCnt,jdbcType=BIGINT},
+      </if>
+      <if test="sceneId != null">
+        #{sceneId,jdbcType=VARCHAR},
+      </if>
+      <if test="dcnId != null">
+        #{dcnId,jdbcType=VARCHAR},
+      </if>
+      <if test="versionId != null">
+        #{versionId,jdbcType=VARCHAR},
+      </if>
+      <if test="appId != null">
+        #{appId,jdbcType=VARCHAR},
+      </if>
+      <if test="timeout != null">
+        #{timeout,jdbcType=INTEGER},
+      </if>
+      <if test="groupId != null">
+        #{groupId,jdbcType=VARCHAR},
+      </if>
+      <if test="isrecord != null">
+        #{isrecord,jdbcType=VARCHAR},
+      </if>
+      <if test="islist != null">
+        #{islist,jdbcType=VARCHAR},
+      </if>
+      <if test="systemId != null">
+        #{systemId,jdbcType=VARCHAR},
+      </if>
+      <if test="isApproval != null">
+        #{isApproval,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

@@ -66,6 +66,10 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.mybatis.generator.api.MyBatisGenerator;
+import org.mybatis.generator.config.Configuration;
+import org.mybatis.generator.config.xml.ConfigurationParser;
+import org.mybatis.generator.internal.DefaultShellCallback;
 
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
@@ -2498,5 +2502,26 @@ public class CommonUtil {
 		if(isNull(obj)){
 			throw new RuntimeException("[" + objDesc + "]不存在");
 		}
+	}
+	
+	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月21日-下午3:10:34</li>
+	 *         <li>功能说明：执行mybatis生成代码</li>
+	 *         </p>
+	 * @param confPath
+	 * @throws Exception
+	 */
+	public static void mybatisGeneratorProcess(String confPath, boolean overwrite) throws Exception{
+		List<String> warnings = new ArrayList<String>();
+        File configFile = new File(confPath);
+        
+        ConfigurationParser cp = new ConfigurationParser(warnings);
+        Configuration config = cp.parseConfiguration(configFile);
+        DefaultShellCallback callback = new DefaultShellCallback(overwrite);
+        MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+        myBatisGenerator.generate(null);
 	}
 }

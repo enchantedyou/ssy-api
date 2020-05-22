@@ -1,151 +1,153 @@
 package cn.ssy.base.entity.mybatis;
 
+public class SppDatasource extends SppDatasourceKey {
+    private String tlsqlInd;
 
+    private String platformTablePrefix;
 
-public class SppDatasource {
+    private String datasourceDesc;
 
-	private String datasourceId;
+    private String datasourceDriver;
 
-	private String datasourceType;
+    private String datasourceUrl;
 
-	private String tlsqlInd;
+    private String datasourceUser;
 
-	private String platformTablePrefix;
+    private String datasourcePwd;
 
-	private String datasourceDesc;
+    private String dataCreateUser;
 
-	private String datasourceDriver;
+    private String dataCreateTime;
 
-	private String datasourceUrl;
+    private String dataUpdateUser;
 
-	private String datasourceUser;
+    private String dataUpdateTime;
 
-	private String datasourcePwd;
+    private Integer dataVersion;
 
-	private String dataCreateUser;
+    public SppDatasource(String datasourceId, String datasourceType, String tlsqlInd, String platformTablePrefix, String datasourceDesc, String datasourceDriver, String datasourceUrl, String datasourceUser, String datasourcePwd, String dataCreateUser, String dataCreateTime, String dataUpdateUser, String dataUpdateTime, Integer dataVersion) {
+        super(datasourceId, datasourceType);
+        this.tlsqlInd = tlsqlInd;
+        this.platformTablePrefix = platformTablePrefix;
+        this.datasourceDesc = datasourceDesc;
+        this.datasourceDriver = datasourceDriver;
+        this.datasourceUrl = datasourceUrl;
+        this.datasourceUser = datasourceUser;
+        this.datasourcePwd = datasourcePwd;
+        this.dataCreateUser = dataCreateUser;
+        this.dataCreateTime = dataCreateTime;
+        this.dataUpdateUser = dataUpdateUser;
+        this.dataUpdateTime = dataUpdateTime;
+        this.dataVersion = dataVersion;
+    }
 
-	private String dataCreateTime;
+    public SppDatasource() {
+        super();
+    }
 
-	private String dataUpdateUser;
+    public String getTlsqlInd() {
+        return tlsqlInd;
+    }
 
-	private String dataUpdateTime;
+    public void setTlsqlInd(String tlsqlInd) {
+        this.tlsqlInd = tlsqlInd == null ? null : tlsqlInd.trim();
+    }
 
-	private Integer dataVersion;
+    public String getPlatformTablePrefix() {
+        return platformTablePrefix;
+    }
 
-	public String getDatasourceId() {
-		return datasourceId;
-	}
+    public void setPlatformTablePrefix(String platformTablePrefix) {
+        this.platformTablePrefix = platformTablePrefix == null ? null : platformTablePrefix.trim();
+    }
 
-	public void setDatasourceId(String datasourceId) {
-		this.datasourceId = datasourceId;
-	}
+    public String getDatasourceDesc() {
+        return datasourceDesc;
+    }
 
-	public String getDatasourceType() {
-		return datasourceType;
-	}
+    public void setDatasourceDesc(String datasourceDesc) {
+        this.datasourceDesc = datasourceDesc == null ? null : datasourceDesc.trim();
+    }
 
-	public void setDatasourceType(String datasourceType) {
-		this.datasourceType = datasourceType;
-	}
+    public String getDatasourceDriver() {
+        return datasourceDriver;
+    }
 
-	public String getTlsqlInd() {
-		return tlsqlInd;
-	}
+    public void setDatasourceDriver(String datasourceDriver) {
+        this.datasourceDriver = datasourceDriver == null ? null : datasourceDriver.trim();
+    }
 
-	public void setTlsqlInd(String tlsqlInd) {
-		this.tlsqlInd = tlsqlInd;
-	}
+    public String getDatasourceUrl() {
+        return datasourceUrl;
+    }
 
-	public String getPlatformTablePrefix() {
-		return platformTablePrefix;
-	}
+    public void setDatasourceUrl(String datasourceUrl) {
+        this.datasourceUrl = datasourceUrl == null ? null : datasourceUrl.trim();
+    }
 
-	public void setPlatformTablePrefix(String platformTablePrefix) {
-		this.platformTablePrefix = platformTablePrefix;
-	}
+    public String getDatasourceUser() {
+        return datasourceUser;
+    }
 
-	public String getDatasourceDesc() {
-		return datasourceDesc;
-	}
+    public void setDatasourceUser(String datasourceUser) {
+        this.datasourceUser = datasourceUser == null ? null : datasourceUser.trim();
+    }
 
-	public void setDatasourceDesc(String datasourceDesc) {
-		this.datasourceDesc = datasourceDesc;
-	}
+    public String getDatasourcePwd() {
+        return datasourcePwd;
+    }
 
-	public String getDatasourceDriver() {
-		return datasourceDriver;
-	}
+    public void setDatasourcePwd(String datasourcePwd) {
+        this.datasourcePwd = datasourcePwd == null ? null : datasourcePwd.trim();
+    }
 
-	public void setDatasourceDriver(String datasourceDriver) {
-		this.datasourceDriver = datasourceDriver;
-	}
+    public String getDataCreateUser() {
+        return dataCreateUser;
+    }
 
-	public String getDatasourceUrl() {
-		return datasourceUrl;
-	}
+    public void setDataCreateUser(String dataCreateUser) {
+        this.dataCreateUser = dataCreateUser == null ? null : dataCreateUser.trim();
+    }
 
-	public void setDatasourceUrl(String datasourceUrl) {
-		this.datasourceUrl = datasourceUrl;
-	}
+    public String getDataCreateTime() {
+        return dataCreateTime;
+    }
 
-	public String getDatasourceUser() {
-		return datasourceUser;
-	}
+    public void setDataCreateTime(String dataCreateTime) {
+        this.dataCreateTime = dataCreateTime == null ? null : dataCreateTime.trim();
+    }
 
-	public void setDatasourceUser(String datasourceUser) {
-		this.datasourceUser = datasourceUser;
-	}
+    public String getDataUpdateUser() {
+        return dataUpdateUser;
+    }
 
-	public String getDatasourcePwd() {
-		return datasourcePwd;
-	}
+    public void setDataUpdateUser(String dataUpdateUser) {
+        this.dataUpdateUser = dataUpdateUser == null ? null : dataUpdateUser.trim();
+    }
 
-	public void setDatasourcePwd(String datasourcePwd) {
-		this.datasourcePwd = datasourcePwd;
-	}
+    public String getDataUpdateTime() {
+        return dataUpdateTime;
+    }
 
-	public String getDataCreateUser() {
-		return dataCreateUser;
-	}
+    public void setDataUpdateTime(String dataUpdateTime) {
+        this.dataUpdateTime = dataUpdateTime == null ? null : dataUpdateTime.trim();
+    }
 
-	public void setDataCreateUser(String dataCreateUser) {
-		this.dataCreateUser = dataCreateUser;
-	}
+    public Integer getDataVersion() {
+        return dataVersion;
+    }
 
-	public String getDataCreateTime() {
-		return dataCreateTime;
-	}
-
-	public void setDataCreateTime(String dataCreateTime) {
-		this.dataCreateTime = dataCreateTime;
-	}
-
-	public String getDataUpdateUser() {
-		return dataUpdateUser;
-	}
-
-	public void setDataUpdateUser(String dataUpdateUser) {
-		this.dataUpdateUser = dataUpdateUser;
-	}
-
-	public String getDataUpdateTime() {
-		return dataUpdateTime;
-	}
-
-	public void setDataUpdateTime(String dataUpdateTime) {
-		this.dataUpdateTime = dataUpdateTime;
-	}
-
-	public Integer getDataVersion() {
-		return dataVersion;
-	}
-
-	public void setDataVersion(Integer dataVersion) {
-		this.dataVersion = dataVersion;
-	}
+    public void setDataVersion(Integer dataVersion) {
+        this.dataVersion = dataVersion;
+    }
 
 	@Override
 	public String toString() {
-		return "SppDatasource [datasourceId=" + datasourceId + ", datasourceType=" + datasourceType + ", tlsqlInd=" + tlsqlInd + ", platformTablePrefix=" + platformTablePrefix + ", datasourceDesc=" + datasourceDesc + ", datasourceDriver=" + datasourceDriver + ", datasourceUrl=" + datasourceUrl + ", datasourceUser=" + datasourceUser + ", datasourcePwd=" + datasourcePwd + ", dataCreateUser=" + dataCreateUser + ", dataCreateTime=" + dataCreateTime + ", dataUpdateUser=" + dataUpdateUser + ", dataUpdateTime=" + dataUpdateTime + ", dataVersion=" + dataVersion + "]";
+		return "SppDatasource [tlsqlInd=" + tlsqlInd + ", platformTablePrefix=" + platformTablePrefix + ", datasourceDesc=" + datasourceDesc + ", datasourceDriver="
+				+ datasourceDriver + ", datasourceUrl=" + datasourceUrl + ", datasourceUser=" + datasourceUser + ", datasourcePwd=" + datasourcePwd + ", dataCreateUser="
+				+ dataCreateUser + ", dataCreateTime=" + dataCreateTime + ", dataUpdateUser=" + dataUpdateUser + ", dataUpdateTime=" + dataUpdateTime + ", dataVersion="
+				+ dataVersion + ", " + super.toString() + "]";
 	}
+    
+    
 }

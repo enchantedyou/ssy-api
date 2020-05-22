@@ -55,6 +55,8 @@ public class ApiConst {
 	public static final String DATASOURCE_ICORE_DP = "ICORE3.0DP";
 	//3.1存款日终
 	public static final String DATASOURCE_ICORE_DP_BAT = "ICORE3.0DP_BAT";
+	//3.1SUMP-FAT环境
+	public static final String DATASOURCE_ICORE_SMP_FAT = "ICORE3.0SMP_FAT";
 	
 	//贷款DEV环境报文json
 	public static final String POSTMAN_LN_DEV = "/postman/贷款DEV.postman_collection.json";
@@ -66,19 +68,6 @@ public class ApiConst {
 	public static final String POSTMAN_CBS = "/postman/ICORE3.0集中式.postman_collection.json";
 	//额度FAT环境报文json
 	public static final String POSTMAN_CL_FAT = "/postman/额度FAT.postman_collection.json";
-	
-	//c3p0初始线程数
-	public static final int INITIAL_POOL_SIZE = 20;
-	//c3p0最大线程数
-	public static final int MAX_POOL_SIZE = 1000;
-	//超时毫秒
-	public static final int CHECK_TIME_OUT = 30000;
-	//线程并发数上限
-	public static final int MAX_THREAD_CONCURRENT = 1000;
-	//连接存活的最大时长(秒)
-	public static final int MAX_CONNECTION_AGE = 60 * 5;
-	//空闲连接
-	public static final int MAX_IDLE_TIME = 0;
 	
 	//回调线程默认成功返回
 	public static final int CALLABLE_SUCCESS_RETURN = 0;
@@ -104,6 +93,10 @@ public class ApiConst {
 	//redis默认过期时间(一天)
 	public static final long REDIS_DEFAULT_TIMEOUT_SEC = 60 * 60 * 24;
 	
+	//线程并发数上限
+	public static final int MAX_THREAD_CONCURRENT = 200;
 	//默认通配符
 	public static final String DEFAULT_WILDCARD = "*";
+	//mybatis的mapper包
+	public static final String MYBATIS_MAPPER_PACKAGE = "cn.ssy.base.dao.mapper";
 }

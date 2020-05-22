@@ -25,9 +25,11 @@ import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
+import cn.ssy.base.core.utils.mybatis.MybatisUtil;
+import cn.ssy.base.dao.mapper.SmpSysDictMapper;
 import cn.ssy.base.entity.consts.ApiConst;
-import cn.ssy.base.entity.context.Application;
 import cn.ssy.base.entity.mybatis.LnaLoan;
+import cn.ssy.base.entity.mybatis.SmpSysDictKey;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.sunline.ComplexElement;
 import cn.ssy.base.enums.E_ICOREMODULE;
@@ -150,7 +152,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test10() throws SQLException{
-		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_DP_BAT);
+		SunlineUtil.sunlineKillProcess(ApiConst.DATASOURCE_ICORE_LN_BAT);
 	}
 
 	
@@ -642,7 +644,7 @@ public class SimpleTest{
 				/** 批量为json中的control及域后字段新增字段长度限制 **/
 				String result = SunlineUtil.sunlineAddFieldLengthLimit(JSONObject.fromObject(fileContent));
 				if(!JSONObject.fromObject(result).equals(JSONObject.fromObject(fileContent))){
-					CommonUtil.writeFileContent(result, filePath);
+					//CommonUtil.writeFileContent(result, filePath);
 					dealCount++;
 				}
 				/** 加载字段名和字段描述的映射 **/
@@ -765,8 +767,29 @@ public class SimpleTest{
 		SunlineUtil.sunlineWriteFlowtran(inFieldArray, outFieldArray, serviceTypeName, serviceId, serviceLongname, variableName, flowtranId, kind);
 	}
 	
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月21日-下午3:55:40</li>
+	 *         <li>功能说明：生成mybatis相关代码</li>
+	 *         </p>
+	 * @throws Exception
+	 */
 	@Test
 	public void test50() throws Exception {
-		System.out.println(Application.getContext());
+		String confPath = SimpleTest.class.getResource("/generatorConfig/").getPath();
+		Map<String, File> configMap = CommonUtil.loadPathAllFiles(confPath);
+		for(String fileName : configMap.keySet()){
+			logger.info("generate mybatis component from " + fileName);
+			CommonUtil.mybatisGeneratorProcess(configMap.get(fileName).getPath(), true);
+		}
+	}
+	
+	
+	@Test
+	public void test51() throws Exception {
+		MybatisUtil mybatisUtil = new MybatisUtil();
+		SmpSysDictMapper mapper = mybatisUtil.getMapper(ApiConst.DATASOURCE_ICORE_CT_DIT, SmpSysDictMapper.class);
+		System.out.println(mapper.selectByPrimaryKey(new SmpSysDictKey("*", "E_ACCOUTANALY")));
 	}
 }	

@@ -1,51 +1,54 @@
 package cn.ssy.base.entity.mybatis;
 
-
-
 public class SppEnumPriority {
+    private String enumType;
 
-	private String enumType;
+    private Integer enumPriority;
 
-	private Integer enumPriority;
+    private Boolean isEnabled;
 
-	private Boolean isEnabled;
+    private String groupId;
 
-	private String groupId;
+    public SppEnumPriority(String enumType, Integer enumPriority, Boolean isEnabled, String groupId) {
+        this.enumType = enumType;
+        this.enumPriority = enumPriority;
+        this.isEnabled = isEnabled;
+        this.groupId = groupId;
+    }
 
-	public String getEnumType() {
-		return enumType;
-	}
+    public SppEnumPriority() {
+        super();
+    }
 
-	public void setEnumType(String enumType) {
-		this.enumType = enumType;
-	}
+    public String getEnumType() {
+        return enumType;
+    }
 
-	public Integer getEnumPriority() {
-		return enumPriority;
-	}
+    public void setEnumType(String enumType) {
+        this.enumType = enumType == null ? null : enumType.trim();
+    }
 
-	public void setEnumPriority(Integer enumPriority) {
-		this.enumPriority = enumPriority;
-	}
+    public Integer getEnumPriority() {
+        return enumPriority;
+    }
 
-	public Boolean getIsEnabled() {
-		return isEnabled;
-	}
+    public void setEnumPriority(Integer enumPriority) {
+        this.enumPriority = enumPriority;
+    }
 
-	public void setIsEnabled(Boolean isEnabled) {
-		this.isEnabled = isEnabled;
-	}
+    public Boolean getIsEnabled() {
+        return isEnabled;
+    }
 
-	public String getGroupId() {
-		return groupId;
-	}
+    public void setIsEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
 
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
+    public String getGroupId() {
+        return groupId;
+    }
 
-	@Override
-	public String toString() {
-		return "SppEnumPriority [enumType=" + enumType + ", enumPriority=" + enumPriority + ", isEnabled=" + isEnabled + ", groupId=" + groupId + "]";
-	}
+    public void setGroupId(String groupId) {
+        this.groupId = groupId == null ? null : groupId.trim();
+    }
 }

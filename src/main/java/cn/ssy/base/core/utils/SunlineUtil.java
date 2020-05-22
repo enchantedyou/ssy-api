@@ -35,6 +35,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import cn.ssy.base.core.network.api.NetworkApi;
+import cn.ssy.base.core.utils.mybatis.MybatisUtil;
+import cn.ssy.base.dao.mapper.SmpSysDictMapper;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
 import cn.ssy.base.entity.mybatis.MspTransaction;
@@ -102,7 +104,8 @@ public class SunlineUtil {
 	private static final StringBuffer fieldRefReportBuffer = new StringBuffer();
 	//是否以MS为最高优先级
 	private static final boolean isMsAsFirst = true;
-	
+	//Mybatis工具
+	private static final MybatisUtil mybatisUtil = new MybatisUtil();
 	
 	
 	/**
@@ -248,7 +251,7 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void loanCtDict() throws SQLException {
-		List<SmpSysDict> dictList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from smp_sys_dict", ApiConst.DATASOURCE_ICORE_CT_DIT), SmpSysDict.class);
+		List<SmpSysDict> dictList = mybatisUtil.getMapper(ApiConst.DATASOURCE_ICORE_SMP_FAT, SmpSysDictMapper.class).selectAll();
 		for(SmpSysDict dict : dictList){
 			ctEnumMap.put(dict.getDictType() + "." + dict.getDictId(), dict);
 		}
@@ -2765,6 +2768,7 @@ public class SunlineUtil {
 		}
 		final String control = keyControlMap.get(key).getControl();
 		final String message = ("select".equals(control) ||  "lookup".equals(control) ? "请选择" : "请输入") + keyControlMap.get(key).getLabel();
+		final int decimalMax = 16;
 		
 		//currency控件格式纠正
 		if("currency".equals(keyControlMap.get(key).getControl())){
@@ -2784,7 +2788,7 @@ public class SunlineUtil {
 			fieldJson.put("thousand", ",");
 			
 			//currency新增最大长度属性
-			fieldJson.put("max", 16);
+			fieldJson.put("max", CommonUtil.isNull(baseType) ? decimalMax : Integer.parseInt(baseType.getMaxLength()));
 		}
 		
 		//如果rules不是采用的规范写法,纠正为数组

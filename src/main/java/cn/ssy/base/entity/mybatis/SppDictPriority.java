@@ -1,51 +1,54 @@
 package cn.ssy.base.entity.mybatis;
 
-
-
 public class SppDictPriority {
+    private String dictType;
 
-	private String dictType;
+    private Integer dictPriority;
 
-	private Integer dictPriority;
+    private Boolean isEnabled;
 
-	private Boolean isEnabled;
+    private String groupId;
 
-	private String groupId;
+    public SppDictPriority(String dictType, Integer dictPriority, Boolean isEnabled, String groupId) {
+        this.dictType = dictType;
+        this.dictPriority = dictPriority;
+        this.isEnabled = isEnabled;
+        this.groupId = groupId;
+    }
 
-	public String getDictType() {
-		return dictType;
-	}
+    public SppDictPriority() {
+        super();
+    }
 
-	public void setDictType(String dictType) {
-		this.dictType = dictType;
-	}
+    public String getDictType() {
+        return dictType;
+    }
 
-	public Integer getDictPriority() {
-		return dictPriority;
-	}
+    public void setDictType(String dictType) {
+        this.dictType = dictType == null ? null : dictType.trim();
+    }
 
-	public void setDictPriority(Integer dictPriority) {
-		this.dictPriority = dictPriority;
-	}
+    public Integer getDictPriority() {
+        return dictPriority;
+    }
 
-	public Boolean getIsEnabled() {
-		return isEnabled;
-	}
+    public void setDictPriority(Integer dictPriority) {
+        this.dictPriority = dictPriority;
+    }
 
-	public void setIsEnabled(Boolean isEnabled) {
-		this.isEnabled = isEnabled;
-	}
+    public Boolean getIsEnabled() {
+        return isEnabled;
+    }
 
-	public String getGroupId() {
-		return groupId;
-	}
+    public void setIsEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
 
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
+    public String getGroupId() {
+        return groupId;
+    }
 
-	@Override
-	public String toString() {
-		return "SppDictPriority [dictType=" + dictType + ", dictPriority=" + dictPriority + ", isEnabled=" + isEnabled + ", groupId=" + groupId + "]";
-	}
+    public void setGroupId(String groupId) {
+        this.groupId = groupId == null ? null : groupId.trim();
+    }
 }

@@ -2,104 +2,91 @@ package cn.ssy.base.entity.mybatis;
 
 import java.io.Serializable;
 
-
-
-public class SmpSysDict implements Serializable{
-
-	private static final long serialVersionUID = -925074621721540985L;
-
-	private String dictType;
-
-	private String dictId;
+public class SmpSysDict extends SmpSysDictKey implements Serializable{
+	private static final long serialVersionUID = 1339489825685828052L;
 
 	private String dictName;
 
-	private String parentDictType;
+    private String parentDictType;
 
-	private String parentDictId;
+    private String parentDictId;
 
-	private String status;
+    private String status;
 
-	private Long sortNo;
+    private Long sortNo;
 
-	private String timestamp;
+    private String timestamp;
 
-	private String dictTypeName;
+    private String dictTypeName;
 
-	public String getDictType() {
-		return dictType;
-	}
+    public SmpSysDict(String dictId, String dictType, String dictName, String parentDictType, String parentDictId, String status, Long sortNo, String timestamp, String dictTypeName) {
+        super(dictId, dictType);
+        this.dictName = dictName;
+        this.parentDictType = parentDictType;
+        this.parentDictId = parentDictId;
+        this.status = status;
+        this.sortNo = sortNo;
+        this.timestamp = timestamp;
+        this.dictTypeName = dictTypeName;
+    }
 
-	public void setDictType(String dictType) {
-		this.dictType = dictType;
-	}
+    public SmpSysDict() {
+        super();
+    }
 
-	public String getDictId() {
-		return dictId;
-	}
+    public String getDictName() {
+        return dictName;
+    }
 
-	public void setDictId(String dictId) {
-		this.dictId = dictId;
-	}
+    public void setDictName(String dictName) {
+        this.dictName = dictName == null ? null : dictName.trim();
+    }
 
-	public String getDictName() {
-		return dictName;
-	}
+    public String getParentDictType() {
+        return parentDictType;
+    }
 
-	public void setDictName(String dictName) {
-		this.dictName = dictName;
-	}
+    public void setParentDictType(String parentDictType) {
+        this.parentDictType = parentDictType == null ? null : parentDictType.trim();
+    }
 
-	public String getParentDictType() {
-		return parentDictType;
-	}
+    public String getParentDictId() {
+        return parentDictId;
+    }
 
-	public void setParentDictType(String parentDictType) {
-		this.parentDictType = parentDictType;
-	}
+    public void setParentDictId(String parentDictId) {
+        this.parentDictId = parentDictId == null ? null : parentDictId.trim();
+    }
 
-	public String getParentDictId() {
-		return parentDictId;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public void setParentDictId(String parentDictId) {
-		this.parentDictId = parentDictId;
-	}
+    public void setStatus(String status) {
+        this.status = status == null ? null : status.trim();
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public Long getSortNo() {
+        return sortNo;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setSortNo(Long sortNo) {
+        this.sortNo = sortNo;
+    }
 
-	public Long getSortNo() {
-		return sortNo;
-	}
+    public String getTimestamp() {
+        return timestamp;
+    }
 
-	public void setSortNo(Long sortNo) {
-		this.sortNo = sortNo;
-	}
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp == null ? null : timestamp.trim();
+    }
 
-	public String getTimestamp() {
-		return timestamp;
-	}
+    public String getDictTypeName() {
+        return dictTypeName;
+    }
 
-	public void setTimestamp(String timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public String getDictTypeName() {
-		return dictTypeName;
-	}
-
-	public void setDictTypeName(String dictTypeName) {
-		this.dictTypeName = dictTypeName;
-	}
-
-	@Override
-	public String toString() {
-		return "SmpSysDict [dictType=" + dictType + ", dictId=" + dictId + ", dictName=" + dictName + ", parentDictType=" + parentDictType + ", parentDictId=" + parentDictId + ", status=" + status + ", sortNo=" + sortNo + ", timestamp=" + timestamp + ", dictTypeName=" + dictTypeName + "]";
-	}
+    public void setDictTypeName(String dictTypeName) {
+        this.dictTypeName = dictTypeName == null ? null : dictTypeName.trim();
+    }
 }

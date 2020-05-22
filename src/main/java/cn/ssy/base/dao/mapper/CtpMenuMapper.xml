@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ssy.base.dao.mapper.CtpMenuMapper">
+  <resultMap id="BaseResultMap" type="cn.ssy.base.entity.mybatis.CtpMenu">
+    <constructor>
+      <idArg column="menu_code" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="menu_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="menu_upper_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="menu_group" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="menu_default_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="menu_desc" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="page_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="page_display_scene" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="output_page_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_create_time" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_update_time" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_create_user" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_update_user" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_version" javaType="java.lang.Long" jdbcType="BIGINT" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    menu_code, menu_id, menu_upper_id, menu_group, menu_default_ind, menu_desc, page_id, 
+    page_display_scene, output_page_id, data_create_time, data_update_time, data_create_user, 
+    data_update_user, data_version
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ctp_menu
+    where menu_code = #{menuCode,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from ctp_menu
+    where menu_code = #{menuCode,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.ssy.base.entity.mybatis.CtpMenu">
+    insert into ctp_menu (menu_code, menu_id, menu_upper_id, 
+      menu_group, menu_default_ind, menu_desc, 
+      page_id, page_display_scene, output_page_id, 
+      data_create_time, data_update_time, data_create_user, 
+      data_update_user, data_version)
+    values (#{menuCode,jdbcType=VARCHAR}, #{menuId,jdbcType=VARCHAR}, #{menuUpperId,jdbcType=VARCHAR}, 
+      #{menuGroup,jdbcType=VARCHAR}, #{menuDefaultInd,jdbcType=VARCHAR}, #{menuDesc,jdbcType=VARCHAR}, 
+      #{pageId,jdbcType=VARCHAR}, #{pageDisplayScene,jdbcType=VARCHAR}, #{outputPageId,jdbcType=VARCHAR}, 
+      #{dataCreateTime,jdbcType=VARCHAR}, #{dataUpdateTime,jdbcType=VARCHAR}, #{dataCreateUser,jdbcType=VARCHAR}, 
+      #{dataUpdateUser,jdbcType=VARCHAR}, #{dataVersion,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.ssy.base.entity.mybatis.CtpMenu">
+    insert into ctp_menu
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="menuCode != null">
+        menu_code,
+      </if>
+      <if test="menuId != null">
+        menu_id,
+      </if>
+      <if test="menuUpperId != null">
+        menu_upper_id,
+      </if>
+      <if test="menuGroup != null">
+        menu_group,
+      </if>
+      <if test="menuDefaultInd != null">
+        menu_default_ind,
+      </if>
+      <if test="menuDesc != null">
+        menu_desc,
+      </if>
+      <if test="pageId != null">
+        page_id,
+      </if>
+      <if test="pageDisplayScene != null">
+        page_display_scene,
+      </if>
+      <if test="outputPageId != null">
+        output_page_id,
+      </if>
+      <if test="dataCreateTime != null">
+        data_create_time,
+      </if>
+      <if test="dataUpdateTime != null">
+        data_update_time,
+      </if>
+      <if test="dataCreateUser != null">
+        data_create_user,
+      </if>
+      <if test="dataUpdateUser != null">
+        data_update_user,
+      </if>
+      <if test="dataVersion != null">
+        data_version,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="menuCode != null">
+        #{menuCode,jdbcType=VARCHAR},
+      </if>
+      <if test="menuId != null">
+        #{menuId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuUpperId != null">
+        #{menuUpperId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuGroup != null">
+        #{menuGroup,jdbcType=VARCHAR},
+      </if>
+      <if test="menuDefaultInd != null">
+        #{menuDefaultInd,jdbcType=VARCHAR},
+      </if>
+      <if test="menuDesc != null">
+        #{menuDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="pageId != null">
+        #{pageId,jdbcType=VARCHAR},
+      </if>
+      <if test="pageDisplayScene != null">
+        #{pageDisplayScene,jdbcType=VARCHAR},
+      </if>
+      <if test="outputPageId != null">
+        #{outputPageId,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateTime != null">
+        #{dataCreateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateTime != null">
+        #{dataUpdateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateUser != null">
+        #{dataCreateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateUser != null">
+        #{dataUpdateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataVersion != null">
+        #{dataVersion,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.ssy.base.entity.mybatis.CtpMenu">
+    update ctp_menu
+    <set>
+      <if test="menuId != null">
+        menu_id = #{menuId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuUpperId != null">
+        menu_upper_id = #{menuUpperId,jdbcType=VARCHAR},
+      </if>
+      <if test="menuGroup != null">
+        menu_group = #{menuGroup,jdbcType=VARCHAR},
+      </if>
+      <if test="menuDefaultInd != null">
+        menu_default_ind = #{menuDefaultInd,jdbcType=VARCHAR},
+      </if>
+      <if test="menuDesc != null">
+        menu_desc = #{menuDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="pageId != null">
+        page_id = #{pageId,jdbcType=VARCHAR},
+      </if>
+      <if test="pageDisplayScene != null">
+        page_display_scene = #{pageDisplayScene,jdbcType=VARCHAR},
+      </if>
+      <if test="outputPageId != null">
+        output_page_id = #{outputPageId,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateTime != null">
+        data_create_time = #{dataCreateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateTime != null">
+        data_update_time = #{dataUpdateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateUser != null">
+        data_create_user = #{dataCreateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateUser != null">
+        data_update_user = #{dataUpdateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataVersion != null">
+        data_version = #{dataVersion,jdbcType=BIGINT},
+      </if>
+    </set>
+    where menu_code = #{menuCode,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.ssy.base.entity.mybatis.CtpMenu">
+    update ctp_menu
+    set menu_id = #{menuId,jdbcType=VARCHAR},
+      menu_upper_id = #{menuUpperId,jdbcType=VARCHAR},
+      menu_group = #{menuGroup,jdbcType=VARCHAR},
+      menu_default_ind = #{menuDefaultInd,jdbcType=VARCHAR},
+      menu_desc = #{menuDesc,jdbcType=VARCHAR},
+      page_id = #{pageId,jdbcType=VARCHAR},
+      page_display_scene = #{pageDisplayScene,jdbcType=VARCHAR},
+      output_page_id = #{outputPageId,jdbcType=VARCHAR},
+      data_create_time = #{dataCreateTime,jdbcType=VARCHAR},
+      data_update_time = #{dataUpdateTime,jdbcType=VARCHAR},
+      data_create_user = #{dataCreateUser,jdbcType=VARCHAR},
+      data_update_user = #{dataUpdateUser,jdbcType=VARCHAR},
+      data_version = #{dataVersion,jdbcType=BIGINT}
+    where menu_code = #{menuCode,jdbcType=VARCHAR}
+  </update>
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ssy.base.dao.mapper.CtpControlMapper">
+  <resultMap id="BaseResultMap" type="cn.ssy.base.entity.mybatis.CtpControl">
+    <constructor>
+      <idArg column="field_name" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="field_desc" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    field_name, field_desc
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ctp_control
+    where field_name = #{fieldName,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from ctp_control
+    where field_name = #{fieldName,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.ssy.base.entity.mybatis.CtpControl">
+    insert into ctp_control (field_name, field_desc)
+    values (#{fieldName,jdbcType=VARCHAR}, #{fieldDesc,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.ssy.base.entity.mybatis.CtpControl">
+    insert into ctp_control
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="fieldName != null">
+        field_name,
+      </if>
+      <if test="fieldDesc != null">
+        field_desc,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="fieldName != null">
+        #{fieldName,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldDesc != null">
+        #{fieldDesc,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.ssy.base.entity.mybatis.CtpControl">
+    update ctp_control
+    <set>
+      <if test="fieldDesc != null">
+        field_desc = #{fieldDesc,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where field_name = #{fieldName,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.ssy.base.entity.mybatis.CtpControl">
+    update ctp_control
+    set field_desc = #{fieldDesc,jdbcType=VARCHAR}
+    where field_name = #{fieldName,jdbcType=VARCHAR}
+  </update>
+</mapper>
