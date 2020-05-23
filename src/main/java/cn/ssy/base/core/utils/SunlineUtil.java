@@ -105,7 +105,7 @@ public class SunlineUtil {
 	//是否以MS为最高优先级
 	private static final boolean isMsAsFirst = true;
 	//Mybatis工具
-	private static final MybatisUtil mybatisUtil = new MybatisUtil();
+	public static final MybatisUtil mybatisUtil = new MybatisUtil();
 	
 	
 	/**
@@ -2429,7 +2429,7 @@ public class SunlineUtil {
 			for(String mergeNo : mergeNoArr){
 				String url = "http://e-git.yfb.sunline.cn/icore3.0/"+structModule.getId()+"/"+moduleFullName+"/merge_requests/"+mergeNo+"/diffs.json";
 				Map<String, String> headers = new HashMap<String,String>();
-				headers.put("Cookie", "remember_user_token=W1sxODBdLCIkMmEkMTAkVnNxWk5zNnVtZlNJYXEzLk1HalhYdSIsIjE1NzY1NTE3MDQuNzU0NzMyIl0%3D--403841547402c2e7f6a41dd47de1ab212ea565fd; _gitlab_session=a05d4b3ae546edc7160ad2691ff3b7d9");
+				headers.put("Cookie", "_gitlab_session=b99982896d18f2b4032ca50038758afc");
 				HttpResponse httpResponse = NetworkApi.doGet(url, "", headers, new HashMap<String,String>());
 				if(CommonUtil.isNotNull(httpResponse)){
 					HttpEntity httpEntity = httpResponse.getEntity();

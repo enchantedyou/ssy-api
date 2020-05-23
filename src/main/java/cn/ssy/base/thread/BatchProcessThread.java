@@ -9,8 +9,9 @@ import org.apache.log4j.Logger;
 
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
-import cn.ssy.base.core.utils.JDBCUtils;
-import cn.ssy.base.entity.mybatis.TspTaskExecution;
+import cn.ssy.base.dao.mapper.TspTaskExecutionMapper;
+import cn.ssy.base.entity.mybatis.TspTaskExecutionKey;
+import cn.ssy.base.entity.mybatis.TspTaskExecutionWithBLOBs;
 import cn.ssy.base.entity.mybatis.TspTranController;
 import cn.ssy.base.entity.plugins.TwoTuple;
 
@@ -31,24 +32,28 @@ import cn.ssy.base.entity.plugins.TwoTuple;
  *         <li>-----------------------------------------------------------</li>
  *         </p>
  */
-public class BatchProcessThread implements Callable<TspTaskExecution>{
+public class BatchProcessThread implements Callable<TspTaskExecutionWithBLOBs>{
 	
 	private static final Logger logger = Logger.getLogger(BatchProcessThread.class);
 	private String taskNum;
+	private String taskExeNum;
 	private String trxnDate;
-	private String tranId;
 	private long delay = CommonUtil.nvl(BatTaskUtil.batConfig.getFetchStatusDelay(), 2000L);
 	
-	public BatchProcessThread(String taskNum, String trxnDate,String tranId) {
+	public BatchProcessThread(String taskNum, String trxnDate, String taskExeNum) {
 		super();
 		this.taskNum = taskNum;
 		this.trxnDate = trxnDate;
-		this.tranId = tranId;
+		this.taskExeNum = taskExeNum;
 	}
 
+	private static TspTaskExecutionMapper getTspTaskExecutionMapper(){
+		return BatTaskUtil.mybatisUtil.getMapper(BatTaskUtil.batConfig.getDatasource(), TspTaskExecutionMapper.class);
+	}
+	
 	@Override
-	public TspTaskExecution call() throws Exception {
-		String sql = "select * from tsp_task_execution where system_code = '"+BatTaskUtil.batConfig.getSystemCode()+"' and corporate_code = '"+BatTaskUtil.batConfig.getBusiOrgId()+"' and task_num = ? and tran_id = ? and sub_system_code = '"+BatTaskUtil.batConfig.getSubSystemId()+"' order by tran_start_time desc limit 0,1";
+	public TspTaskExecutionWithBLOBs call() throws Exception {
+		//String sql = "select * from tsp_task_execution where system_code = '"+BatTaskUtil.batConfig.getSystemCode()+"' and corporate_code = '"+BatTaskUtil.batConfig.getBusiOrgId()+"' and task_num = ? and tran_id = ? and sub_system_code = '"+BatTaskUtil.batConfig.getSubSystemId()+"' order by tran_start_time desc limit 0,1";
 		List<TspTranController> taskList = BatTaskUtil.getBatTaskList();
 		Map<String, TwoTuple<TspTranController, Integer>> taskMap = new LinkedHashMap<String, TwoTuple<TspTranController, Integer>>();
 		
@@ -64,10 +69,9 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 			}
 		}
 		
-		TspTaskExecution tspTaskExecution = null;
+		TspTaskExecutionWithBLOBs tspTaskExecution = null;
 		do{
-			//DynamicDataSource.printC3p0PoolStatus();
-			tspTaskExecution = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery(sql, new String[]{taskNum,tranId}, BatTaskUtil.batConfig.getDatasource()), TspTaskExecution.class);
+			tspTaskExecution = getTspTaskExecutionMapper().selectByPrimaryKey(new TspTaskExecutionKey(taskNum, taskExeNum, trxnDate, BatTaskUtil.batConfig.getSubSystemId(), BatTaskUtil.batConfig.getSystemCode(), BatTaskUtil.batConfig.getBusiOrgId()));
 			if(CommonUtil.isNotNull(tspTaskExecution)){
 				String taskGetStr = tspTaskExecution.getCurrentTranGroupId() + "-" + tspTaskExecution.getCurrentStep();
 				if(CommonUtil.isNotNull(taskMap.get(taskGetStr))){
@@ -80,9 +84,7 @@ public class BatchProcessThread implements Callable<TspTaskExecution>{
 						beforeTask = curTask;
 					}
 				}
-			}/*else{
-				logger.info("批量任务["+tranId + "-" + trxnDate + "-" + taskNum + "]等待执行");
-			}*/
+			}
 			CommonUtil.systemPause(delay);
 		}while(CommonUtil.isNull(tspTaskExecution) || (!BatTaskUtil.SUCCESS_STATE.equals(tspTaskExecution.getTranState()) && !BatTaskUtil.FAILURE_STATE.equals(tspTaskExecution.getTranState())));
 		return tspTaskExecution;

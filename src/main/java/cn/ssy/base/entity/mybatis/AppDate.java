@@ -1,111 +1,120 @@
 package cn.ssy.base.entity.mybatis;
 
-
-
 public class AppDate {
+    private String busiOrgId;
 
-	private String busiOrgId;
+    private String lastDate;
 
-	private String lastDate;
+    private String trxnDate;
 
-	private String trxnDate;
+    private String nextDate;
 
-	private String nextDate;
+    private String balSheetDate;
 
-	private String balSheetDate;
+    private String dataCreateTime;
 
-	private String dataCreateTime;
+    private String dataUpdateTime;
 
-	private String dataUpdateTime;
+    private String dataCreateUser;
 
-	private String dataCreateUser;
+    private String dataUpdateUser;
 
-	private String dataUpdateUser;
+    private Long dataVersion;
 
-	private Long dataVersion;
+    public AppDate(String busiOrgId, String lastDate, String trxnDate, String nextDate, String balSheetDate, String dataCreateTime, String dataUpdateTime, String dataCreateUser, String dataUpdateUser, Long dataVersion) {
+        this.busiOrgId = busiOrgId;
+        this.lastDate = lastDate;
+        this.trxnDate = trxnDate;
+        this.nextDate = nextDate;
+        this.balSheetDate = balSheetDate;
+        this.dataCreateTime = dataCreateTime;
+        this.dataUpdateTime = dataUpdateTime;
+        this.dataCreateUser = dataCreateUser;
+        this.dataUpdateUser = dataUpdateUser;
+        this.dataVersion = dataVersion;
+    }
 
-	public String getBusiOrgId() {
-		return busiOrgId;
-	}
+    public AppDate() {
+        super();
+    }
 
-	public void setBusiOrgId(String busiOrgId) {
-		this.busiOrgId = busiOrgId;
-	}
+    public String getBusiOrgId() {
+        return busiOrgId;
+    }
 
-	public String getLastDate() {
-		return lastDate;
-	}
+    public void setBusiOrgId(String busiOrgId) {
+        this.busiOrgId = busiOrgId == null ? null : busiOrgId.trim();
+    }
 
-	public void setLastDate(String lastDate) {
-		this.lastDate = lastDate;
-	}
+    public String getLastDate() {
+        return lastDate;
+    }
 
-	public String getTrxnDate() {
-		return trxnDate;
-	}
+    public void setLastDate(String lastDate) {
+        this.lastDate = lastDate == null ? null : lastDate.trim();
+    }
 
-	public void setTrxnDate(String trxnDate) {
-		this.trxnDate = trxnDate;
-	}
+    public String getTrxnDate() {
+        return trxnDate;
+    }
 
-	public String getNextDate() {
-		return nextDate;
-	}
+    public void setTrxnDate(String trxnDate) {
+        this.trxnDate = trxnDate == null ? null : trxnDate.trim();
+    }
 
-	public void setNextDate(String nextDate) {
-		this.nextDate = nextDate;
-	}
+    public String getNextDate() {
+        return nextDate;
+    }
 
-	public String getBalSheetDate() {
-		return balSheetDate;
-	}
+    public void setNextDate(String nextDate) {
+        this.nextDate = nextDate == null ? null : nextDate.trim();
+    }
 
-	public void setBalSheetDate(String balSheetDate) {
-		this.balSheetDate = balSheetDate;
-	}
+    public String getBalSheetDate() {
+        return balSheetDate;
+    }
 
-	public String getDataCreateTime() {
-		return dataCreateTime;
-	}
+    public void setBalSheetDate(String balSheetDate) {
+        this.balSheetDate = balSheetDate == null ? null : balSheetDate.trim();
+    }
 
-	public void setDataCreateTime(String dataCreateTime) {
-		this.dataCreateTime = dataCreateTime;
-	}
+    public String getDataCreateTime() {
+        return dataCreateTime;
+    }
 
-	public String getDataUpdateTime() {
-		return dataUpdateTime;
-	}
+    public void setDataCreateTime(String dataCreateTime) {
+        this.dataCreateTime = dataCreateTime == null ? null : dataCreateTime.trim();
+    }
 
-	public void setDataUpdateTime(String dataUpdateTime) {
-		this.dataUpdateTime = dataUpdateTime;
-	}
+    public String getDataUpdateTime() {
+        return dataUpdateTime;
+    }
 
-	public String getDataCreateUser() {
-		return dataCreateUser;
-	}
+    public void setDataUpdateTime(String dataUpdateTime) {
+        this.dataUpdateTime = dataUpdateTime == null ? null : dataUpdateTime.trim();
+    }
 
-	public void setDataCreateUser(String dataCreateUser) {
-		this.dataCreateUser = dataCreateUser;
-	}
+    public String getDataCreateUser() {
+        return dataCreateUser;
+    }
 
-	public String getDataUpdateUser() {
-		return dataUpdateUser;
-	}
+    public void setDataCreateUser(String dataCreateUser) {
+        this.dataCreateUser = dataCreateUser == null ? null : dataCreateUser.trim();
+    }
 
-	public void setDataUpdateUser(String dataUpdateUser) {
-		this.dataUpdateUser = dataUpdateUser;
-	}
+    public String getDataUpdateUser() {
+        return dataUpdateUser;
+    }
 
-	public Long getDataVersion() {
-		return dataVersion;
-	}
+    public void setDataUpdateUser(String dataUpdateUser) {
+        this.dataUpdateUser = dataUpdateUser == null ? null : dataUpdateUser.trim();
+    }
 
-	public void setDataVersion(Long dataVersion) {
-		this.dataVersion = dataVersion;
-	}
+    public Long getDataVersion() {
+        return dataVersion;
+    }
 
-	@Override
-	public String toString() {
-		return "AppDate [busiOrgId=" + busiOrgId + ", lastDate=" + lastDate + ", trxnDate=" + trxnDate + ", nextDate=" + nextDate + ", balSheetDate=" + balSheetDate + ", dataCreateTime=" + dataCreateTime + ", dataUpdateTime=" + dataUpdateTime + ", dataCreateUser=" + dataCreateUser + ", dataUpdateUser=" + dataUpdateUser + ", dataVersion=" + dataVersion + "]";
-	}
+    public void setDataVersion(Long dataVersion) {
+        this.dataVersion = dataVersion;
+    }
 }

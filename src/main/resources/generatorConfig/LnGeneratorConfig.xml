@@ -8,7 +8,7 @@
             <property name="suppressDate" value="false"/>
             <property name="suppressAllComments" value="true"/>
         </commentGenerator>
-        <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://10.22.62.2:3306/fat_sump?serverTimezone=UTC" userId="vlog" password="vlog"/>
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://10.22.12.37:3306/dev_ln?serverTimezone=UTC" userId="dev_ln" password="dev_ln"/>
         <!--生成entity类存放位置-->
         <javaModelGenerator targetPackage="cn.ssy.base.entity.mybatis" targetProject="C:\Users\DELL\Desktop\ln\mapper">
             <property name="enableSubPackages" value="true"/>
@@ -26,6 +26,6 @@
         </javaClientGenerator>
         
         <!-- 表与实体间的映射 -->
-        <table tableName="smp_sys_dict" domainObjectName="SmpSysDict" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
+        <table tableName="tsp_tran_controller" domainObjectName="TspTranController" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
     </context>
 </generatorConfiguration>

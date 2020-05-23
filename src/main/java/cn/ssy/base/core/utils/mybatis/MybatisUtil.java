@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
-import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.core.utils.CommonUtil;
 
 /**
  * <p>
@@ -28,50 +28,45 @@ import cn.ssy.base.entity.consts.ApiConst;
 public class MybatisUtil extends MybatisHelper{
 	
 	private final Logger logger = Logger.getLogger(MybatisUtil.class);
-	private static boolean isLoad = false;
 	private SqlSession currentSqlSession;
-	private Map<Integer, SqlSession> sqlSessionMap = new HashMap<Integer, SqlSession>();//<hashCode,SqlSession>
+	private Map<Class<?>, SqlSession> sqlSessionMap = new HashMap<Class<?>, SqlSession>();//<hashCode,SqlSession>
 
-	public MybatisUtil() {
+	public MybatisUtil(boolean isLoadAllAtOnce) {
+		super(isLoadAllAtOnce);
+	}
+	
+	public MybatisUtil(){
 		super();
-		if(!isLoad){
-			logger.info("Start to initialize mybatis plugin");
-			try {
-				mybatisHelperInit();
-			}
-			catch (PropertyVetoException e) {
-				throw new RuntimeException(e);
-			}
-			isLoad = true;
-		}
 	}
 
-	public void execute(String dataSourceId, MybatisHelperCallback callbackImpl){
-		final SqlSession sqlSession = getSqlSession(dataSourceId);
-		putCurrentSqlSession(sqlSession);
-		try{
-			callbackImpl.call(sqlSession);
-		}finally{
-			close(sqlSession);
-		}
-	}
-	
-	public void execute(MybatisHelperCallback callbackImpl){
-		execute(ApiConst.DATASOURCE_LOCAL, callbackImpl);
-	}
-	
 	public <T> T getMapper(String dataSourceId, Class<T> mapperClass){
-		SqlSession sqlSession = getSqlSession(dataSourceId);
-		if(null == sqlSession){
-			throw new RuntimeException("Unable to get sql session which data source id is " + dataSourceId);
+		SqlSession sqlSession = null;
+		try{
+			SqlSession cacheSqlSession = sqlSessionMap.get(mapperClass);
+			if(CommonUtil.isNotNull(cacheSqlSession)){
+				logger.info("Get sql session["+ cacheSqlSession +"] from cache");
+				if(null != currentSqlSession && cacheSqlSession != currentSqlSession){
+					//close();
+					currentSqlSession = cacheSqlSession;
+				}
+				sqlSession = cacheSqlSession;
+			}else{
+				sqlSession = getSqlSession(dataSourceId);
+				putCurrentSqlSession(sqlSession, mapperClass);
+			}
+			
+			if(null == sqlSession){
+				throw new RuntimeException("Unable to get sql session which data source id is " + dataSourceId);
+			}
+		}catch(PropertyVetoException e){
+			throw new RuntimeException(e);
 		}
-		putCurrentSqlSession(sqlSession);
-		return sqlSession.getMapper(mapperClass);
+		return null == sqlSession ? null : sqlSession.getMapper(mapperClass);
 	}
 	
-	private void putCurrentSqlSession(SqlSession sqlSession){
+	private void putCurrentSqlSession(SqlSession sqlSession, Class<?> mapperClass){
 		currentSqlSession = sqlSession;
-		sqlSessionMap.put(currentSqlSession.hashCode(), currentSqlSession);
+		sqlSessionMap.put(mapperClass, currentSqlSession);
 	}
 	
 	private void checkCurrentSqlSession(){
@@ -95,8 +90,8 @@ public class MybatisUtil extends MybatisHelper{
 	}
 	
 	public void commit(){
-		for(int hashCode : sqlSessionMap.keySet()){
-			SqlSession sqlSession = sqlSessionMap.get(hashCode);
+		for(Class<?> mapperClass : sqlSessionMap.keySet()){
+			SqlSession sqlSession = sqlSessionMap.get(mapperClass);
 			checkCurrentSqlSession(sqlSession);
 			sqlSession.commit();
 			
@@ -107,8 +102,8 @@ public class MybatisUtil extends MybatisHelper{
 	}
 	
 	public void rollback(){
-		for(int hashCode : sqlSessionMap.keySet()){
-			SqlSession sqlSession = sqlSessionMap.get(hashCode);
+		for(Class<?> mapperClass : sqlSessionMap.keySet()){
+			SqlSession sqlSession = sqlSessionMap.get(mapperClass);
 			checkCurrentSqlSession(sqlSession);
 			sqlSession.rollback();
 			

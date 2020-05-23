@@ -27,8 +27,5 @@
         
         <!-- 表与实体间的映射 -->
         <table tableName="spp_datasource" domainObjectName="SppDatasource" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
-    	<table tableName="ctp_control" domainObjectName="CtpControl" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
-    	<table tableName="spp_dict_priority" domainObjectName="SppDictPriority" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
-    	<table tableName="spp_enum_priority" domainObjectName="SppEnumPriority" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
     </context>
 </generatorConfiguration>

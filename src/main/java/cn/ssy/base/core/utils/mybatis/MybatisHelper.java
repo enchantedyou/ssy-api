@@ -42,7 +42,34 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 public class MybatisHelper {
 	
 	private final Logger logger = Logger.getLogger(MybatisHelper.class);
-	private final Map<String, SqlSessionFactory> dataSouceMap = new HashMap<String, SqlSessionFactory>();
+	private final static Map<String, SqlSessionFactory> sqlSessionFactoryMap = new HashMap<String, SqlSessionFactory>();
+	private final static Map<String, SppDatasource> datsSourceMap = new HashMap<String, SppDatasource>();
+	private static boolean isLoaded = false;
+	
+	/**
+	 * 是否一次性加载所有的数据源:
+	 * <li>为true的时候一次性加载所有数据源并缓存session工厂</li>
+	 * <li>为false的时候在有需要的时候才加载数据源并缓存session工厂</li>
+	 */
+	private boolean isLoadAllAtOnce;
+	
+	public MybatisHelper(boolean isLoadAllAtOnce) {
+		this.isLoadAllAtOnce = isLoadAllAtOnce;
+		
+		if(!isLoaded){
+			mybatisHelperInit();
+			isLoaded = true;
+		}
+	}
+	
+	public MybatisHelper(){
+		this.isLoadAllAtOnce = false;
+
+		if(!isLoaded){
+			mybatisHelperInit();
+			isLoaded = true;
+		}
+	}
 	
 	/**
 	 * @Author sunshaoyu
@@ -89,9 +116,15 @@ public class MybatisHelper {
 	 * @param dataSourceId
 	 * @param autoCommit
 	 * @return
+	 * @throws PropertyVetoException 
 	 */
-	protected SqlSession getSqlSession(String dataSourceId, boolean autoCommit) {
-		SqlSessionFactory sqlSessionFactory = dataSouceMap.get(dataSourceId);
+	protected SqlSession getSqlSession(String dataSourceId, boolean autoCommit) throws PropertyVetoException {
+		SqlSessionFactory sqlSessionFactory = sqlSessionFactoryMap.get(dataSourceId);
+		if(null == sqlSessionFactory){
+			loadSingleDataSource(datsSourceMap.get(dataSourceId));
+			sqlSessionFactory = sqlSessionFactoryMap.get(dataSourceId);
+		}
+		
 		return null == sqlSessionFactory ? null : sqlSessionFactory.openSession(autoCommit);
 	}
 	
@@ -104,9 +137,10 @@ public class MybatisHelper {
 	 *         </p>
 	 * @param dataSourceId
 	 * @return
+	 * @throws PropertyVetoException 
 	 */
-	protected SqlSession getSqlSession(String dataSourceId){
-		return getSqlSession(dataSourceId, false);
+	protected SqlSession getSqlSession(String dataSourceId) throws PropertyVetoException{
+		return getSqlSession(dataSourceId, true);
 	}
 	
 	/**
@@ -120,9 +154,9 @@ public class MybatisHelper {
 	 */
 	private void buildSqlSessionFactory(String dataSourceId, Configuration mybatisConf) {
 		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(mybatisConf);
-		dataSouceMap.put(dataSourceId, sqlSessionFactory);
+		sqlSessionFactoryMap.put(dataSourceId, sqlSessionFactory);
 	}
-
+	
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -131,25 +165,46 @@ public class MybatisHelper {
 	 *         </p>
 	 * @throws PropertyVetoException
 	 */
-	protected void mybatisHelperInit() throws PropertyVetoException {
-		SqlSession localSqlSession = getLocalSqlSession();
+	private void mybatisHelperInit() {
+		logger.info("Start to initialize mybatis plugin");
+		SqlSession localSqlSession = null;
 		
 		try{
+			localSqlSession = getLocalSqlSession();
 			SppDatasourceMapper sppDatasourceMapper = localSqlSession.getMapper(SppDatasourceMapper.class);
 			List<SppDatasource> dataSourceList = sppDatasourceMapper.selectAll();
 			
-			for(SppDatasource ds : dataSourceList){
-				Configuration mybatisConf = new Configuration();
-				mybatisConfInit(mybatisConf);
-				
-				mybatisConf.setEnvironment(new Environment(ds.getDatasourceId(), new ManagedTransactionFactory(),
-						getC3p0DataSource(ds.getDatasourceDriver(), ds.getDatasourceUrl(), ds.getDatasourceUser(), ds.getDatasourcePwd())));
-				buildSqlSessionFactory(ds.getDatasourceId(), mybatisConf);
-				logger.info("Loading dynamic data source:" + ds.getDatasourceId());
+			for(SppDatasource ds : dataSourceList) {
+				if(isLoadAllAtOnce) {
+					loadSingleDataSource(ds);
+				}else {
+					datsSourceMap.put(ds.getDatasourceId(), ds);
+				}
 			}
+		}catch(PropertyVetoException e){
+			throw new RuntimeException(e);
 		}finally{
 			close(localSqlSession);
 		}
+	}
+
+	/**
+	 * @Author sunshaoyu
+	 *         <p>
+	 *         <li>2020年5月22日-下午12:11:00</li>
+	 *         <li>功能说明：加载单个数据源</li>
+	 *         </p>
+	 * @param ds
+	 * @throws PropertyVetoException
+	 */
+	private void loadSingleDataSource(SppDatasource ds) throws PropertyVetoException {
+		Configuration mybatisConf = new Configuration();
+		mybatisConfInit(mybatisConf);
+		
+		mybatisConf.setEnvironment(new Environment(ds.getDatasourceId(), new ManagedTransactionFactory(),
+				getC3p0DataSource(ds.getDatasourceDriver(), ds.getDatasourceUrl(), ds.getDatasourceUser(), ds.getDatasourcePwd())));
+		buildSqlSessionFactory(ds.getDatasourceId(), mybatisConf);
+		logger.info("Loading dynamic data source:" + ds.getDatasourceId());
 	}
 	
 	
@@ -162,9 +217,11 @@ public class MybatisHelper {
 	 * @param sqlSession
 	 */
 	public void close(SqlSession sqlSession){
-		sqlSession.flushStatements();
-		sqlSession.close();
-		logger.info("Sql session " + sqlSession.toString() + "] closed successfully");
+		if(null != sqlSession){
+			sqlSession.flushStatements();
+			sqlSession.close();
+			logger.info("Close sql session:" + sqlSession);
+		}
 	}
 	
 	/**

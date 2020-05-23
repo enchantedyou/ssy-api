@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,11 +26,8 @@ import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
 import cn.ssy.base.core.utils.JDBCUtils;
 import cn.ssy.base.core.utils.SunlineUtil;
-import cn.ssy.base.core.utils.mybatis.MybatisUtil;
-import cn.ssy.base.dao.mapper.SmpSysDictMapper;
 import cn.ssy.base.entity.consts.ApiConst;
 import cn.ssy.base.entity.mybatis.LnaLoan;
-import cn.ssy.base.entity.mybatis.SmpSysDictKey;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.sunline.ComplexElement;
 import cn.ssy.base.enums.E_ICOREMODULE;
@@ -529,7 +527,7 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test36() throws Exception{
-		List<String> filePathList = SunlineUtil.sunlineGetMergedFiles(E_STRUCTMODULE.BUSI, "ln-busi", "415");
+		List<String> filePathList = SunlineUtil.sunlineGetMergedFiles(E_STRUCTMODULE.BUSI, "ln-busi", "827");
 		for(String filePath : filePathList){
 			System.out.println(filePath);
 		}
@@ -777,19 +775,13 @@ public class SimpleTest{
 	 */
 	@Test
 	public void test50() throws Exception {
-		String confPath = SimpleTest.class.getResource("/generatorConfig/").getPath();
-		Map<String, File> configMap = CommonUtil.loadPathAllFiles(confPath);
-		for(String fileName : configMap.keySet()){
-			logger.info("generate mybatis component from " + fileName);
-			CommonUtil.mybatisGeneratorProcess(configMap.get(fileName).getPath(), true);
-		}
+		String confPath = SimpleTest.class.getResource("/generatorConfig/LnGeneratorConfig.xml").getPath();
+		CommonUtil.mybatisGeneratorProcess(confPath, true);
 	}
 	
 	
 	@Test
 	public void test51() throws Exception {
-		MybatisUtil mybatisUtil = new MybatisUtil();
-		SmpSysDictMapper mapper = mybatisUtil.getMapper(ApiConst.DATASOURCE_ICORE_CT_DIT, SmpSysDictMapper.class);
-		System.out.println(mapper.selectByPrimaryKey(new SmpSysDictKey("*", "E_ACCOUTANALY")));
+		System.out.println(new SimpleDateFormat("yyyy-MM-dd").parse("2020-01-01"));
 	}
 }	
