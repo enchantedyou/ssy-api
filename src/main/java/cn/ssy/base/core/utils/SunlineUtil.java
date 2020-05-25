@@ -1,30 +1,25 @@
 package cn.ssy.base.core.utils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import cn.ssy.base.core.network.api.NetworkApi;
+import cn.ssy.base.core.utils.mybatis.MybatisUtil;
+import cn.ssy.base.dao.mapper.SmpSysDictMapper;
+import cn.ssy.base.dao.mapper.SppDictPriorityMapper;
+import cn.ssy.base.dao.mapper.SppEnumPriorityMapper;
+import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.mybatis.*;
+import cn.ssy.base.entity.plugins.Params;
+import cn.ssy.base.entity.plugins.TwoTuple;
+import cn.ssy.base.entity.sunline.*;
+import cn.ssy.base.enums.E_ICOREMODULE;
+import cn.ssy.base.enums.E_LANGUAGE;
+import cn.ssy.base.enums.E_LAYOUTTYPE;
+import cn.ssy.base.enums.E_STRUCTMODULE;
+import cn.ssy.base.exception.ConfigSettingException;
+import cn.ssy.base.exception.IcorePostException;
+import cn.ssy.base.exception.NullParmException;
+import com.alibaba.fastjson.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
@@ -34,35 +29,16 @@ import org.dom4j.Element;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
-import cn.ssy.base.core.network.api.NetworkApi;
-import cn.ssy.base.core.utils.mybatis.MybatisUtil;
-import cn.ssy.base.dao.mapper.SmpSysDictMapper;
-import cn.ssy.base.entity.consts.ApiConst;
-import cn.ssy.base.entity.mybatis.LnaLoan;
-import cn.ssy.base.entity.mybatis.MspTransaction;
-import cn.ssy.base.entity.mybatis.SmpSysDict;
-import cn.ssy.base.entity.mybatis.SppDictPriority;
-import cn.ssy.base.entity.mybatis.SppEnumPriority;
-import cn.ssy.base.entity.mybatis.TspServiceIn;
-import cn.ssy.base.entity.plugins.Params;
-import cn.ssy.base.entity.plugins.TwoTuple;
-import cn.ssy.base.entity.sunline.BaseType;
-import cn.ssy.base.entity.sunline.ComplexElement;
-import cn.ssy.base.entity.sunline.Dict;
-import cn.ssy.base.entity.sunline.EnumElement;
-import cn.ssy.base.entity.sunline.EnumType;
-import cn.ssy.base.entity.sunline.FormatVueJsonCode;
-import cn.ssy.base.entity.sunline.Max;
-import cn.ssy.base.entity.sunline.Required;
-import cn.ssy.base.enums.E_ICOREMODULE;
-import cn.ssy.base.enums.E_LANGUAGE;
-import cn.ssy.base.enums.E_LAYOUTTYPE;
-import cn.ssy.base.enums.E_STRUCTMODULE;
-import cn.ssy.base.exception.ConfigSettingException;
-import cn.ssy.base.exception.IcorePostException;
-import cn.ssy.base.exception.NullParmException;
-
-import com.alibaba.fastjson.JSON;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -201,9 +177,11 @@ public class SunlineUtil {
 	 *         </p>
 	 */
 	private static void loadDictEnumPriority() throws SQLException{
-		List<SppDictPriority> dictPriorityList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("SELECT * FROM spp_dict_priority where is_enabled = 1 order by dict_priority", ApiConst.DATASOURCE_LOCAL), SppDictPriority.class);
-		List<SppEnumPriority> enumtPriorityList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("SELECT * FROM spp_enum_priority where is_enabled = 1 order by enum_priority", ApiConst.DATASOURCE_LOCAL), SppEnumPriority.class);
-		
+		SppDictPriorityMapper sppDictPriorityMapper = mybatisUtil.getLocalMapper(SppDictPriorityMapper.class);
+		SppEnumPriorityMapper sppEnumPriorityMapper = mybatisUtil.getLocalMapper(SppEnumPriorityMapper.class);
+		List<SppDictPriority> dictPriorityList = sppDictPriorityMapper.selectAll();
+		List<SppEnumPriority> enumtPriorityList = sppEnumPriorityMapper.selectAll();
+
 		for(SppDictPriority dictPriority : dictPriorityList){
 			dictPriorityMap.put(dictPriority.getDictType(), dictPriority);
 		}
@@ -1821,7 +1799,6 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param postmanCollection
 	 * @param serviceCode
-	 * @param params
 	 * @return
 	 * @throws Exception
 	 */

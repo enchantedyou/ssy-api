@@ -89,4 +89,17 @@ public class SmpSysDict extends SmpSysDictKey implements Serializable{
     public void setDictTypeName(String dictTypeName) {
         this.dictTypeName = dictTypeName == null ? null : dictTypeName.trim();
     }
+
+    @Override
+    public String toString() {
+        return "SmpSysDict{" +
+                "dictName='" + dictName + '\'' +
+                ", parentDictType='" + parentDictType + '\'' +
+                ", parentDictId='" + parentDictId + '\'' +
+                ", status='" + status + '\'' +
+                ", sortNo=" + sortNo +
+                ", timestamp='" + timestamp + '\'' +
+                ", dictTypeName='" + dictTypeName + '\'' +
+                '}';
+    }
 }

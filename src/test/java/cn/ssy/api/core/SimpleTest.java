@@ -1,26 +1,5 @@
 package cn.ssy.api.core;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.sf.json.JSONObject;
-
-import org.apache.http.HttpResponse;
-import org.apache.log4j.Logger;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.jsoup.Jsoup;
-import org.jsoup.select.Elements;
-import org.junit.Before;
-import org.junit.Test;
-
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.core.utils.BatTaskUtil;
 import cn.ssy.base.core.utils.CommonUtil;
@@ -34,6 +13,21 @@ import cn.ssy.base.enums.E_ICOREMODULE;
 import cn.ssy.base.enums.E_LANGUAGE;
 import cn.ssy.base.enums.E_LAYOUTTYPE;
 import cn.ssy.base.enums.E_STRUCTMODULE;
+import net.sf.json.JSONObject;
+import org.apache.http.HttpResponse;
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class SimpleTest{
 	
@@ -586,7 +580,7 @@ public class SimpleTest{
 	public void test40() throws Exception{
 		String url = "http://10.22.10.53:8012/";
 		String path = "sql/cl/dml/";
-		HttpResponse response = NetworkApi.doGet(url, path, new HashMap<String, String>() , new HashMap<String, String>());
+		HttpResponse response = NetworkApi.doGet(url, path, new HashMap<>() , new HashMap<>());
 		String html = CommonUtil.convertResponseToStr(response);
 		org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(html);
 		Elements aList = jsoupDoc.getElementsByTag("a");
@@ -778,10 +772,9 @@ public class SimpleTest{
 		String confPath = SimpleTest.class.getResource("/generatorConfig/LnGeneratorConfig.xml").getPath();
 		CommonUtil.mybatisGeneratorProcess(confPath, true);
 	}
-	
-	
+
 	@Test
 	public void test51() throws Exception {
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd").parse("2020-01-01"));
+		System.out.println("hello world");
 	}
 }	

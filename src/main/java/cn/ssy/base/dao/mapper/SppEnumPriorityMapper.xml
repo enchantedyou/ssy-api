@@ -81,4 +81,10 @@
       group_id = #{groupId,jdbcType=VARCHAR}
     where enum_type = #{enumType,jdbcType=VARCHAR}
   </update>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from spp_enum_priority where is_enabled = 1 order by enum_priority
+  </select>
 </mapper>

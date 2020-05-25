@@ -270,7 +270,7 @@ public class BatTaskUtil {
 		}else{
 			logger.error("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动失败");
 		}
-		printBatchTastExecuteRes();
+		printBatchTasKExecuteRes();
 	}
 	
 	
@@ -285,19 +285,16 @@ public class BatTaskUtil {
 	 *         <li>功能说明：批量任务执行结果打印</li>
 	 *         </p>
 	 */
-	private static boolean printBatchTastExecuteRes() throws SQLException, InterruptedException, ExecutionException{
-		boolean isFailure = true;
+	private static void printBatchTasKExecuteRes() throws SQLException, InterruptedException, ExecutionException{
 		TspTaskExecutionWithBLOBs tspTaskExecution = listenerThreadTask.get();
-		isFailure = FAILURE_STATE.equals(tspTaskExecution.getTranState());
+		boolean isFailure = FAILURE_STATE.equals(tspTaskExecution.getTranState());
 		//查询新的交易日期
 		String appDate = tspTaskExecution.getTranDate();
-		JDBCUtils.close();
 		logger.info("交易日期:"+appDate+",批量["+tspTaskExecution.getTaskNum()+"]执行结果:" + tspTaskExecution.getTranState());
 		if(isFailure){
 			logger.info("错误信息:" + tspTaskExecution.getErrorMessage());
 			logger.info("错误堆栈:" + tspTaskExecution.getErrorStack());
 			throw new BatBusinessException("批量任务执行异常");
 		}
-		return !isFailure;
 	}
 }

@@ -81,4 +81,10 @@
       group_id = #{groupId,jdbcType=VARCHAR}
     where dict_type = #{dictType,jdbcType=VARCHAR}
   </update>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from spp_dict_priority where is_enabled = 1 order by dict_priority
+  </select>
 </mapper>

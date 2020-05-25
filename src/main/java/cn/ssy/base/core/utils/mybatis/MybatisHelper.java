@@ -121,6 +121,10 @@ public class MybatisHelper {
 	protected SqlSession getSqlSession(String dataSourceId, boolean autoCommit) throws PropertyVetoException {
 		SqlSessionFactory sqlSessionFactory = sqlSessionFactoryMap.get(dataSourceId);
 		if(null == sqlSessionFactory){
+			SppDatasource sppDatasource = datsSourceMap.get(dataSourceId);
+			if(null == sppDatasource){
+				loadSppDatasource();
+			}
 			loadSingleDataSource(datsSourceMap.get(dataSourceId));
 			sqlSessionFactory = sqlSessionFactoryMap.get(dataSourceId);
 		}
@@ -167,26 +171,42 @@ public class MybatisHelper {
 	 */
 	private void mybatisHelperInit() {
 		logger.info("Start to initialize mybatis plugin");
-		SqlSession localSqlSession = null;
-		
 		try{
-			localSqlSession = getLocalSqlSession();
-			SppDatasourceMapper sppDatasourceMapper = localSqlSession.getMapper(SppDatasourceMapper.class);
-			List<SppDatasource> dataSourceList = sppDatasourceMapper.selectAll();
-			
-			for(SppDatasource ds : dataSourceList) {
-				if(isLoadAllAtOnce) {
+			if(isLoadAllAtOnce){
+				List<SppDatasource> dataSourceList = loadSppDatasource();
+				for(SppDatasource ds : dataSourceList) {
 					loadSingleDataSource(ds);
-				}else {
-					datsSourceMap.put(ds.getDatasourceId(), ds);
 				}
+			}else{
+				logger.info("It is set to not be loaded at once, so the dynamic data source is loaded when the sql session is acquired");
 			}
 		}catch(PropertyVetoException e){
 			throw new RuntimeException(e);
-		}finally{
+		}
+	}
+
+
+	/**
+	 * 加载动态数据源
+	 * @return
+	 * @throws PropertyVetoException
+	 */
+	private List<SppDatasource> loadSppDatasource() throws PropertyVetoException {
+		SqlSession localSqlSession = null;
+		try{
+			localSqlSession = getLocalSqlSession();
+			SppDatasourceMapper sppDatasourceMapper = localSqlSession.getMapper(SppDatasourceMapper.class);
+			List<SppDatasource> datasourceList = sppDatasourceMapper.selectAll();
+
+			for(SppDatasource ds : datasourceList){
+				datsSourceMap.put(ds.getDatasourceId(), ds);
+			}
+			return datasourceList;
+		}finally {
 			close(localSqlSession);
 		}
 	}
+
 
 	/**
 	 * @Author sunshaoyu

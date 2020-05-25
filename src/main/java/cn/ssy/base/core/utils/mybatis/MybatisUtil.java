@@ -1,13 +1,13 @@
 package cn.ssy.base.core.utils.mybatis;
 
-import java.beans.PropertyVetoException;
-import java.util.HashMap;
-import java.util.Map;
-
+import cn.ssy.base.core.utils.CommonUtil;
+import cn.ssy.base.entity.consts.ApiConst;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
-import cn.ssy.base.core.utils.CommonUtil;
+import java.beans.PropertyVetoException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -29,7 +29,7 @@ public class MybatisUtil extends MybatisHelper{
 	
 	private final Logger logger = Logger.getLogger(MybatisUtil.class);
 	private SqlSession currentSqlSession;
-	private Map<Class<?>, SqlSession> sqlSessionMap = new HashMap<Class<?>, SqlSession>();//<hashCode,SqlSession>
+	private Map<Class<?>, SqlSession> sqlSessionMap = new HashMap<>();//<hashCode,SqlSession>
 
 	public MybatisUtil(boolean isLoadAllAtOnce) {
 		super(isLoadAllAtOnce);
@@ -40,7 +40,7 @@ public class MybatisUtil extends MybatisHelper{
 	}
 
 	public <T> T getMapper(String dataSourceId, Class<T> mapperClass){
-		SqlSession sqlSession = null;
+		SqlSession sqlSession;
 		try{
 			SqlSession cacheSqlSession = sqlSessionMap.get(mapperClass);
 			if(CommonUtil.isNotNull(cacheSqlSession)){
@@ -61,7 +61,11 @@ public class MybatisUtil extends MybatisHelper{
 		}catch(PropertyVetoException e){
 			throw new RuntimeException(e);
 		}
-		return null == sqlSession ? null : sqlSession.getMapper(mapperClass);
+		return sqlSession.getMapper(mapperClass);
+	}
+
+	public <T> T getLocalMapper(Class<T> mapperClass){
+		return getMapper(ApiConst.DATASOURCE_LOCAL, mapperClass);
 	}
 	
 	private void putCurrentSqlSession(SqlSession sqlSession, Class<?> mapperClass){
@@ -97,7 +101,7 @@ public class MybatisUtil extends MybatisHelper{
 			
 			logger.info("Sql session " + sqlSession + "has committed successfully");
 			close(sqlSession);
-			sqlSessionMap.remove(sqlSession);
+			sqlSessionMap.remove(mapperClass);
 		}
 	}
 	
@@ -109,7 +113,7 @@ public class MybatisUtil extends MybatisHelper{
 			
 			logger.info("Sql session " + sqlSession + "has committed successfully");
 			close(sqlSession);
-			sqlSessionMap.remove(sqlSession);
+			sqlSessionMap.remove(mapperClass);
 		}
 	}
 }

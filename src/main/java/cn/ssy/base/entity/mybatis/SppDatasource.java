@@ -148,6 +148,4 @@ public class SppDatasource extends SppDatasourceKey {
 				+ dataCreateUser + ", dataCreateTime=" + dataCreateTime + ", dataUpdateUser=" + dataUpdateUser + ", dataUpdateTime=" + dataUpdateTime + ", dataVersion="
 				+ dataVersion + ", " + super.toString() + "]";
 	}
-    
-    
 }
