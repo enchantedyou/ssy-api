@@ -136,7 +136,7 @@ public class RedisOperateUtil {
 	
 	/**
 	 * 使某个缓存失效
-	 * @param key	键
+	 * @param redisKey	键
 	 */
 	public void overdue(Serializable redisKey){
 		if(null == redisKey || redisKey.equals(""))
@@ -174,7 +174,6 @@ public class RedisOperateUtil {
 	/**
 	 * 获取redis缓存中某个哈希表的所有数据并转map
 	 * @param key	哈希表的key
-	 * @param clazz	哈希表值的类
 	 * @return	成功返回哈希表结果,失败返回null
 	 */
 	public Map<? extends Object, ? extends Object> parseToMap(Serializable key){

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ssy.base.dao.mapper.MspTransactionMapper">
+  <resultMap id="BaseResultMap" type="cn.ssy.base.entity.mybatis.MspTransaction">
+    <constructor>
+      <idArg column="trxn_code" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="trxn_type" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="trxn_desc" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="allow_reversal" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="flow_trxn_id" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="register_packet_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="over_time" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="log_level" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="enable_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="global_parm_mntn_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="reversal_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="register_trxn_ind" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="db_trxn_spread_type" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="read_write_separait" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="force_commit" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_create_time" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_update_time" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_create_user" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_update_user" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="data_version" javaType="java.lang.Long" jdbcType="BIGINT" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    trxn_code, trxn_type, trxn_desc, allow_reversal, flow_trxn_id, register_packet_ind, 
+    over_time, log_level, enable_ind, global_parm_mntn_ind, reversal_ind, register_trxn_ind, 
+    db_trxn_spread_type, read_write_separait, force_commit, data_create_time, data_update_time, 
+    data_create_user, data_update_user, data_version
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from msp_transaction
+    where trxn_code = #{trxnCode,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from msp_transaction
+    where trxn_code = #{trxnCode,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.ssy.base.entity.mybatis.MspTransaction">
+    insert into msp_transaction (trxn_code, trxn_type, trxn_desc, 
+      allow_reversal, flow_trxn_id, register_packet_ind, 
+      over_time, log_level, enable_ind, 
+      global_parm_mntn_ind, reversal_ind, register_trxn_ind, 
+      db_trxn_spread_type, read_write_separait, force_commit, 
+      data_create_time, data_update_time, data_create_user, 
+      data_update_user, data_version)
+    values (#{trxnCode,jdbcType=VARCHAR}, #{trxnType,jdbcType=VARCHAR}, #{trxnDesc,jdbcType=VARCHAR}, 
+      #{allowReversal,jdbcType=VARCHAR}, #{flowTrxnId,jdbcType=VARCHAR}, #{registerPacketInd,jdbcType=VARCHAR}, 
+      #{overTime,jdbcType=BIGINT}, #{logLevel,jdbcType=VARCHAR}, #{enableInd,jdbcType=VARCHAR}, 
+      #{globalParmMntnInd,jdbcType=VARCHAR}, #{reversalInd,jdbcType=VARCHAR}, #{registerTrxnInd,jdbcType=VARCHAR}, 
+      #{dbTrxnSpreadType,jdbcType=VARCHAR}, #{readWriteSeparait,jdbcType=VARCHAR}, #{forceCommit,jdbcType=VARCHAR}, 
+      #{dataCreateTime,jdbcType=VARCHAR}, #{dataUpdateTime,jdbcType=VARCHAR}, #{dataCreateUser,jdbcType=VARCHAR}, 
+      #{dataUpdateUser,jdbcType=VARCHAR}, #{dataVersion,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.ssy.base.entity.mybatis.MspTransaction">
+    insert into msp_transaction
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="trxnCode != null">
+        trxn_code,
+      </if>
+      <if test="trxnType != null">
+        trxn_type,
+      </if>
+      <if test="trxnDesc != null">
+        trxn_desc,
+      </if>
+      <if test="allowReversal != null">
+        allow_reversal,
+      </if>
+      <if test="flowTrxnId != null">
+        flow_trxn_id,
+      </if>
+      <if test="registerPacketInd != null">
+        register_packet_ind,
+      </if>
+      <if test="overTime != null">
+        over_time,
+      </if>
+      <if test="logLevel != null">
+        log_level,
+      </if>
+      <if test="enableInd != null">
+        enable_ind,
+      </if>
+      <if test="globalParmMntnInd != null">
+        global_parm_mntn_ind,
+      </if>
+      <if test="reversalInd != null">
+        reversal_ind,
+      </if>
+      <if test="registerTrxnInd != null">
+        register_trxn_ind,
+      </if>
+      <if test="dbTrxnSpreadType != null">
+        db_trxn_spread_type,
+      </if>
+      <if test="readWriteSeparait != null">
+        read_write_separait,
+      </if>
+      <if test="forceCommit != null">
+        force_commit,
+      </if>
+      <if test="dataCreateTime != null">
+        data_create_time,
+      </if>
+      <if test="dataUpdateTime != null">
+        data_update_time,
+      </if>
+      <if test="dataCreateUser != null">
+        data_create_user,
+      </if>
+      <if test="dataUpdateUser != null">
+        data_update_user,
+      </if>
+      <if test="dataVersion != null">
+        data_version,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="trxnCode != null">
+        #{trxnCode,jdbcType=VARCHAR},
+      </if>
+      <if test="trxnType != null">
+        #{trxnType,jdbcType=VARCHAR},
+      </if>
+      <if test="trxnDesc != null">
+        #{trxnDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="allowReversal != null">
+        #{allowReversal,jdbcType=VARCHAR},
+      </if>
+      <if test="flowTrxnId != null">
+        #{flowTrxnId,jdbcType=VARCHAR},
+      </if>
+      <if test="registerPacketInd != null">
+        #{registerPacketInd,jdbcType=VARCHAR},
+      </if>
+      <if test="overTime != null">
+        #{overTime,jdbcType=BIGINT},
+      </if>
+      <if test="logLevel != null">
+        #{logLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="enableInd != null">
+        #{enableInd,jdbcType=VARCHAR},
+      </if>
+      <if test="globalParmMntnInd != null">
+        #{globalParmMntnInd,jdbcType=VARCHAR},
+      </if>
+      <if test="reversalInd != null">
+        #{reversalInd,jdbcType=VARCHAR},
+      </if>
+      <if test="registerTrxnInd != null">
+        #{registerTrxnInd,jdbcType=VARCHAR},
+      </if>
+      <if test="dbTrxnSpreadType != null">
+        #{dbTrxnSpreadType,jdbcType=VARCHAR},
+      </if>
+      <if test="readWriteSeparait != null">
+        #{readWriteSeparait,jdbcType=VARCHAR},
+      </if>
+      <if test="forceCommit != null">
+        #{forceCommit,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateTime != null">
+        #{dataCreateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateTime != null">
+        #{dataUpdateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateUser != null">
+        #{dataCreateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateUser != null">
+        #{dataUpdateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataVersion != null">
+        #{dataVersion,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.ssy.base.entity.mybatis.MspTransaction">
+    update msp_transaction
+    <set>
+      <if test="trxnType != null">
+        trxn_type = #{trxnType,jdbcType=VARCHAR},
+      </if>
+      <if test="trxnDesc != null">
+        trxn_desc = #{trxnDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="allowReversal != null">
+        allow_reversal = #{allowReversal,jdbcType=VARCHAR},
+      </if>
+      <if test="flowTrxnId != null">
+        flow_trxn_id = #{flowTrxnId,jdbcType=VARCHAR},
+      </if>
+      <if test="registerPacketInd != null">
+        register_packet_ind = #{registerPacketInd,jdbcType=VARCHAR},
+      </if>
+      <if test="overTime != null">
+        over_time = #{overTime,jdbcType=BIGINT},
+      </if>
+      <if test="logLevel != null">
+        log_level = #{logLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="enableInd != null">
+        enable_ind = #{enableInd,jdbcType=VARCHAR},
+      </if>
+      <if test="globalParmMntnInd != null">
+        global_parm_mntn_ind = #{globalParmMntnInd,jdbcType=VARCHAR},
+      </if>
+      <if test="reversalInd != null">
+        reversal_ind = #{reversalInd,jdbcType=VARCHAR},
+      </if>
+      <if test="registerTrxnInd != null">
+        register_trxn_ind = #{registerTrxnInd,jdbcType=VARCHAR},
+      </if>
+      <if test="dbTrxnSpreadType != null">
+        db_trxn_spread_type = #{dbTrxnSpreadType,jdbcType=VARCHAR},
+      </if>
+      <if test="readWriteSeparait != null">
+        read_write_separait = #{readWriteSeparait,jdbcType=VARCHAR},
+      </if>
+      <if test="forceCommit != null">
+        force_commit = #{forceCommit,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateTime != null">
+        data_create_time = #{dataCreateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateTime != null">
+        data_update_time = #{dataUpdateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCreateUser != null">
+        data_create_user = #{dataCreateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataUpdateUser != null">
+        data_update_user = #{dataUpdateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="dataVersion != null">
+        data_version = #{dataVersion,jdbcType=BIGINT},
+      </if>
+    </set>
+    where trxn_code = #{trxnCode,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.ssy.base.entity.mybatis.MspTransaction">
+    update msp_transaction
+    set trxn_type = #{trxnType,jdbcType=VARCHAR},
+      trxn_desc = #{trxnDesc,jdbcType=VARCHAR},
+      allow_reversal = #{allowReversal,jdbcType=VARCHAR},
+      flow_trxn_id = #{flowTrxnId,jdbcType=VARCHAR},
+      register_packet_ind = #{registerPacketInd,jdbcType=VARCHAR},
+      over_time = #{overTime,jdbcType=BIGINT},
+      log_level = #{logLevel,jdbcType=VARCHAR},
+      enable_ind = #{enableInd,jdbcType=VARCHAR},
+      global_parm_mntn_ind = #{globalParmMntnInd,jdbcType=VARCHAR},
+      reversal_ind = #{reversalInd,jdbcType=VARCHAR},
+      register_trxn_ind = #{registerTrxnInd,jdbcType=VARCHAR},
+      db_trxn_spread_type = #{dbTrxnSpreadType,jdbcType=VARCHAR},
+      read_write_separait = #{readWriteSeparait,jdbcType=VARCHAR},
+      force_commit = #{forceCommit,jdbcType=VARCHAR},
+      data_create_time = #{dataCreateTime,jdbcType=VARCHAR},
+      data_update_time = #{dataUpdateTime,jdbcType=VARCHAR},
+      data_create_user = #{dataCreateUser,jdbcType=VARCHAR},
+      data_update_user = #{dataUpdateUser,jdbcType=VARCHAR},
+      data_version = #{dataVersion,jdbcType=BIGINT}
+    where trxn_code = #{trxnCode,jdbcType=VARCHAR}
+  </update>
+
+  <select id="selectAll_odb1" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from msp_transaction
+    where instr(#{trxnCode,jdbcType=VARCHAR}, trxn_code) > 0
+  </select>
+</mapper>

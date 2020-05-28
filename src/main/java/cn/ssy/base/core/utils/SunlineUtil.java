@@ -2,10 +2,12 @@ package cn.ssy.base.core.utils;
 
 import cn.ssy.base.core.network.api.NetworkApi;
 import cn.ssy.base.core.utils.mybatis.MybatisUtil;
+import cn.ssy.base.dao.factory.MapperFactory;
 import cn.ssy.base.dao.mapper.SmpSysDictMapper;
 import cn.ssy.base.dao.mapper.SppDictPriorityMapper;
 import cn.ssy.base.dao.mapper.SppEnumPriorityMapper;
 import cn.ssy.base.entity.consts.ApiConst;
+import cn.ssy.base.entity.context.Application;
 import cn.ssy.base.entity.mybatis.*;
 import cn.ssy.base.entity.plugins.Params;
 import cn.ssy.base.entity.plugins.TwoTuple;
@@ -81,9 +83,9 @@ public class SunlineUtil {
 	//是否以MS为最高优先级
 	private static final boolean isMsAsFirst = true;
 	//Mybatis工具
-	public static final MybatisUtil mybatisUtil = new MybatisUtil();
-	
-	
+	private static final MybatisUtil mybatisUtil = Application.getMybatisUtil();
+
+
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -112,7 +114,7 @@ public class SunlineUtil {
 				loadProjectFile(new File(projectPath));
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_FILE_KEY, projectFileMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目文件完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("Initialization project file completed");
 		}
 		if(CommonUtil.isNull(dictMap)){
 			//初始化项目字典
@@ -123,7 +125,7 @@ public class SunlineUtil {
 				loadProjectDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_DICT_KEY, dictMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目字典完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("Initialization project dictionary completed");
 		}
 		if(CommonUtil.isNull(enumMap)){
 			//初始化项目枚举
@@ -132,7 +134,7 @@ public class SunlineUtil {
 				loadProjectEnum();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_ENUM_KEY, enumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化项目枚举完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("Enumeration of initialization items completed");
 		}
 		if(CommonUtil.isNull(baseTypeMap)){
 			//初始化基础类型
@@ -141,7 +143,7 @@ public class SunlineUtil {
 				loanProjectBaseType();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_PROJECT_BASETYPE_KEY, baseTypeMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化基础类型完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("Initialization of basic types is completed");
 		}
 		if(CommonUtil.isNull(ctEnumMap)){
 			//初始化内管枚举
@@ -150,19 +152,19 @@ public class SunlineUtil {
 				loanCtDict();
 				redisOperateUtil.pushAllAsHash(ApiConst.REDIS_CT_DICT_KEY, ctEnumMap, ApiConst.REDIS_DEFAULT_TIMEOUT_SEC);
 			}
-			logger.info("初始化内管枚举完成>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			logger.info("Enumeration of the initial inner tube is completed");
 		}
 		CommonUtil.printSplitLine(150);
-		logger.info("项目文件数量:" + projectFileMap.size());
-		logger.info("项目字典数量:" + dictMap.size());
-		logger.info("项目枚举数量:" + enumMap.size());
+		logger.info("Number of project files:" + projectFileMap.size());
+		logger.info("Number of project dictionaries:" + dictMap.size());
+		logger.info("Number of items enumerated:" + enumMap.size());
 		
-		logger.info("基础类型数量:" + baseTypeMap.size());
-		logger.info("内管枚举数量:" + ctEnumMap.size());
+		logger.info("Number of basic types:" + baseTypeMap.size());
+		logger.info("Number of inner tube enumerations:" + ctEnumMap.size());
 		CommonUtil.printSplitLine(150);
 		
 		if(redisFirst){
-			logger.info("Redis缓存数据占用内存:" + redisOperateUtil.getRedisInfo().get("used_memory_human"));
+			logger.info("Redis cache data takes up memory:" + redisOperateUtil.getRedisInfo().get("used_memory_human"));
 		}
 		CommonUtil.printSplitLine(150);
 	}
@@ -1275,7 +1277,7 @@ public class SunlineUtil {
 		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(flowtranId) || CommonUtil.isNull(intfExcelPath)){
 			return;
 		}
-		TspServiceIn serviceIn = CommonUtil.mappingResultSetSingle(JDBCUtils.executeQuery("select * from tsp_service_in where inner_service_code like '%"+flowtranId+"'", dataSource), TspServiceIn.class);
+		TspServiceIn serviceIn = MapperFactory.getTspServiceInMapper(dataSource).selectOne_odb1(flowtranId);
 		Map<String, File> excelMap = CommonUtil.loadPathAllFiles(intfExcelPath);
 		for(String fileName : excelMap.keySet()){
 			if(fileName.contains(serviceIn.getInnerServiceCode()) || fileName.contains(serviceIn.getOutServiceCode())){
@@ -1372,7 +1374,6 @@ public class SunlineUtil {
 	 *         <li>功能说明：校验单个字段</li>
 	 *         </p>
 	 * @param rowMapList
-	 * @param fieldList
 	 * @param field
 	 */
 	private static boolean intfSingleFieldValidation(List<Map<String, Object>> rowMapList,Element field) {
@@ -1852,8 +1853,7 @@ public class SunlineUtil {
 	 *         <li>功能说明：网关API发布</li>
 	 *         </p>
 	 * @param dataSource
-	 * @param apiCode
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void sunlineGatewayApiRelease(String dataSource,E_ICOREMODULE module,String... serviceCode) throws Exception{
 		if(CommonUtil.isNull(dataSource) || CommonUtil.isNull(module)){
@@ -1861,7 +1861,7 @@ public class SunlineUtil {
 		}
 		String apiTamplateExcelPath = SunlineUtil.class.getResource("/tamplate/api_tamplate.xlsx").getPath();
 		List<Map<String, String>> dataList = new ArrayList<>();
-		List<TspServiceIn> serviceInList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from tsp_service_in where service_category = 'T'", dataSource), TspServiceIn.class);
+		List<TspServiceIn> serviceInList = MapperFactory.getTspServiceInMapper(dataSource).selectAll_odb1('T');
 		for(TspServiceIn tspServiceIn : serviceInList){
 			Map<String, String> dataMap = new HashMap<>();
 			dataMap.put("api", tspServiceIn.getOutServiceCode());
@@ -1882,23 +1882,6 @@ public class SunlineUtil {
 		ExcelReader.writeGatewayApi(apiTamplateExcelPath, dataList);
 		logger.info("生成网关API数量:" + dataList.size());
 	}
-	
-	
-	/**
-	 * @Author sunshaoyu
-	 *         <p>
-	 *         <li>2019年10月22日-上午10:49:55</li>
-	 *         <li>功能说明：查询有效的借据信息列表,上限为100</li>
-	 *         </p>
-	 * @param dataSource
-	 * @return
-	 * @throws SQLException 
-	 */
-	public static List<LnaLoan> sunlineGetEffectLoanList(String dataSource) throws SQLException{
-		String sql = "select a.* from lna_loan a,lnf_basic b where a.loan_status = 'NORMAL' and a.settl_ind = 'N' and a.wrof_ind = 'N' and a.loan_classification = 1 and a.prod_id = b.prod_id limit 100";
-		return CommonUtil.mappingResultSetList(JDBCUtils.executeQuery(sql, dataSource), LnaLoan.class);
-	}
-	
 	
 	/**
 	 * @Author sunshaoyu
@@ -2238,8 +2221,7 @@ public class SunlineUtil {
 	 *         <li>2019年11月22日-下午1:48:36</li>
 	 *         <li>功能说明：根据请求报文构建set语句</li>
 	 *         </p>
-	 * @param request
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	@SuppressWarnings("unchecked")
 	public static String sunlineBuildSetFromRequest(String dataSource) throws SQLException{
@@ -2250,7 +2232,7 @@ public class SunlineUtil {
 			JSONObject json = JSONObject.fromObject(request);
 			//获取服务码
 			String serviceCode = json.getJSONObject("sys").getString("servicecode");
-			List<MspTransaction> mspTransactionList = CommonUtil.mappingResultSetList(JDBCUtils.executeQuery("select * from msp_transaction where trxn_code like ?",new String[]{"%" + serviceCode.substring(serviceCode.length() - 4)}, dataSource), MspTransaction.class);
+			List<MspTransaction> mspTransactionList = MapperFactory.getMspTransactionMapper(dataSource).selectAll_odb1(serviceCode.substring(serviceCode.length() - 4));
 			String trxnCode = String.valueOf(mspTransactionList.get(0).getTrxnCode());
 			//获取flowtran
 			Element flowtranRoot = CommonUtil.getXmlRootElement(projectFileMap.get(trxnCode + ".flowtrans.xml"));
@@ -2395,7 +2377,6 @@ public class SunlineUtil {
 	 *         </p>
 	 * @param structModule	结构模块
 	 * @param moduleFullName	子模块全名
-	 * @param mergeNo	合并编号
 	 * @return
 	 * @throws IOException 
 	 * @throws IllegalStateException 
@@ -2651,7 +2632,6 @@ public class SunlineUtil {
 	 *         <li>2020年3月12日-上午10:40:21</li>
 	 *         <li>功能说明：为字段添加默认长度限制</li>
 	 *         </p>
-	 * @param isChange
 	 * @param controls
 	 * @return
 	 */

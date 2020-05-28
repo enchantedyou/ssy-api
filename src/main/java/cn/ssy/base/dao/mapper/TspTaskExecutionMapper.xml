@@ -5,7 +5,7 @@
     <constructor>
       <idArg column="task_num" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="task_exe_num" javaType="java.lang.String" jdbcType="VARCHAR" />
-      <idArg column="tran_date" javaType="java.util.Date" jdbcType="DATE" />
+      <idArg column="tran_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="sub_system_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="system_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="corporate_code" javaType="java.lang.String" jdbcType="VARCHAR" />
@@ -37,7 +37,7 @@
     <constructor>
       <idArg column="task_num" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="task_exe_num" javaType="java.lang.String" jdbcType="VARCHAR" />
-      <idArg column="tran_date" javaType="java.util.Date" jdbcType="DATE" />
+      <idArg column="tran_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="sub_system_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="system_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <idArg column="corporate_code" javaType="java.lang.String" jdbcType="VARCHAR" />
@@ -86,7 +86,6 @@
     <include refid="Blob_Column_List" />
     from tsp_task_execution
     where task_num = #{taskNum,jdbcType=VARCHAR}
-      and task_exe_num = #{taskExeNum,jdbcType=VARCHAR}
       and tran_date = #{tranDate,jdbcType=DATE}
       and sub_system_code = #{subSystemCode,jdbcType=VARCHAR}
       and system_code = #{systemCode,jdbcType=VARCHAR}

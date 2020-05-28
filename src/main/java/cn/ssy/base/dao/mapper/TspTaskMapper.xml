@@ -9,7 +9,7 @@
       <idArg column="corporate_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="task_exe_num" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="task_commit_date" javaType="java.lang.String" jdbcType="VARCHAR" />
-      <arg column="tran_date" javaType="java.util.Date" jdbcType="DATE" />
+      <arg column="tran_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="transaction_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="tran_flow_id" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="flow_step_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
@@ -43,7 +43,7 @@
       <idArg column="corporate_code" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="task_exe_num" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="task_commit_date" javaType="java.lang.String" jdbcType="VARCHAR" />
-      <arg column="tran_date" javaType="java.util.Date" jdbcType="DATE" />
+      <arg column="tran_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="transaction_date" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="tran_flow_id" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="flow_step_num" javaType="java.lang.Integer" jdbcType="INTEGER" />

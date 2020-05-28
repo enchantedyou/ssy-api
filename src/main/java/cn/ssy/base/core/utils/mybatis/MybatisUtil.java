@@ -29,7 +29,6 @@ public class MybatisUtil extends MybatisHelper{
 	
 	private final Logger logger = Logger.getLogger(MybatisUtil.class);
 	private SqlSession currentSqlSession;
-	private Map<Class<?>, SqlSession> sqlSessionMap = new HashMap<>();//<hashCode,SqlSession>
 
 	public MybatisUtil(boolean isLoadAllAtOnce) {
 		super(isLoadAllAtOnce);
@@ -42,19 +41,13 @@ public class MybatisUtil extends MybatisHelper{
 	public <T> T getMapper(String dataSourceId, Class<T> mapperClass){
 		SqlSession sqlSession;
 		try{
-			SqlSession cacheSqlSession = sqlSessionMap.get(mapperClass);
-			if(CommonUtil.isNotNull(cacheSqlSession)){
-				logger.info("Get sql session["+ cacheSqlSession +"] from cache");
-				if(null != currentSqlSession && cacheSqlSession != currentSqlSession){
-					//close();
-					currentSqlSession = cacheSqlSession;
-				}
-				sqlSession = cacheSqlSession;
-			}else{
-				sqlSession = getSqlSession(dataSourceId);
-				putCurrentSqlSession(sqlSession, mapperClass);
-			}
-			
+			sqlSession = getSqlSession(dataSourceId);
+			putCurrentSqlSession(sqlSession, mapperClass);
+
+			//关闭当前session
+			/*if(currentSqlSession != null && sqlSession != currentSqlSession){
+				close();
+			}*/
 			if(null == sqlSession){
 				throw new RuntimeException("Unable to get sql session which data source id is " + dataSourceId);
 			}
@@ -70,7 +63,6 @@ public class MybatisUtil extends MybatisHelper{
 	
 	private void putCurrentSqlSession(SqlSession sqlSession, Class<?> mapperClass){
 		currentSqlSession = sqlSession;
-		sqlSessionMap.put(mapperClass, currentSqlSession);
 	}
 	
 	private void checkCurrentSqlSession(){
@@ -94,26 +86,12 @@ public class MybatisUtil extends MybatisHelper{
 	}
 	
 	public void commit(){
-		for(Class<?> mapperClass : sqlSessionMap.keySet()){
-			SqlSession sqlSession = sqlSessionMap.get(mapperClass);
-			checkCurrentSqlSession(sqlSession);
-			sqlSession.commit();
-			
-			logger.info("Sql session " + sqlSession + "has committed successfully");
-			close(sqlSession);
-			sqlSessionMap.remove(mapperClass);
-		}
+		checkCurrentSqlSession(currentSqlSession);
+		currentSqlSession.commit();
 	}
 	
 	public void rollback(){
-		for(Class<?> mapperClass : sqlSessionMap.keySet()){
-			SqlSession sqlSession = sqlSessionMap.get(mapperClass);
-			checkCurrentSqlSession(sqlSession);
-			sqlSession.rollback();
-			
-			logger.info("Sql session " + sqlSession + "has committed successfully");
-			close(sqlSession);
-			sqlSessionMap.remove(mapperClass);
-		}
+		checkCurrentSqlSession(currentSqlSession);
+		currentSqlSession.rollback();
 	}
 }

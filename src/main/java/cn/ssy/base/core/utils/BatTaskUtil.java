@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import cn.ssy.base.dao.factory.MapperFactory;
 import org.apache.log4j.Logger;
 
 import cn.ssy.base.core.utils.mybatis.MybatisUtil;
@@ -49,8 +50,7 @@ public class BatTaskUtil {
 	public final static String SUCCESS_STATE = "success";
 	public final static String FAILURE_STATE = "failure";
 	public final static BatchSubConfig batConfig = Application.getContext().getBatch().getEnableBatchConfig();
-	public final static MybatisUtil mybatisUtil = new MybatisUtil();
-	
+
 	/**
 	 * @Author sunshaoyu
 	 *         <p>
@@ -61,24 +61,8 @@ public class BatTaskUtil {
 	 * @throws SQLException 
 	 */
 	public static List<TspTranController> getBatTaskList() throws SQLException{
-		List<TspTranController> taskList = getTspTranControllerMapper().selectAll();
+		List<TspTranController> taskList = MapperFactory.getTspTranControllerMapper(batConfig.getDatasource()).selectAll();
 		return taskList;
-	}
-	
-	private static TspTranControllerMapper getTspTranControllerMapper(){
-		return mybatisUtil.getMapper(batConfig.getDatasource(), TspTranControllerMapper.class);
-	}
-	
-	private static TspFlowStepControllerMapper getTspFlowStepControllerMapper(){
-		return mybatisUtil.getMapper(batConfig.getDatasource(), TspFlowStepControllerMapper.class);
-	}
-	
-	private static AppDateMapper getAppDateMapper(){
-		return mybatisUtil.getMapper(batConfig.getDatasource(), AppDateMapper.class);
-	}
-	
-	private static TspTaskMapper getTspTaskMapper(){
-		return mybatisUtil.getMapper(batConfig.getDatasource(), TspTaskMapper.class);
 	}
 	
 	/**
@@ -93,7 +77,7 @@ public class BatTaskUtil {
 	 */
 	public static TspTranController getBatTaskByTranCode(String tranGroupId, String tranCode, Integer stepId) throws SQLException{
 		TspTranControllerKey key = new TspTranControllerKey(batConfig.getSystemCode(), batConfig.getBusiOrgId(), tranGroupId, stepId, tranCode);
-		TspTranController record = getTspTranControllerMapper().selectByPrimaryKey(key);
+		TspTranController record = MapperFactory.getTspTranControllerMapper(batConfig.getDatasource()).selectByPrimaryKey(key);
 		return record;
 	}
 	
@@ -105,12 +89,11 @@ public class BatTaskUtil {
 	 *         <li>功能说明：根据批量交易码和步骤号获取流程信息</li>
 	 *         </p>
 	 * @param tranCode
-	 * @param stpId
 	 * @return
 	 * @throws SQLException
 	 */
 	public static String getTranFlowId(String tranCode, Integer stepId) throws SQLException{
-		TspFlowStepController record = getTspFlowStepControllerMapper().selectOne_odb1(tranCode, tranCode);
+		TspFlowStepController record = MapperFactory.getTspFlowStepControllerMapper(batConfig.getDatasource()).selectOne_odb1(tranCode, tranCode);
 		
 		if(CommonUtil.isNull(record)){
 			return null;
@@ -158,15 +141,16 @@ public class BatTaskUtil {
 	 * @throws ParseException 
 	 */
 	public static void tryStartupTask(String endDate) throws SQLException, InterruptedException, ExecutionException, ParseException{
-		AppDate appDate = getAppDateMapper().selectByPrimaryKey(batConfig.getBusiOrgId());
+		AppDateMapper appDateMapper = MapperFactory.getAppDateMapper(batConfig.getDatasource());
+		AppDate appDate = appDateMapper.selectByPrimaryKey(batConfig.getBusiOrgId());
 		while(CommonUtil.compare(appDate.getTrxnDate(), endDate) <= 0){
-			appDate = getAppDateMapper().selectByPrimaryKey(batConfig.getBusiOrgId());
+			appDate = appDateMapper.selectByPrimaryKey(batConfig.getBusiOrgId());
 			long start = System.currentTimeMillis();
 			BatTaskUtil.tryStartupTask();
 			long end = System.currentTimeMillis();
 			
 			logger.info("\r\n" + CommonUtil.buildSplitLine(50) + "交易日期["+appDate.getTrxnDate()+"]的批量任务执行完成,耗时:" + (end - start) + "ms" + CommonUtil.buildSplitLine(50) + "\r\n");
-			appDate = getAppDateMapper().selectByPrimaryKey(batConfig.getBusiOrgId());
+			appDate = appDateMapper.selectByPrimaryKey(batConfig.getBusiOrgId());
 			CommonUtil.systemPause(1000);
 		}
 	}
@@ -183,12 +167,13 @@ public class BatTaskUtil {
 	 * @throws ParseException 
 	 */
 	public static void tryStartupTask() throws SQLException, InterruptedException, ExecutionException, ParseException{
-		List<TspFlowStepController> flowStepControlList = getTspFlowStepControllerMapper().selectAll();
+		AppDateMapper appDateMapper = MapperFactory.getAppDateMapper(batConfig.getDatasource());
+		List<TspFlowStepController> flowStepControlList = MapperFactory.getTspFlowStepControllerMapper(batConfig.getDatasource()).selectAll();
 		for(TspFlowStepController tspFlowStepController : flowStepControlList){
-			AppDate appDate = getAppDateMapper().selectByPrimaryKey(batConfig.getBusiOrgId());
+			AppDate appDate = appDateMapper.selectByPrimaryKey(batConfig.getBusiOrgId());
 			//日切前判断
 			if("Switch".equals(tspFlowStepController.getTranFlowId())){
-				List<TspTaskWithBLOBs> taskList = getTspTaskMapper().selectAll_odb1(appDate.getTrxnDate());
+				List<TspTaskWithBLOBs> taskList = MapperFactory.getTspTaskMapper(batConfig.getDatasource()).selectAll_odb1(appDate.getTrxnDate());
 				//当天有失败的批量,不日切
 				if(CommonUtil.isNotNull(taskList)){
 					logger.info(CommonUtil.buildSplitLine(30) + "交易日期["+ appDate.getTrxnDate() +"]存在执行失败的批量,不进行日切" + CommonUtil.buildSplitLine(30));
@@ -198,7 +183,7 @@ public class BatTaskUtil {
 			String taskNum = tspFlowStepController.getTranFlowId() + "_" + appDate.getTrxnDate() + "_" + appDate.getBusiOrgId(); 
 			logger.info(CommonUtil.buildSplitLine(50) + taskNum + "  begin" + CommonUtil.buildSplitLine(50));
 			
-			TspTranController tspTranController = getTspTranControllerMapper().selectOne_odb1(tspFlowStepController.getTranGroupId());
+			TspTranController tspTranController = MapperFactory.getTspTranControllerMapper(batConfig.getDatasource()).selectOne_odb1(tspFlowStepController.getTranGroupId());
 			if(CommonUtil.isNull(tspTranController)){
 				logger.info("批量交易组[" + tspFlowStepController.getTranGroupId() + "-" + tspFlowStepController.getFlowStepName() +"]对应的交易控制器不存在");
 			}else{
@@ -222,18 +207,19 @@ public class BatTaskUtil {
 	 * @throws ParseException 
 	 */
 	private static void startupTask(String tranGroupId, String tranFlowId, String tranCode,Integer stepId,String taskNum) throws SQLException, InterruptedException, ExecutionException, ParseException{
-		String trxnDate = getAppDateMapper().selectByPrimaryKey(batConfig.getBusiOrgId()).getTrxnDate();
+		TspTaskMapper tspTaskMapper = MapperFactory.getTspTaskMapper(batConfig.getDatasource());
+		String trxnDate = MapperFactory.getAppDateMapper(batConfig.getDatasource()).selectByPrimaryKey(batConfig.getBusiOrgId()).getTrxnDate();
 		String dataArea = "{\"comm_req\":{\"initiator_system\":\""+batConfig.getSystemCode()+"\",\"trxn_branch\":\""+batConfig.getTrxnBranch()+"\",\"trxn_teller\":\"S####\",\"sponsor_system\":\""+batConfig.getSystemCode()+"\",\"busi_org_id\":\""+batConfig.getBusiOrgId()+"\",\"channel_id\":\""+batConfig.getChannelId()+"\"}}";
 		logger.info("当前批量任务标识:" + taskNum);
 		
 		String dateformatDate = trxnDate.substring(0, 4) + "-" + trxnDate.substring(4,6) + "-" + trxnDate.substring(6);
 		boolean startupSuccessInd = false;
 		
-		TspTaskWithBLOBs tspTask = getTspTaskMapper().selectByPrimaryKey(new TspTaskKey(batConfig.getSubSystemId(), taskNum, batConfig.getSystemCode(), batConfig.getBusiOrgId()));
+		TspTaskWithBLOBs tspTask = tspTaskMapper.selectByPrimaryKey(new TspTaskKey(batConfig.getSubSystemId(), taskNum, batConfig.getSystemCode(), batConfig.getBusiOrgId()));
 		if(CommonUtil.isNotNull(tspTask)){
 			if(!SUCCESS_STATE.equals(tspTask.getTranState())){
 				tspTask.setTranState("onprocess");
-				getTspTaskMapper().updateByPrimaryKey(tspTask);
+				tspTaskMapper.updateByPrimaryKey(tspTask);
 				logger.info("任务["+ taskNum +"]执行失败,重新执行");
 			}else{
 				logger.info("任务["+ taskNum +"]已成功,跳过执行");
@@ -257,14 +243,14 @@ public class BatTaskUtil {
 			tspTask.setTaskCommitDate(trxnDate);
 			tspTask.setTaskExeMode("1");
 			tspTask.setTranFlowId(tranFlowId);
-			startupSuccessInd = getTspTaskMapper().insert(tspTask) > 0;
+			startupSuccessInd = tspTaskMapper.insert(tspTask) > 0;
 		}
 		
 		if(startupSuccessInd){
 			logger.info("步骤号为["+stepId+"]的批量交易["+tranCode+"]启动成功");
 			
 			//监听批量任务
-			BatchProcessThread listener = new BatchProcessThread(taskNum, dateformatDate, tspTask.getTaskExeNum());
+			BatchProcessThread listener = new BatchProcessThread(taskNum, dateformatDate);
 			listenerThreadTask = new FutureTask<>(listener);
 			listenerThreadTask.run();
 		}else{

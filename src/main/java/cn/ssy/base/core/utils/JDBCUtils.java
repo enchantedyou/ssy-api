@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.ssy.base.dao.factory.MapperFactory;
 import org.apache.log4j.Logger;
 
 import cn.ssy.base.entity.config.C3p0Config;
@@ -60,10 +61,10 @@ public class JDBCUtils {
 			localDatasource.setDatasourceUser(dbConfig.getUser());
 			localDatasource.setDatasourcePwd(dbConfig.getPassword());
 			loadDynamicDatasource(localDatasource);
-			logger.info("本地装载数据源:" +localDatasource.getDatasourceId());
+			logger.info("装载本地数据源:" +localDatasource.getDatasourceId());
 			
 			//装载动态数据源
-			List<SppDatasource> dataSourceList = CommonUtil.mappingResultSetList(executeQuery("select * from spp_datasource", ApiConst.DATASOURCE_LOCAL), SppDatasource.class);
+			List<SppDatasource> dataSourceList = MapperFactory.getSppDatasourceMapper().selectAll();
 			for(SppDatasource dataSource : dataSourceList){
 				loadDynamicDatasource(dataSource);
 				logger.info("装载动态数据源:" + dataSource.getDatasourceId());
@@ -81,11 +82,6 @@ public class JDBCUtils {
 	 *         <li>2019年8月15日-下午7:52:57</li>
 	 *         <li>功能说明：装载动态数据源</li>
 	 *         </p>
-	 * @param datasourceId
-	 * @param driver
-	 * @param url
-	 * @param user
-	 * @param pwd
 	 * @throws PropertyVetoException
 	 */
 	private static void loadDynamicDatasource(SppDatasource datasource) throws PropertyVetoException{
@@ -216,7 +212,6 @@ public class JDBCUtils {
 	/**
 	 * 含参sql语句的更新方法,含增丶删丶改
 	 * 
-	 * @param sql
 	 * @param parameter
 	 * @return 返回是否成功的真假值
 	 * @throws SQLException 

@@ -75,10 +75,4 @@ public class TspTaskExecutionKey {
     public void setCorporateCode(String corporateCode) {
         this.corporateCode = corporateCode == null ? null : corporateCode.trim();
     }
-
-	@Override
-	public String toString() {
-		return "TspTaskExecutionKey [taskNum=" + taskNum + ", taskExeNum=" + taskExeNum + ", tranDate=" + tranDate + ", subSystemCode=" + subSystemCode + ", systemCode="
-				+ systemCode + ", corporateCode=" + corporateCode + "]";
-	}
 }

@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import cn.ssy.base.core.utils.mybatis.MybatisUtil;
+import cn.ssy.base.dao.factory.MapperFactory;
+import cn.ssy.base.entity.context.Application;
 import org.apache.log4j.Logger;
 
 import cn.ssy.base.core.utils.BatTaskUtil;
@@ -35,22 +38,17 @@ import cn.ssy.base.entity.plugins.TwoTuple;
 public class BatchProcessThread implements Callable<TspTaskExecutionWithBLOBs>{
 	
 	private static final Logger logger = Logger.getLogger(BatchProcessThread.class);
+	private static MybatisUtil mybatisUtil = Application.getMybatisUtil();
 	private String taskNum;
-	private String taskExeNum;
 	private String trxnDate;
 	private long delay = CommonUtil.nvl(BatTaskUtil.batConfig.getFetchStatusDelay(), 2000L);
 	
-	public BatchProcessThread(String taskNum, String trxnDate, String taskExeNum) {
+	public BatchProcessThread(String taskNum, String trxnDate) {
 		super();
 		this.taskNum = taskNum;
 		this.trxnDate = trxnDate;
-		this.taskExeNum = taskExeNum;
 	}
 
-	private static TspTaskExecutionMapper getTspTaskExecutionMapper(){
-		return BatTaskUtil.mybatisUtil.getMapper(BatTaskUtil.batConfig.getDatasource(), TspTaskExecutionMapper.class);
-	}
-	
 	@Override
 	public TspTaskExecutionWithBLOBs call() throws Exception {
 		//String sql = "select * from tsp_task_execution where system_code = '"+BatTaskUtil.batConfig.getSystemCode()+"' and corporate_code = '"+BatTaskUtil.batConfig.getBusiOrgId()+"' and task_num = ? and tran_id = ? and sub_system_code = '"+BatTaskUtil.batConfig.getSubSystemId()+"' order by tran_start_time desc limit 0,1";
@@ -71,7 +69,7 @@ public class BatchProcessThread implements Callable<TspTaskExecutionWithBLOBs>{
 		
 		TspTaskExecutionWithBLOBs tspTaskExecution = null;
 		do{
-			tspTaskExecution = getTspTaskExecutionMapper().selectByPrimaryKey(new TspTaskExecutionKey(taskNum, taskExeNum, trxnDate, BatTaskUtil.batConfig.getSubSystemId(), BatTaskUtil.batConfig.getSystemCode(), BatTaskUtil.batConfig.getBusiOrgId()));
+			tspTaskExecution = MapperFactory.getTspTaskExecutionMapper(BatTaskUtil.batConfig.getDatasource()).selectByPrimaryKey(new TspTaskExecutionKey(taskNum, null, trxnDate, BatTaskUtil.batConfig.getSubSystemId(), BatTaskUtil.batConfig.getSystemCode(), BatTaskUtil.batConfig.getBusiOrgId()));
 			if(CommonUtil.isNotNull(tspTaskExecution)){
 				String taskGetStr = tspTaskExecution.getCurrentTranGroupId() + "-" + tspTaskExecution.getCurrentStep();
 				if(CommonUtil.isNotNull(taskMap.get(taskGetStr))){

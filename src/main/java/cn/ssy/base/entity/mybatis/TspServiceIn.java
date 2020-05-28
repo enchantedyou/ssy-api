@@ -1,181 +1,184 @@
 package cn.ssy.base.entity.mybatis;
 
+public class TspServiceIn extends TspServiceInKey {
+    private String innerServiceCode;
 
+    private String innerServiceImplCode;
 
-public class TspServiceIn {
+    private String description;
 
-	private String systemCode;
+    private String serviceCategory;
 
-	private String subSystemCode;
+    private String routeKeys;
 
-	private String outServiceCode;
+    private String serviceType;
 
-	private String innerServiceCode;
+    private String protocolId;
 
-	private String innerServiceImplCode;
+    private Integer isEnable;
 
-	private String description;
+    private String transactionMode;
 
-	private String serviceCategory;
+    private String logLevel;
 
-	private String routeKeys;
+    private Integer timeout;
 
-	private String serviceType;
+    private Integer aliasMapping;
 
-	private String protocolId;
+    private Integer forceUnusedOdbCache;
 
-	private Integer isEnable;
+    private String registerMode;
 
-	private String transactionMode;
+    public TspServiceIn(String systemCode, String subSystemCode, String outServiceCode, String innerServiceCode, String innerServiceImplCode, String description, String serviceCategory, String routeKeys, String serviceType, String protocolId, Integer isEnable, String transactionMode, String logLevel, Integer timeout, Integer aliasMapping, Integer forceUnusedOdbCache, String registerMode) {
+        super(systemCode, subSystemCode, outServiceCode);
+        this.innerServiceCode = innerServiceCode;
+        this.innerServiceImplCode = innerServiceImplCode;
+        this.description = description;
+        this.serviceCategory = serviceCategory;
+        this.routeKeys = routeKeys;
+        this.serviceType = serviceType;
+        this.protocolId = protocolId;
+        this.isEnable = isEnable;
+        this.transactionMode = transactionMode;
+        this.logLevel = logLevel;
+        this.timeout = timeout;
+        this.aliasMapping = aliasMapping;
+        this.forceUnusedOdbCache = forceUnusedOdbCache;
+        this.registerMode = registerMode;
+    }
 
-	private String logLevel;
+    public TspServiceIn() {
+        super();
+    }
 
-	private Integer timeout;
+    public String getInnerServiceCode() {
+        return innerServiceCode;
+    }
 
-	private Integer aliasMapping;
+    public void setInnerServiceCode(String innerServiceCode) {
+        this.innerServiceCode = innerServiceCode == null ? null : innerServiceCode.trim();
+    }
 
-	private Integer forceUnusedOdbCache;
+    public String getInnerServiceImplCode() {
+        return innerServiceImplCode;
+    }
 
-	private String registerMode;
+    public void setInnerServiceImplCode(String innerServiceImplCode) {
+        this.innerServiceImplCode = innerServiceImplCode == null ? null : innerServiceImplCode.trim();
+    }
 
-	public String getSystemCode() {
-		return systemCode;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setSystemCode(String systemCode) {
-		this.systemCode = systemCode;
-	}
+    public void setDescription(String description) {
+        this.description = description == null ? null : description.trim();
+    }
 
-	public String getSubSystemCode() {
-		return subSystemCode;
-	}
+    public String getServiceCategory() {
+        return serviceCategory;
+    }
 
-	public void setSubSystemCode(String subSystemCode) {
-		this.subSystemCode = subSystemCode;
-	}
+    public void setServiceCategory(String serviceCategory) {
+        this.serviceCategory = serviceCategory == null ? null : serviceCategory.trim();
+    }
 
-	public String getOutServiceCode() {
-		return outServiceCode;
-	}
+    public String getRouteKeys() {
+        return routeKeys;
+    }
 
-	public void setOutServiceCode(String outServiceCode) {
-		this.outServiceCode = outServiceCode;
-	}
+    public void setRouteKeys(String routeKeys) {
+        this.routeKeys = routeKeys == null ? null : routeKeys.trim();
+    }
 
-	public String getInnerServiceCode() {
-		return innerServiceCode;
-	}
+    public String getServiceType() {
+        return serviceType;
+    }
 
-	public void setInnerServiceCode(String innerServiceCode) {
-		this.innerServiceCode = innerServiceCode;
-	}
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType == null ? null : serviceType.trim();
+    }
 
-	public String getInnerServiceImplCode() {
-		return innerServiceImplCode;
-	}
+    public String getProtocolId() {
+        return protocolId;
+    }
 
-	public void setInnerServiceImplCode(String innerServiceImplCode) {
-		this.innerServiceImplCode = innerServiceImplCode;
-	}
+    public void setProtocolId(String protocolId) {
+        this.protocolId = protocolId == null ? null : protocolId.trim();
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public Integer getIsEnable() {
+        return isEnable;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setIsEnable(Integer isEnable) {
+        this.isEnable = isEnable;
+    }
 
-	public String getServiceCategory() {
-		return serviceCategory;
-	}
+    public String getTransactionMode() {
+        return transactionMode;
+    }
 
-	public void setServiceCategory(String serviceCategory) {
-		this.serviceCategory = serviceCategory;
-	}
+    public void setTransactionMode(String transactionMode) {
+        this.transactionMode = transactionMode == null ? null : transactionMode.trim();
+    }
 
-	public String getRouteKeys() {
-		return routeKeys;
-	}
+    public String getLogLevel() {
+        return logLevel;
+    }
 
-	public void setRouteKeys(String routeKeys) {
-		this.routeKeys = routeKeys;
-	}
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel == null ? null : logLevel.trim();
+    }
 
-	public String getServiceType() {
-		return serviceType;
-	}
+    public Integer getTimeout() {
+        return timeout;
+    }
 
-	public void setServiceType(String serviceType) {
-		this.serviceType = serviceType;
-	}
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
 
-	public String getProtocolId() {
-		return protocolId;
-	}
+    public Integer getAliasMapping() {
+        return aliasMapping;
+    }
 
-	public void setProtocolId(String protocolId) {
-		this.protocolId = protocolId;
-	}
+    public void setAliasMapping(Integer aliasMapping) {
+        this.aliasMapping = aliasMapping;
+    }
 
-	public Integer getIsEnable() {
-		return isEnable;
-	}
+    public Integer getForceUnusedOdbCache() {
+        return forceUnusedOdbCache;
+    }
 
-	public void setIsEnable(Integer isEnable) {
-		this.isEnable = isEnable;
-	}
+    public void setForceUnusedOdbCache(Integer forceUnusedOdbCache) {
+        this.forceUnusedOdbCache = forceUnusedOdbCache;
+    }
 
-	public String getTransactionMode() {
-		return transactionMode;
-	}
+    public String getRegisterMode() {
+        return registerMode;
+    }
 
-	public void setTransactionMode(String transactionMode) {
-		this.transactionMode = transactionMode;
-	}
+    public void setRegisterMode(String registerMode) {
+        this.registerMode = registerMode == null ? null : registerMode.trim();
+    }
 
-	public String getLogLevel() {
-		return logLevel;
-	}
-
-	public void setLogLevel(String logLevel) {
-		this.logLevel = logLevel;
-	}
-
-	public Integer getTimeout() {
-		return timeout;
-	}
-
-	public void setTimeout(Integer timeout) {
-		this.timeout = timeout;
-	}
-
-	public Integer getAliasMapping() {
-		return aliasMapping;
-	}
-
-	public void setAliasMapping(Integer aliasMapping) {
-		this.aliasMapping = aliasMapping;
-	}
-
-	public Integer getForceUnusedOdbCache() {
-		return forceUnusedOdbCache;
-	}
-
-	public void setForceUnusedOdbCache(Integer forceUnusedOdbCache) {
-		this.forceUnusedOdbCache = forceUnusedOdbCache;
-	}
-
-	public String getRegisterMode() {
-		return registerMode;
-	}
-
-	public void setRegisterMode(String registerMode) {
-		this.registerMode = registerMode;
-	}
-
-	@Override
-	public String toString() {
-		return "TspServiceIn [systemCode=" + systemCode + ", subSystemCode=" + subSystemCode + ", outServiceCode=" + outServiceCode + ", innerServiceCode=" + innerServiceCode + ", innerServiceImplCode=" + innerServiceImplCode + ", description=" + description + ", serviceCategory=" + serviceCategory + ", routeKeys=" + routeKeys + ", serviceType=" + serviceType + ", protocolId=" + protocolId + ", isEnable=" + isEnable + ", transactionMode=" + transactionMode + ", logLevel=" + logLevel + ", timeout=" + timeout + ", aliasMapping=" + aliasMapping + ", forceUnusedOdbCache=" + forceUnusedOdbCache + ", registerMode=" + registerMode + "]";
-	}
+    public String toString() {
+        return "TspServiceIn{" +
+                "innerServiceCode='" + innerServiceCode + '\'' +
+                ", innerServiceImplCode='" + innerServiceImplCode + '\'' +
+                ", description='" + description + '\'' +
+                ", serviceCategory='" + serviceCategory + '\'' +
+                ", routeKeys='" + routeKeys + '\'' +
+                ", serviceType='" + serviceType + '\'' +
+                ", protocolId='" + protocolId + '\'' +
+                ", isEnable=" + isEnable +
+                ", transactionMode='" + transactionMode + '\'' +
+                ", logLevel='" + logLevel + '\'' +
+                ", timeout=" + timeout +
+                ", aliasMapping=" + aliasMapping +
+                ", forceUnusedOdbCache=" + forceUnusedOdbCache +
+                ", registerMode='" + registerMode + '\'' +
+                '}';
+    }
 }

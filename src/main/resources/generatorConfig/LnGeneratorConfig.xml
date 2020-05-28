@@ -26,6 +26,6 @@
         </javaClientGenerator>
         
         <!-- 表与实体间的映射 -->
-        <table tableName="tsp_tran_controller" domainObjectName="TspTranController" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
+        <table tableName="msp_transaction" domainObjectName="MspTransaction" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" delimitAllColumns=""/>
     </context>
 </generatorConfiguration>
